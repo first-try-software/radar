@@ -43,4 +43,16 @@ RSpec.describe Project do
 
     expect(project.valid?).to be(false)
   end
+
+  it 'records whether it has been archived' do
+    project = described_class.new(name: 'Status', archived: true)
+
+    expect(project).to be_archived
+  end
+
+  it 'defaults archived to false when omitted' do
+    project = described_class.new(name: 'Status')
+
+    expect(project).not_to be_archived
+  end
 end
