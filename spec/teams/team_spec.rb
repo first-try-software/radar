@@ -86,4 +86,11 @@ RSpec.describe Team do
 
     expect(team.owned_projects.length).to eq(1)
   end
+
+  it 'lazy loads subordinate teams via the loader' do
+    loader = ->(_team) { [double('Team')] }
+    team = described_class.new(name: 'Platform', subordinate_teams_loader: loader)
+
+    expect(team.subordinate_teams.length).to eq(1)
+  end
 end
