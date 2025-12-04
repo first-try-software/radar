@@ -62,4 +62,25 @@ RSpec.describe Project do
 
     expect(project.subordinate_projects.map(&:name)).to eq(['Child'])
   end
+
+  it 'defaults current_state to :new' do
+    project = described_class.new(name: 'Status')
+
+    expect(project.current_state).to eq(:new)
+  end
+
+  it 'raises when initialized with an invalid state' do
+    expect do
+      described_class.new(name: 'Status', current_state: :invalid)
+    end.to raise_error(ArgumentError)
+  end
+
+  it 'returns a new project when updating state' do
+    project = described_class.new(name: 'Status')
+
+    updated = project.with_state(state: :todo)
+
+    expect(updated.current_state).to eq(:todo)
+    expect(updated).not_to equal(project)
+  end
 end
