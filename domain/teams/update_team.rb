@@ -7,24 +7,45 @@ class UpdateTeam
   end
 
   def perform(id:, name:, mission: '', vision: '', point_of_contact: '', archived: false)
-    existing_team = team_repository.find(id)
-    return Result.failure(errors: ['team not found']) unless existing_team
+    @id = id
+    @attributes = { name:, mission:, vision:, point_of_contact:, archived: }
 
-    updated_team = Team.new(
-      name: name,
-      mission: mission,
-      vision: vision,
-      point_of_contact: point_of_contact,
-      archived: archived
-    )
+    return team_not_found_failure unless existing_team
+    return invalid_team_failure unless updated_team.valid?
 
-    return Result.failure(errors: updated_team.errors) unless updated_team.valid?
-
-    team_repository.save(id: id, team: updated_team)
-    Result.success(value: updated_team)
+    save
+    success
   end
 
   private
 
-  attr_reader :team_repository
+  attr_reader :team_repository, :id, :attributes
+
+  def existing_team
+    @existing_team ||= team_repository.find(id)
+  end
+
+  def updated_team
+    @updated_team ||= Team.new(**attributes)
+  end
+
+  def team_not_found_failure
+    failure(['team not found'])
+  end
+
+  def invalid_team_failure
+    failure(updated_team.errors)
+  end
+
+  def save
+    team_repository.save(id: id, team: updated_team)
+  end
+
+  def success
+    Result.success(value: updated_team)
+  end
+
+  def failure(errors)
+    Result.failure(errors: errors)
+  end
 end

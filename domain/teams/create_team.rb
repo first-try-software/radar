@@ -7,24 +7,35 @@ class CreateTeam
   end
 
   def perform(name:, mission: '', vision: '', point_of_contact: '')
-    team = Team.new(
-      name: name,
-      mission: mission,
-      vision: vision,
-      point_of_contact: point_of_contact
-    )
+    @attributes = { name:, mission:, vision:, point_of_contact: }
 
-    return failure(team) unless team.valid?
+    return invalid_team_failure unless team.valid?
 
-    team_repository.save(team)
-    Result.success(value: team)
+    save
+    success
   end
 
   private
 
-  attr_reader :team_repository
+  attr_reader :team_repository, :attributes
 
-  def failure(team)
-    Result.failure(errors: team.errors)
+  def team
+    @team ||= Team.new(**attributes)
+  end
+
+  def invalid_team_failure
+    failure(team.errors)
+  end
+
+  def save
+    team_repository.save(team)
+  end
+
+  def success
+    Result.success(value: team)
+  end
+
+  def failure(errors)
+    Result.failure(errors: errors)
   end
 end

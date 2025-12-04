@@ -7,22 +7,45 @@ class ArchiveTeam
   end
 
   def perform(id:)
-    team = team_repository.find(id)
-    return Result.failure(errors: ['team not found']) unless team
+    @id = id
 
-    archived_team = Team.new(
+    return team_not_found_failure unless team
+
+    save
+    success
+  end
+
+  private
+
+  attr_reader :team_repository, :id
+
+  def team
+    @team ||= team_repository.find(id)
+  end
+
+  def archived_team
+    @archived_team ||= Team.new(
       name: team.name,
       mission: team.mission,
       vision: team.vision,
       point_of_contact: team.point_of_contact,
       archived: true
     )
+  end
 
+  def team_not_found_failure
+    failure(['team not found'])
+  end
+
+  def save
     team_repository.save(id: id, team: archived_team)
+  end
+
+  def success
     Result.success(value: archived_team)
   end
 
-  private
-
-  attr_reader :team_repository
+  def failure(errors)
+    Result.failure(errors: errors)
+  end
 end
