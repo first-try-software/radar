@@ -21,6 +21,10 @@ RSpec.describe UpdateProject do
     def save(id:, project:)
       records[id] = project
     end
+
+    def exists_with_name?(name)
+      records.values.any? { |project| project.name == name }
+    end
   end
 
   it 'looks up the existing project by id' do
@@ -73,6 +77,17 @@ RSpec.describe UpdateProject do
     expect(result.errors).to eq([])
   end
 
+  it 'succeeds when the name is unchanged' do
+    repository = UpdateProjectRepository.new
+    repository.add(id: '123', project: Project.new(name: 'Status'))
+    action = described_class.new(project_repository: repository)
+
+    result = action.perform(id: '123', name: 'Status')
+
+    expect(result.success?).to be(true)
+    expect(result.errors).to eq([])
+  end
+
   it 'returns a failure result when the project cannot be found' do
     repository = UpdateProjectRepository.new
     action = described_class.new(project_repository: repository)
@@ -119,5 +134,27 @@ RSpec.describe UpdateProject do
     result = action.perform(id: '123', name: '')
 
     expect(result.errors).to eq(['name must be present'])
+  end
+
+  it 'returns a failure result when the new project name already exists' do
+    repository = UpdateProjectRepository.new
+    repository.add(id: '123', project: Project.new(name: 'Old'))
+    repository.add(id: '456', project: Project.new(name: 'Status'))
+    action = described_class.new(project_repository: repository)
+
+    result = action.perform(id: '123', name: 'Status')
+
+    expect(result.success?).to be(false)
+  end
+
+  it 'returns an error message when the new project name already exists' do
+    repository = UpdateProjectRepository.new
+    repository.add(id: '123', project: Project.new(name: 'Old'))
+    repository.add(id: '456', project: Project.new(name: 'Status'))
+    action = described_class.new(project_repository: repository)
+
+    result = action.perform(id: '123', name: 'Status')
+
+    expect(result.errors).to eq(['project name must be unique'])
   end
 end

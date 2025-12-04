@@ -14,6 +14,7 @@ class CreateProject
     )
 
     return failure_result(project) unless project.valid?
+    return duplicate_failure if project_repository.exists_with_name?(project.name)
 
     project_repository.save(project)
     Result.success(value: project)
@@ -25,5 +26,9 @@ class CreateProject
 
   def failure_result(project)
     Result.failure(errors: project.errors)
+  end
+
+  def duplicate_failure
+    Result.failure(errors: ['project name must be unique'])
   end
 end

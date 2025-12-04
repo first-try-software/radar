@@ -13,6 +13,10 @@ RSpec.describe CreateProject do
     def save(project)
       records << project
     end
+
+    def exists_with_name?(name)
+      records.any? { |project| project.name == name }
+    end
   end
 
   it 'stores the created project in the provided repository' do
@@ -77,5 +81,25 @@ RSpec.describe CreateProject do
     result = action.perform(name: '')
 
     expect(result.errors).to eq(['name must be present'])
+  end
+
+  it 'returns a failure result when the project name already exists' do
+    repository = CreateProjectRepository.new
+    repository.save(Project.new(name: 'Status'))
+    action = described_class.new(project_repository: repository)
+
+    result = action.perform(name: 'Status')
+
+    expect(result.success?).to be(false)
+  end
+
+  it 'returns an error message when the project name already exists' do
+    repository = CreateProjectRepository.new
+    repository.save(Project.new(name: 'Status'))
+    action = described_class.new(project_repository: repository)
+
+    result = action.perform(name: 'Status')
+
+    expect(result.errors).to eq(['project name must be unique'])
   end
 end
