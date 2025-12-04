@@ -61,4 +61,11 @@ RSpec.describe Initiative do
 
     expect(initiative.errors).to eq(['name must be present'])
   end
+
+  it 'lazy loads related projects via the loader' do
+    loader = ->(_initiative) { [double('Project')] }
+    initiative = described_class.new(name: 'Modernize Infra', related_projects_loader: loader)
+
+    expect(initiative.related_projects.length).to eq(1)
+  end
 end
