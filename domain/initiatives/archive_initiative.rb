@@ -33,7 +33,7 @@ class ArchiveInitiative
   end
 
   def initiative_not_found_failure
-    failure(['initiative not found'])
+    failure('initiative not found')
   end
 
   def save

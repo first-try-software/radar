@@ -33,7 +33,7 @@ class ArchiveProject
   end
 
   def project_not_found_failure
-    failure(['project not found'])
+    failure('project not found')
   end
 
   def save

@@ -34,7 +34,7 @@ class ArchiveTeam
   end
 
   def team_not_found_failure
-    failure(['team not found'])
+    failure('team not found')
   end
 
   def save

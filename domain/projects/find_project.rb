@@ -26,6 +26,6 @@ class FindProject
   end
 
   def project_not_found_failure
-    Result.failure(errors: ['project not found'])
+    Result.failure(errors: 'project not found')
   end
 end

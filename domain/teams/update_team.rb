@@ -30,7 +30,7 @@ class UpdateTeam
   end
 
   def team_not_found_failure
-    failure(['team not found'])
+    failure('team not found')
   end
 
   def invalid_team_failure

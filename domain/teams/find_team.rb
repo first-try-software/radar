@@ -26,6 +26,6 @@ class FindTeam
   end
 
   def team_not_found_failure
-    Result.failure(errors: ['team not found'])
+    Result.failure(errors: 'team not found')
   end
 end

@@ -37,7 +37,7 @@ class CreateProject
   end
 
   def duplicate_name_failure
-    failure(['project name must be unique'])
+    failure('project name must be unique')
   end
 
   def save

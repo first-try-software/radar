@@ -26,6 +26,6 @@ class FindInitiative
   end
 
   def initiative_not_found_failure
-    Result.failure(errors: ['initiative not found'])
+    Result.failure(errors: 'initiative not found')
   end
 end

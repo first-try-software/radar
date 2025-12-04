@@ -30,7 +30,7 @@ class UpdateInitiative
   end
 
   def initiative_not_found_failure
-    failure(['initiative not found'])
+    failure('initiative not found')
   end
 
   def invalid_initiative_failure

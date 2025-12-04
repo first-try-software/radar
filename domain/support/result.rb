@@ -12,7 +12,7 @@ class Result
   def initialize(success:, value:, errors:)
     @success = success
     @value = value
-    @errors = errors
+    @errors = Array(errors).compact
   end
 
   def success?

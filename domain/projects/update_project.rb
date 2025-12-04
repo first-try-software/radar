@@ -43,7 +43,7 @@ class UpdateProject
   end
 
   def project_not_found_failure
-    failure(['project not found'])
+    failure('project not found')
   end
 
   def invalid_project_failure
@@ -51,7 +51,7 @@ class UpdateProject
   end
 
   def duplicate_name_failure
-    failure(['project name must be unique'])
+    failure('project name must be unique')
   end
 
   def save
