@@ -7,21 +7,44 @@ class ArchiveProject
   end
 
   def perform(id:)
-    project = project_repository.find(id)
-    return Result.failure(errors: ['project not found']) unless project
+    @id = id
 
-    archived_project = Project.new(
+    return project_not_found_failure unless project
+
+    save
+    success
+  end
+
+  private
+
+  attr_reader :project_repository, :id
+
+  def project
+    @project ||= project_repository.find(id)
+  end
+
+  def archived_project
+    @archived_project ||= Project.new(
       name: project.name,
       description: project.description,
       point_of_contact: project.point_of_contact,
       archived: true
     )
+  end
 
+  def project_not_found_failure
+    failure(['project not found'])
+  end
+
+  def save
     project_repository.save(id: id, project: archived_project)
+  end
+
+  def success
     Result.success(value: archived_project)
   end
 
-  private
-
-  attr_reader :project_repository
+  def failure(errors)
+    Result.failure(errors: errors)
+  end
 end

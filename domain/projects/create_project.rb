@@ -7,28 +7,48 @@ class CreateProject
   end
 
   def perform(name:, description: '', point_of_contact: '')
-    project = Project.new(
-      name: name,
-      description: description,
-      point_of_contact: point_of_contact
-    )
+    @attributes = { name:, description:, point_of_contact: }
 
-    return failure_result(project) unless project.valid?
-    return duplicate_failure if project_repository.exists_with_name?(project.name)
+    return invalid_project_failure unless project.valid?
+    return duplicate_name_failure unless unique_name?
 
-    project_repository.save(project)
-    Result.success(value: project)
+    save
+    success
   end
 
   private
 
-  attr_reader :project_repository
+  attr_reader :project_repository, :attributes
 
-  def failure_result(project)
-    Result.failure(errors: project.errors)
+  def project
+    @project ||= Project.new(**attributes)
   end
 
-  def duplicate_failure
-    Result.failure(errors: ['project name must be unique'])
+  def duplicate_name?
+    project_repository.exists_with_name?(project.name)
+  end
+
+  def unique_name?
+    !duplicate_name?
+  end
+
+  def invalid_project_failure
+    failure(project.errors)
+  end
+
+  def duplicate_name_failure
+    failure(['project name must be unique'])
+  end
+
+  def save
+    project_repository.save(project)
+  end
+
+  def success
+    Result.success(value: project)
+  end
+
+  def failure(errors)
+    Result.failure(errors: errors)
   end
 end
