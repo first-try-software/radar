@@ -55,4 +55,11 @@ RSpec.describe Project do
 
     expect(project).not_to be_archived
   end
+
+  it 'lazy loads subordinate projects via the loader' do
+    loader = ->(_project) { [described_class.new(name: 'Child')] }
+    project = described_class.new(name: 'Parent', subordinates_loader: loader)
+
+    expect(project.subordinate_projects.map(&:name)).to eq(['Child'])
+  end
 end
