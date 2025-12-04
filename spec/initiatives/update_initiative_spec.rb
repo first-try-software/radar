@@ -37,10 +37,17 @@ RSpec.describe UpdateInitiative do
     repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
-    action.perform(id: 'init-123', name: 'Modernize Infra 2', description: 'New description', archived: true)
+    action.perform(
+      id: 'init-123',
+      name: 'Modernize Infra 2',
+      description: 'New description',
+      point_of_contact: 'Jordan',
+      archived: true
+    )
 
     stored_initiative = repository.records['init-123']
     expect(stored_initiative.name).to eq('Modernize Infra 2')
+    expect(stored_initiative.point_of_contact).to eq('Jordan')
   end
 
   it 'returns a successful result when the update succeeds' do
@@ -48,7 +55,7 @@ RSpec.describe UpdateInitiative do
     repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
-    result = action.perform(id: 'init-123', name: 'Modernize Infra 2')
+    result = action.perform(id: 'init-123', name: 'Modernize Infra 2', point_of_contact: 'Jordan')
 
     expect(result.success?).to be(true)
   end
@@ -58,7 +65,7 @@ RSpec.describe UpdateInitiative do
     repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
-    result = action.perform(id: 'init-123', name: 'Modernize Infra 2')
+    result = action.perform(id: 'init-123', name: 'Modernize Infra 2', point_of_contact: 'Jordan')
 
     expect(result.value).to be_a(Initiative)
   end
@@ -68,7 +75,7 @@ RSpec.describe UpdateInitiative do
     repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
-    result = action.perform(id: 'init-123', name: 'Modernize Infra 2')
+    result = action.perform(id: 'init-123', name: 'Modernize Infra 2', point_of_contact: 'Jordan')
 
     expect(result.errors).to eq([])
   end
@@ -77,7 +84,7 @@ RSpec.describe UpdateInitiative do
     repository = UpdateInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
-    result = action.perform(id: 'missing', name: 'Modernize Infra 2')
+    result = action.perform(id: 'missing', name: 'Modernize Infra 2', point_of_contact: 'Jordan')
 
     expect(result.success?).to be(false)
   end
@@ -86,7 +93,7 @@ RSpec.describe UpdateInitiative do
     repository = UpdateInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
-    result = action.perform(id: 'missing', name: 'Modernize Infra 2')
+    result = action.perform(id: 'missing', name: 'Modernize Infra 2', point_of_contact: 'Jordan')
 
     expect(result.errors).to eq(['initiative not found'])
   end
@@ -96,7 +103,7 @@ RSpec.describe UpdateInitiative do
     repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
-    result = action.perform(id: 'init-123', name: '')
+    result = action.perform(id: 'init-123', name: '', point_of_contact: 'Jordan')
 
     expect(result.success?).to be(false)
   end
@@ -106,7 +113,7 @@ RSpec.describe UpdateInitiative do
     repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
-    action.perform(id: 'init-123', name: '')
+    action.perform(id: 'init-123', name: '', point_of_contact: 'Jordan')
 
     expect(repository.records['init-123'].name).to eq('Modernize Infra')
   end
@@ -116,7 +123,7 @@ RSpec.describe UpdateInitiative do
     repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
-    result = action.perform(id: 'init-123', name: '')
+    result = action.perform(id: 'init-123', name: '', point_of_contact: 'Jordan')
 
     expect(result.errors).to eq(['name must be present'])
   end

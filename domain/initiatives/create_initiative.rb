@@ -6,20 +6,36 @@ class CreateInitiative
     @initiative_repository = initiative_repository
   end
 
-  def perform(name:, description: '')
-    initiative = Initiative.new(name: name, description: description)
+  def perform(name:, description: '', point_of_contact: '')
+    @attributes = { name:, description:, point_of_contact: }
 
-    return failure(initiative) unless initiative.valid?
+    return invalid_initiative_failure unless initiative.valid?
 
-    initiative_repository.save(initiative)
-    Result.success(value: initiative)
+    save
+    success
   end
 
   private
 
-  attr_reader :initiative_repository
+  attr_reader :initiative_repository, :attributes
 
-  def failure(initiative)
-    Result.failure(errors: initiative.errors)
+  def initiative
+    @initiative ||= Initiative.new(**attributes)
+  end
+
+  def invalid_initiative_failure
+    failure(initiative.errors)
+  end
+
+  def save
+    initiative_repository.save(initiative)
+  end
+
+  def success
+    Result.success(value: initiative)
+  end
+
+  def failure(errors)
+    Result.failure(errors: errors)
   end
 end

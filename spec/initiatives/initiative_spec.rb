@@ -20,6 +20,18 @@ RSpec.describe Initiative do
     expect(initiative.description).to eq('')
   end
 
+  it 'returns its point of contact' do
+    initiative = described_class.new(name: 'Modernize Infra', point_of_contact: 'Jordan')
+
+    expect(initiative.point_of_contact).to eq('Jordan')
+  end
+
+  it 'defaults point_of_contact to an empty string' do
+    initiative = described_class.new(name: 'Modernize Infra')
+
+    expect(initiative.point_of_contact).to eq('')
+  end
+
   it 'records whether it is archived' do
     initiative = described_class.new(name: 'Modernize Infra', archived: true)
 

@@ -19,10 +19,15 @@ RSpec.describe CreateInitiative do
     repository = CreateInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
-    action.perform(name: 'Modernize Infra', description: 'Refresh platform services')
+    action.perform(
+      name: 'Modernize Infra',
+      description: 'Refresh platform services',
+      point_of_contact: 'Jordan'
+    )
 
     stored_initiative = repository.records.first
     expect(stored_initiative.name).to eq('Modernize Infra')
+    expect(stored_initiative.point_of_contact).to eq('Jordan')
   end
 
   it 'returns a successful result' do

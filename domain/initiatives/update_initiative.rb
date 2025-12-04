@@ -6,23 +6,46 @@ class UpdateInitiative
     @initiative_repository = initiative_repository
   end
 
-  def perform(id:, name:, description: '', archived: false)
-    existing_initiative = initiative_repository.find(id)
-    return Result.failure(errors: ['initiative not found']) unless existing_initiative
+  def perform(id:, name:, description: '', point_of_contact: '', archived: false)
+    @id = id
+    @attributes = { name:, description:, point_of_contact:, archived: }
 
-    updated_initiative = Initiative.new(
-      name: name,
-      description: description,
-      archived: archived
-    )
+    return initiative_not_found_failure unless existing_initiative
+    return invalid_initiative_failure unless updated_initiative.valid?
 
-    return Result.failure(errors: updated_initiative.errors) unless updated_initiative.valid?
-
-    initiative_repository.save(id: id, initiative: updated_initiative)
-    Result.success(value: updated_initiative)
+    save
+    success
   end
 
   private
 
-  attr_reader :initiative_repository
+  attr_reader :initiative_repository, :id, :attributes
+
+  def existing_initiative
+    @existing_initiative ||= initiative_repository.find(id)
+  end
+
+  def updated_initiative
+    @updated_initiative ||= Initiative.new(**attributes)
+  end
+
+  def initiative_not_found_failure
+    failure(['initiative not found'])
+  end
+
+  def invalid_initiative_failure
+    failure(updated_initiative.errors)
+  end
+
+  def save
+    initiative_repository.save(id: id, initiative: updated_initiative)
+  end
+
+  def success
+    Result.success(value: updated_initiative)
+  end
+
+  def failure(errors)
+    Result.failure(errors: errors)
+  end
 end

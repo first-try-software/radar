@@ -6,13 +6,26 @@ class FindInitiative
   end
 
   def perform(id:)
-    initiative = initiative_repository.find(id)
-    return Result.failure(errors: ['initiative not found']) unless initiative
+    @id = id
 
-    Result.success(value: initiative)
+    return initiative_not_found_failure unless initiative
+
+    success
   end
 
   private
 
-  attr_reader :initiative_repository
+  attr_reader :initiative_repository, :id
+
+  def initiative
+    @initiative ||= initiative_repository.find(id)
+  end
+
+  def success
+    Result.success(value: initiative)
+  end
+
+  def initiative_not_found_failure
+    Result.failure(errors: ['initiative not found'])
+  end
 end

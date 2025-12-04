@@ -7,20 +7,44 @@ class ArchiveInitiative
   end
 
   def perform(id:)
-    initiative = initiative_repository.find(id)
-    return Result.failure(errors: ['initiative not found']) unless initiative
+    @id = id
 
-    archived_initiative = Initiative.new(
-      name: initiative.name,
-      description: initiative.description,
-      archived: true
-    )
+    return initiative_not_found_failure unless initiative
 
-    initiative_repository.save(id: id, initiative: archived_initiative)
-    Result.success(value: archived_initiative)
+    save
+    success
   end
 
   private
 
-  attr_reader :initiative_repository
+  attr_reader :initiative_repository, :id
+
+  def initiative
+    @initiative ||= initiative_repository.find(id)
+  end
+
+  def archived_initiative
+    @archived_initiative ||= Initiative.new(
+      name: initiative.name,
+      description: initiative.description,
+      point_of_contact: initiative.point_of_contact,
+      archived: true
+    )
+  end
+
+  def initiative_not_found_failure
+    failure(['initiative not found'])
+  end
+
+  def save
+    initiative_repository.save(id: id, initiative: archived_initiative)
+  end
+
+  def success
+    Result.success(value: archived_initiative)
+  end
+
+  def failure(errors)
+    Result.failure(errors: errors)
+  end
 end

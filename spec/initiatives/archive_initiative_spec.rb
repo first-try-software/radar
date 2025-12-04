@@ -34,18 +34,25 @@ RSpec.describe ArchiveInitiative do
 
   it 'archives the initiative and saves it' do
     repository = ArchiveInitiativeRepository.new
-    repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
+    repository.seed(
+      id: 'init-123',
+      initiative: Initiative.new(name: 'Modernize Infra', point_of_contact: 'Jordan')
+    )
     action = described_class.new(initiative_repository: repository)
 
     action.perform(id: 'init-123')
 
     stored_initiative = repository.records['init-123']
     expect(stored_initiative).to be_archived
+    expect(stored_initiative.point_of_contact).to eq('Jordan')
   end
 
   it 'returns a successful result when the initiative is archived' do
     repository = ArchiveInitiativeRepository.new
-    repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
+    repository.seed(
+      id: 'init-123',
+      initiative: Initiative.new(name: 'Modernize Infra', point_of_contact: 'Jordan')
+    )
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(id: 'init-123')
@@ -55,7 +62,10 @@ RSpec.describe ArchiveInitiative do
 
   it 'returns the archived initiative as the result value' do
     repository = ArchiveInitiativeRepository.new
-    repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
+    repository.seed(
+      id: 'init-123',
+      initiative: Initiative.new(name: 'Modernize Infra', point_of_contact: 'Jordan')
+    )
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(id: 'init-123')
