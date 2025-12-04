@@ -69,10 +69,11 @@ RSpec.describe Project do
     expect(project.current_state).to eq(:new)
   end
 
-  it 'raises when initialized with an invalid state' do
-    expect do
-      described_class.new(name: 'Status', current_state: :invalid)
-    end.to raise_error(ArgumentError)
+  it 'is invalid when initialized with an invalid state' do
+    project = described_class.new(name: 'Status', current_state: :invalid)
+
+    expect(project.valid?).to be(false)
+    expect(project.errors).to include('state must be valid')
   end
 
   it 'returns a new project when updating state' do
@@ -82,5 +83,76 @@ RSpec.describe Project do
 
     expect(updated.current_state).to eq(:todo)
     expect(updated).not_to equal(project)
+  end
+
+  describe 'health' do
+    it 'returns :not_available when state is :new' do
+      project = described_class.new(name: 'Status')
+
+      expect(project.health).to eq(:not_available)
+    end
+
+    it 'returns :not_available when state is :blocked and no updates exist' do
+      loader = ->(_project) { [] }
+      project = described_class.new(
+        name: 'Status',
+        current_state: :blocked,
+        health_updates_loader: loader,
+        weekly_health_updates_loader: loader
+      )
+
+      expect(project.health).to eq(:not_available)
+    end
+
+    it 'returns the latest health when state is :in_progress' do
+      updates = [
+        double('HealthUpdate', date: Date.new(2025, 1, 1), health: :on_track),
+        double('HealthUpdate', date: Date.new(2025, 1, 8), health: :at_risk)
+      ]
+      loader = ->(_project) { updates }
+      project = described_class.new(
+        name: 'Status',
+        current_state: :in_progress,
+        health_updates_loader: loader,
+        weekly_health_updates_loader: loader
+      )
+
+      expect(project.health).to eq(:at_risk)
+    end
+  end
+
+  describe 'health_trend' do
+    it 'returns empty trend when state is :todo' do
+      project = described_class.new(name: 'Status')
+
+      expect(project.health_trend).to eq([])
+    end
+
+    it 'returns empty trend when no weekly updates exist' do
+      loader = ->(_project) { [] }
+      project = described_class.new(
+        name: 'Status',
+        current_state: :in_progress,
+        health_updates_loader: loader,
+        weekly_health_updates_loader: loader
+      )
+
+      expect(project.health_trend).to eq([])
+    end
+
+    it 'returns the last six weekly updates when present' do
+      updates = (1..10).map do |week|
+        double('HealthUpdate', date: Date.new(2025, 1, week), health: :on_track)
+      end
+      loader = ->(_project) { updates }
+      project = described_class.new(
+        name: 'Status',
+        current_state: :in_progress,
+        health_updates_loader: loader,
+        weekly_health_updates_loader: loader
+      )
+
+      expect(project.health_trend).to eq(updates.last(6))
+    end
   end
 end

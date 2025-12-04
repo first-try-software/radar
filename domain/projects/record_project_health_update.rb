@@ -1,0 +1,80 @@
+require 'date'
+require_relative '../support/result'
+require_relative 'health_update'
+
+class RecordProjectHealthUpdate
+  ALLOWED_HEALTHS = [:on_track, :at_risk, :off_track].freeze
+  ALLOWED_PROJECT_STATES = [:in_progress, :blocked].freeze
+
+  def initialize(project_repository:, health_update_repository:)
+    @project_repository = project_repository
+    @health_update_repository = health_update_repository
+  end
+
+  def perform(project_id:, date:, health:, description: nil)
+    @project_id = project_id
+    @date = date
+    @health = health&.to_sym
+    @description = description
+
+    return project_not_found_failure unless project
+    return invalid_project_state_failure unless allowed_project_state?
+    return missing_date_failure unless date_present?
+    return invalid_health_failure unless allowed_health?
+
+    save
+    success
+  end
+
+  private
+
+  attr_reader :project_repository, :health_update_repository, :project_id, :date, :health, :description
+
+  def project
+    @project ||= project_repository.find(project_id)
+  end
+
+  def allowed_project_state?
+    ALLOWED_PROJECT_STATES.include?(project.current_state)
+  end
+
+  def allowed_health?
+    ALLOWED_HEALTHS.include?(health)
+  end
+
+  def date_present?
+    !date.nil?
+  end
+
+  def project_not_found_failure
+    failure('project not found')
+  end
+
+  def invalid_project_state_failure
+    failure('invalid project state')
+  end
+
+  def missing_date_failure
+    failure('date is required')
+  end
+
+  def invalid_health_failure
+    failure('invalid health')
+  end
+
+  def update
+    @update ||= HealthUpdate.new(project_id: project_id, date: date, health: health, description: description)
+  end
+
+  def save
+    health_update_repository.save(update)
+  end
+
+  def success
+    Result.success(value: update)
+  end
+
+  def failure(errors)
+    Result.failure(errors: errors)
+  end
+end

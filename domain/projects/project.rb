@@ -9,30 +9,36 @@ class Project
     point_of_contact: '',
     archived: false,
     subordinates_loader: nil,
-    current_state: :new,
-    state_description: nil
+    health_updates_loader: nil,
+    weekly_health_updates_loader: nil,
+    current_state: :new
   )
     @name = name.to_s
     @description = description.to_s
     @point_of_contact = point_of_contact.to_s
     @archived = archived
     @subordinates_loader = subordinates_loader
+    @health_updates_loader = health_updates_loader
+    @weekly_health_updates_loader = weekly_health_updates_loader
     @subordinate_projects = nil
-    @current_state = normalize_state(current_state)
+    @health_updates = nil
+    @weekly_health_updates = nil
+    @current_state = (current_state || :new).to_sym
   end
 
   def valid?
-    !name.strip.empty?
+    name_present? && state_valid?
   end
 
   def errors
-    return [] if valid?
-
-    ['name must be present']
+    [].tap do |errs|
+      errs << 'name must be present' unless name_present?
+      errs << 'state must be valid' unless state_valid?
+    end
   end
 
   def archived?
-    !!@archived
+    !!archived
   end
 
   def subordinate_projects
@@ -42,17 +48,33 @@ class Project
   def with_state(state:)
     self.class.new(
       name: name,
-      description: self.description,
+      description: description,
       point_of_contact: point_of_contact,
       archived: archived?,
-      subordinates_loader: @subordinates_loader,
+      subordinates_loader: subordinates_loader,
+      health_updates_loader: health_updates_loader,
+      weekly_health_updates_loader: weekly_health_updates_loader,
       current_state: state
     )
   end
 
+  def health
+    return :not_available unless working_state?
+    return :not_available if health_updates.empty?
+
+    health_updates.max_by(&:date).health
+  end
+
+  def health_trend
+    return [] unless working_state?
+    return [] if weekly_health_updates.empty?
+
+    weekly_health_updates.last(6)
+  end
+
   private
 
-  attr_reader :subordinates_loader
+  attr_reader :archived, :subordinates_loader, :health_updates_loader, :weekly_health_updates_loader
 
   def load_subordinates
     return [] unless subordinates_loader
@@ -60,10 +82,23 @@ class Project
     subordinates_loader.call(self)
   end
 
-  def normalize_state(state)
-    symbol = state&.to_sym
-    raise ArgumentError, 'invalid project state' unless ALLOWED_STATES.include?(symbol)
+  def health_updates
+    @health_updates ||= Array(health_updates_loader&.call(self))
+  end
 
-    symbol
+  def weekly_health_updates
+    @weekly_health_updates ||= Array(weekly_health_updates_loader&.call(self))
+  end
+
+  def working_state?
+    [:in_progress, :blocked].include?(current_state)
+  end
+
+  def name_present?
+    !name.strip.empty?
+  end
+
+  def state_valid?
+    ALLOWED_STATES.include?(current_state)
   end
 end
