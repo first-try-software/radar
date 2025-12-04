@@ -1,6 +1,6 @@
 require 'spec_helper'
-require_relative '../../domain/projects/record_project_health_update'
-require_relative '../../domain/projects/project'
+require_relative '../../../domain/projects/record_project_health_update'
+require_relative '../../../domain/projects/project'
 
 RSpec.describe RecordProjectHealthUpdate do
   class ProjectRepoDouble

@@ -1,6 +1,6 @@
 require 'spec_helper'
-require_relative '../../domain/projects/set_project_state'
-require_relative '../../domain/projects/project'
+require_relative '../../../domain/projects/set_project_state'
+require_relative '../../../domain/projects/project'
 
 RSpec.describe SetProjectState do
   class SetProjectStateRepository

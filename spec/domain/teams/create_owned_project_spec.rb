@@ -1,7 +1,7 @@
 require 'spec_helper'
-require_relative '../../domain/teams/create_owned_project'
-require_relative '../../domain/teams/team'
-require_relative '../../domain/projects/project'
+require_relative '../../../domain/teams/create_owned_project'
+require_relative '../../../domain/teams/team'
+require_relative '../../../domain/projects/project'
 
 RSpec.describe CreateOwnedProject do
   class CreateOwnedProjectTeamRepository

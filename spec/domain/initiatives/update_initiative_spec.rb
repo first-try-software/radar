@@ -1,6 +1,6 @@
 require 'spec_helper'
-require_relative '../../domain/initiatives/update_initiative'
-require_relative '../../domain/initiatives/initiative'
+require_relative '../../../domain/initiatives/update_initiative'
+require_relative '../../../domain/initiatives/initiative'
 
 RSpec.describe UpdateInitiative do
   class UpdateInitiativeRepository

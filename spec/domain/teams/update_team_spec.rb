@@ -1,6 +1,6 @@
 require 'spec_helper'
-require_relative '../../domain/teams/update_team'
-require_relative '../../domain/teams/team'
+require_relative '../../../domain/teams/update_team'
+require_relative '../../../domain/teams/team'
 
 RSpec.describe UpdateTeam do
   class UpdateTeamRepository

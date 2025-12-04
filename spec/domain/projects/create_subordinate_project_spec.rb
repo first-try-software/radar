@@ -1,6 +1,6 @@
 require 'spec_helper'
-require_relative '../../domain/projects/create_subordinate_project'
-require_relative '../../domain/projects/project'
+require_relative '../../../domain/projects/create_subordinate_project'
+require_relative '../../../domain/projects/project'
 
 RSpec.describe CreateSubordinateProject do
   class CreateSubordinateProjectRepository

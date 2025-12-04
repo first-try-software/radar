@@ -1,5 +1,5 @@
 require 'spec_helper'
-require_relative '../../domain/initiatives/initiative'
+require_relative '../../../domain/initiatives/initiative'
 
 RSpec.describe Initiative do
   it 'returns its name' do
