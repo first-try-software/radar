@@ -1,32 +1,21 @@
 require 'spec_helper'
 require_relative '../../../domain/teams/create_team'
 require_relative '../../../domain/teams/team'
+require_relative '../../support/persistence/fake_team_repository'
 
 RSpec.describe CreateTeam do
-  class CreateTeamRepository
-    attr_reader :records
-
-    def initialize
-      @records = []
-    end
-
-    def save(team)
-      records << team
-    end
-  end
-
   it 'stores the created team in the provided repository' do
-    repository = CreateTeamRepository.new
+    repository = FakeTeamRepository.new
     action = described_class.new(team_repository: repository)
 
     action.perform(name: 'Platform', mission: 'Enable delivery velocity', point_of_contact: 'Jordan')
 
-    stored_team = repository.records.first
+    stored_team = repository.find('Platform')
     expect(stored_team.name).to eq('Platform')
   end
 
   it 'returns a successful result' do
-    repository = CreateTeamRepository.new
+    repository = FakeTeamRepository.new
     action = described_class.new(team_repository: repository)
 
     result = action.perform(name: 'Platform')
@@ -35,7 +24,7 @@ RSpec.describe CreateTeam do
   end
 
   it 'returns the stored team as the result value' do
-    repository = CreateTeamRepository.new
+    repository = FakeTeamRepository.new
     action = described_class.new(team_repository: repository)
 
     result = action.perform(name: 'Platform')
@@ -44,7 +33,7 @@ RSpec.describe CreateTeam do
   end
 
   it 'returns no errors on success' do
-    repository = CreateTeamRepository.new
+    repository = FakeTeamRepository.new
     action = described_class.new(team_repository: repository)
 
     result = action.perform(name: 'Platform')
@@ -53,7 +42,7 @@ RSpec.describe CreateTeam do
   end
 
   it 'returns a failure result when the team is invalid' do
-    repository = CreateTeamRepository.new
+    repository = FakeTeamRepository.new
     action = described_class.new(team_repository: repository)
 
     result = action.perform(name: '')
@@ -62,16 +51,16 @@ RSpec.describe CreateTeam do
   end
 
   it 'does not store a team when it is invalid' do
-    repository = CreateTeamRepository.new
+    repository = FakeTeamRepository.new
     action = described_class.new(team_repository: repository)
 
     action.perform(name: '')
 
-    expect(repository.records).to be_empty
+    expect(repository.exists_with_name?('')).to be(false)
   end
 
   it 'returns validation errors when the team is invalid' do
-    repository = CreateTeamRepository.new
+    repository = FakeTeamRepository.new
     action = described_class.new(team_repository: repository)
 
     result = action.perform(name: '')

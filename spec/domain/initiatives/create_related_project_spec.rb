@@ -2,49 +2,13 @@ require 'spec_helper'
 require_relative '../../../domain/initiatives/create_related_project'
 require_relative '../../../domain/initiatives/initiative'
 require_relative '../../../domain/projects/project'
+require_relative '../../support/persistence/fake_initiative_repository'
+require_relative '../../support/persistence/fake_project_repository'
 
 RSpec.describe CreateRelatedProject do
-  class CreateRelatedProjectInitiativeRepository
-    attr_reader :initiatives, :relationships
-
-    def initialize(initiatives: {})
-      @initiatives = initiatives
-      @relationships = []
-    end
-
-    def find(id)
-      initiatives[id]
-    end
-
-    def link_related_project(initiative_id:, project:, order:)
-      relationships << { initiative_id:, project:, order: }
-    end
-
-    def next_related_project_order(initiative_id:)
-      max = relationships.select { |rel| rel[:initiative_id] == initiative_id }.map { |rel| rel[:order] }.max
-      max ? max + 1 : 0
-    end
-  end
-
-  class CreateRelatedProjectProjectRepository
-    attr_reader :projects
-
-    def initialize(existing: [])
-      @projects = existing
-    end
-
-    def save(project)
-      projects << project
-    end
-
-    def exists_with_name?(name)
-      projects.any? { |project| project.name == name }
-    end
-  end
-
   it 'fails when the initiative cannot be found' do
-    initiative_repository = CreateRelatedProjectInitiativeRepository.new
-    project_repository = CreateRelatedProjectProjectRepository.new
+    initiative_repository = FakeInitiativeRepository.new
+    project_repository = FakeProjectRepository.new
     action = described_class.new(
       initiative_repository: initiative_repository,
       project_repository: project_repository
@@ -58,8 +22,8 @@ RSpec.describe CreateRelatedProject do
 
   it 'fails when the project is invalid' do
     initiative = Initiative.new(name: 'Modernize Infra')
-    initiative_repository = CreateRelatedProjectInitiativeRepository.new(initiatives: { 'init-123' => initiative })
-    project_repository = CreateRelatedProjectProjectRepository.new
+    initiative_repository = FakeInitiativeRepository.new(initiatives: { 'init-123' => initiative })
+    project_repository = FakeProjectRepository.new
     action = described_class.new(
       initiative_repository: initiative_repository,
       project_repository: project_repository
@@ -73,8 +37,9 @@ RSpec.describe CreateRelatedProject do
 
   it 'fails when the project name already exists' do
     initiative = Initiative.new(name: 'Modernize Infra')
-    initiative_repository = CreateRelatedProjectInitiativeRepository.new(initiatives: { 'init-123' => initiative })
-    project_repository = CreateRelatedProjectProjectRepository.new(existing: [Project.new(name: 'Project')])
+    initiative_repository = FakeInitiativeRepository.new(initiatives: { 'init-123' => initiative })
+    project_repository = FakeProjectRepository.new
+    project_repository.save(Project.new(name: 'Project'))
     action = described_class.new(
       initiative_repository: initiative_repository,
       project_repository: project_repository
@@ -88,8 +53,8 @@ RSpec.describe CreateRelatedProject do
 
   it 'saves the project and links it to the initiative' do
     initiative = Initiative.new(name: 'Modernize Infra')
-    initiative_repository = CreateRelatedProjectInitiativeRepository.new(initiatives: { 'init-123' => initiative })
-    project_repository = CreateRelatedProjectProjectRepository.new
+    initiative_repository = FakeInitiativeRepository.new(initiatives: { 'init-123' => initiative })
+    project_repository = FakeProjectRepository.new
     action = described_class.new(
       initiative_repository: initiative_repository,
       project_repository: project_repository
@@ -103,9 +68,9 @@ RSpec.describe CreateRelatedProject do
     )
 
     expect(result.success?).to be(true)
-    project = project_repository.projects.first
+    project = project_repository.find('Status')
     expect(project.name).to eq('Status')
-    relationship = initiative_repository.relationships.first
+    relationship = initiative_repository.related_projects_for(initiative_id: 'init-123').first
     expect(relationship[:initiative_id]).to eq('init-123')
     expect(relationship[:order]).to eq(0)
   end

@@ -38,7 +38,7 @@ class UpdateTeam
   end
 
   def save
-    team_repository.save(id: id, team: updated_team)
+    team_repository.update(id: id, team: updated_team)
   end
 
   def success

@@ -37,7 +37,7 @@ class ArchiveProject
   end
 
   def save
-    project_repository.save(id: id, project: archived_project)
+    project_repository.update(id: id, project: archived_project)
   end
 
   def success

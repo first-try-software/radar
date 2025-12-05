@@ -1,36 +1,21 @@
 require 'spec_helper'
 require_relative '../../../domain/projects/create_project'
 require_relative '../../../domain/projects/project'
+require_relative '../../support/persistence/fake_project_repository'
 
 RSpec.describe CreateProject do
-  class CreateProjectRepository
-    attr_reader :records
-
-    def initialize
-      @records = []
-    end
-
-    def save(project)
-      records << project
-    end
-
-    def exists_with_name?(name)
-      records.any? { |project| project.name == name }
-    end
-  end
-
   it 'stores the created project in the provided repository' do
-    repository = CreateProjectRepository.new
+    repository = FakeProjectRepository.new
     action = described_class.new(project_repository: repository)
 
     action.perform(name: 'Status', description: 'Status dashboard', point_of_contact: 'Alex')
 
-    stored_project = repository.records.first
+    stored_project = repository.find('Status')
     expect(stored_project.name).to eq('Status')
   end
 
   it 'returns a successful result' do
-    repository = CreateProjectRepository.new
+    repository = FakeProjectRepository.new
     action = described_class.new(project_repository: repository)
 
     result = action.perform(name: 'Status')
@@ -39,7 +24,7 @@ RSpec.describe CreateProject do
   end
 
   it 'returns the stored project as the result value' do
-    repository = CreateProjectRepository.new
+    repository = FakeProjectRepository.new
     action = described_class.new(project_repository: repository)
 
     result = action.perform(name: 'Status')
@@ -48,7 +33,7 @@ RSpec.describe CreateProject do
   end
 
   it 'returns no errors on success' do
-    repository = CreateProjectRepository.new
+    repository = FakeProjectRepository.new
     action = described_class.new(project_repository: repository)
 
     result = action.perform(name: 'Status')
@@ -57,7 +42,7 @@ RSpec.describe CreateProject do
   end
 
   it 'returns a failure result when the project is invalid' do
-    repository = CreateProjectRepository.new
+    repository = FakeProjectRepository.new
     action = described_class.new(project_repository: repository)
 
     result = action.perform(name: '')
@@ -66,16 +51,16 @@ RSpec.describe CreateProject do
   end
 
   it 'does not store a project when it is invalid' do
-    repository = CreateProjectRepository.new
+    repository = FakeProjectRepository.new
     action = described_class.new(project_repository: repository)
 
     action.perform(name: '')
 
-    expect(repository.records).to be_empty
+    expect(repository.exists_with_name?('')).to be(false)
   end
 
   it 'returns a descriptive validation error' do
-    repository = CreateProjectRepository.new
+    repository = FakeProjectRepository.new
     action = described_class.new(project_repository: repository)
 
     result = action.perform(name: '')
@@ -84,7 +69,7 @@ RSpec.describe CreateProject do
   end
 
   it 'returns a failure result when the project name already exists' do
-    repository = CreateProjectRepository.new
+    repository = FakeProjectRepository.new
     repository.save(Project.new(name: 'Status'))
     action = described_class.new(project_repository: repository)
 
@@ -94,7 +79,7 @@ RSpec.describe CreateProject do
   end
 
   it 'returns an error message when the project name already exists' do
-    repository = CreateProjectRepository.new
+    repository = FakeProjectRepository.new
     repository.save(Project.new(name: 'Status'))
     action = described_class.new(project_repository: repository)
 

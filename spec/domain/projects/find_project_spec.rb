@@ -1,29 +1,11 @@
 require 'spec_helper'
 require_relative '../../../domain/projects/find_project'
 require_relative '../../../domain/projects/project'
+require_relative '../../support/persistence/fake_project_repository'
 
 RSpec.describe FindProject do
-  class FindProjectRepository
-    def initialize
-      @records = {}
-    end
-
-    def add(id:, name:, description: '', point_of_contact: '')
-      project = Project.new(name: name, description: description, point_of_contact: point_of_contact)
-      records[id] = project
-    end
-
-    def find(id)
-      records[id]
-    end
-
-    private
-
-    attr_reader :records
-  end
-
   it 'looks up the project by id' do
-    repository = FindProjectRepository.new
+    repository = FakeProjectRepository.new
     action = described_class.new(project_repository: repository)
 
     expect(repository).to receive(:find).with('123').and_return(Project.new(name: 'Status'))
@@ -32,8 +14,8 @@ RSpec.describe FindProject do
   end
 
   it 'returns a successful result when the project exists' do
-    repository = FindProjectRepository.new
-    repository.add(id: '123', name: 'Status')
+    repository = FakeProjectRepository.new
+    repository.update(id: '123', project: Project.new(name: 'Status'))
     action = described_class.new(project_repository: repository)
 
     result = action.perform(id: '123')
@@ -42,8 +24,8 @@ RSpec.describe FindProject do
   end
 
   it 'returns the found project as the result value' do
-    repository = FindProjectRepository.new
-    repository.add(id: '123', name: 'Status', description: 'Internal', point_of_contact: 'Alex')
+    repository = FakeProjectRepository.new
+    repository.update(id: '123', project: Project.new(name: 'Status', description: 'Internal', point_of_contact: 'Alex'))
     action = described_class.new(project_repository: repository)
 
     result = action.perform(id: '123')
@@ -52,8 +34,8 @@ RSpec.describe FindProject do
   end
 
   it 'returns no errors when the project exists' do
-    repository = FindProjectRepository.new
-    repository.add(id: '123', name: 'Status')
+    repository = FakeProjectRepository.new
+    repository.update(id: '123', project: Project.new(name: 'Status'))
     action = described_class.new(project_repository: repository)
 
     result = action.perform(id: '123')
@@ -62,7 +44,7 @@ RSpec.describe FindProject do
   end
 
   it 'returns a failure result when the project does not exist' do
-    repository = FindProjectRepository.new
+    repository = FakeProjectRepository.new
     action = described_class.new(project_repository: repository)
 
     result = action.perform(id: 'missing')
@@ -71,7 +53,7 @@ RSpec.describe FindProject do
   end
 
   it 'returns errors when the project does not exist' do
-    repository = FindProjectRepository.new
+    repository = FakeProjectRepository.new
     action = described_class.new(project_repository: repository)
 
     result = action.perform(id: 'missing')

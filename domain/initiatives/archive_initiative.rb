@@ -37,7 +37,7 @@ class ArchiveInitiative
   end
 
   def save
-    initiative_repository.save(id: id, initiative: archived_initiative)
+    initiative_repository.update(id: id, initiative: archived_initiative)
   end
 
   def success

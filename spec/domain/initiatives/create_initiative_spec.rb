@@ -1,22 +1,11 @@
 require 'spec_helper'
 require_relative '../../../domain/initiatives/create_initiative'
 require_relative '../../../domain/initiatives/initiative'
+require_relative '../../support/persistence/fake_initiative_repository'
 
 RSpec.describe CreateInitiative do
-  class CreateInitiativeRepository
-    attr_reader :records
-
-    def initialize
-      @records = []
-    end
-
-    def save(initiative)
-      records << initiative
-    end
-  end
-
   it 'stores the created initiative in the repository' do
-    repository = CreateInitiativeRepository.new
+    repository = FakeInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
     action.perform(
@@ -25,13 +14,13 @@ RSpec.describe CreateInitiative do
       point_of_contact: 'Jordan'
     )
 
-    stored_initiative = repository.records.first
+    stored_initiative = repository.find('Modernize Infra')
     expect(stored_initiative.name).to eq('Modernize Infra')
     expect(stored_initiative.point_of_contact).to eq('Jordan')
   end
 
   it 'returns a successful result' do
-    repository = CreateInitiativeRepository.new
+    repository = FakeInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(name: 'Modernize Infra')
@@ -40,7 +29,7 @@ RSpec.describe CreateInitiative do
   end
 
   it 'returns the stored initiative as the result value' do
-    repository = CreateInitiativeRepository.new
+    repository = FakeInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(name: 'Modernize Infra')
@@ -49,7 +38,7 @@ RSpec.describe CreateInitiative do
   end
 
   it 'returns no errors on success' do
-    repository = CreateInitiativeRepository.new
+    repository = FakeInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(name: 'Modernize Infra')
@@ -58,7 +47,7 @@ RSpec.describe CreateInitiative do
   end
 
   it 'returns a failure result when the initiative is invalid' do
-    repository = CreateInitiativeRepository.new
+    repository = FakeInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(name: '')
@@ -67,16 +56,16 @@ RSpec.describe CreateInitiative do
   end
 
   it 'does not store an initiative when it is invalid' do
-    repository = CreateInitiativeRepository.new
+    repository = FakeInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
     action.perform(name: '')
 
-    expect(repository.records).to be_empty
+    expect(repository.exists_with_name?('')).to be(false)
   end
 
   it 'returns validation errors when the initiative is invalid' do
-    repository = CreateInitiativeRepository.new
+    repository = FakeInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(name: '')

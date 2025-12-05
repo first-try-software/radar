@@ -24,7 +24,7 @@ class SetProjectState
     return invalid_transition_failure unless allowed_transition?
 
     updated_project = project.with_state(state: @state)
-    project_repository.save(id: id, project: updated_project)
+    project_repository.update(id: id, project: updated_project)
     Result.success(value: updated_project)
   end
 

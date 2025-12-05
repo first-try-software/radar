@@ -38,7 +38,7 @@ class ArchiveTeam
   end
 
   def save
-    team_repository.save(id: id, team: archived_team)
+    team_repository.update(id: id, team: archived_team)
   end
 
   def success

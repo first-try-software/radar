@@ -55,7 +55,7 @@ class UpdateProject
   end
 
   def save
-    project_repository.save(id: id, project: updated_project)
+    project_repository.update(id: id, project: updated_project)
   end
 
   def success

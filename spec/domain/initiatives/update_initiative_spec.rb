@@ -1,30 +1,11 @@
 require 'spec_helper'
 require_relative '../../../domain/initiatives/update_initiative'
 require_relative '../../../domain/initiatives/initiative'
+require_relative '../../support/persistence/fake_initiative_repository'
 
 RSpec.describe UpdateInitiative do
-  class UpdateInitiativeRepository
-    attr_reader :records
-
-    def initialize
-      @records = {}
-    end
-
-    def seed(id:, initiative:)
-      records[id] = initiative
-    end
-
-    def find(id)
-      records[id]
-    end
-
-    def save(id:, initiative:)
-      records[id] = initiative
-    end
-  end
-
   it 'looks up the existing initiative by id' do
-    repository = UpdateInitiativeRepository.new
+    repository = FakeInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
     expect(repository).to receive(:find).with('init-123').and_return(Initiative.new(name: 'Modernize Infra'))
@@ -33,8 +14,8 @@ RSpec.describe UpdateInitiative do
   end
 
   it 'stores the new initiative over the existing record' do
-    repository = UpdateInitiativeRepository.new
-    repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
+    repository = FakeInitiativeRepository.new
+    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
     action.perform(
@@ -45,14 +26,14 @@ RSpec.describe UpdateInitiative do
       archived: true
     )
 
-    stored_initiative = repository.records['init-123']
+    stored_initiative = repository.find('init-123')
     expect(stored_initiative.name).to eq('Modernize Infra 2')
     expect(stored_initiative.point_of_contact).to eq('Jordan')
   end
 
   it 'returns a successful result when the update succeeds' do
-    repository = UpdateInitiativeRepository.new
-    repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
+    repository = FakeInitiativeRepository.new
+    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(id: 'init-123', name: 'Modernize Infra 2', point_of_contact: 'Jordan')
@@ -61,8 +42,8 @@ RSpec.describe UpdateInitiative do
   end
 
   it 'returns the updated initiative as the result value' do
-    repository = UpdateInitiativeRepository.new
-    repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
+    repository = FakeInitiativeRepository.new
+    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(id: 'init-123', name: 'Modernize Infra 2', point_of_contact: 'Jordan')
@@ -71,8 +52,8 @@ RSpec.describe UpdateInitiative do
   end
 
   it 'returns no errors when the update succeeds' do
-    repository = UpdateInitiativeRepository.new
-    repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
+    repository = FakeInitiativeRepository.new
+    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(id: 'init-123', name: 'Modernize Infra 2', point_of_contact: 'Jordan')
@@ -81,7 +62,7 @@ RSpec.describe UpdateInitiative do
   end
 
   it 'returns a failure result when the initiative cannot be found' do
-    repository = UpdateInitiativeRepository.new
+    repository = FakeInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(id: 'missing', name: 'Modernize Infra 2', point_of_contact: 'Jordan')
@@ -90,7 +71,7 @@ RSpec.describe UpdateInitiative do
   end
 
   it 'returns errors when the initiative cannot be found' do
-    repository = UpdateInitiativeRepository.new
+    repository = FakeInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(id: 'missing', name: 'Modernize Infra 2', point_of_contact: 'Jordan')
@@ -99,8 +80,8 @@ RSpec.describe UpdateInitiative do
   end
 
   it 'returns a failure result when the new initiative is invalid' do
-    repository = UpdateInitiativeRepository.new
-    repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
+    repository = FakeInitiativeRepository.new
+    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(id: 'init-123', name: '', point_of_contact: 'Jordan')
@@ -109,18 +90,18 @@ RSpec.describe UpdateInitiative do
   end
 
   it 'does not store a new initiative when it is invalid' do
-    repository = UpdateInitiativeRepository.new
-    repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
+    repository = FakeInitiativeRepository.new
+    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
     action.perform(id: 'init-123', name: '', point_of_contact: 'Jordan')
 
-    expect(repository.records['init-123'].name).to eq('Modernize Infra')
+    expect(repository.find('init-123').name).to eq('Modernize Infra')
   end
 
   it 'returns validation errors when the new initiative is invalid' do
-    repository = UpdateInitiativeRepository.new
-    repository.seed(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
+    repository = FakeInitiativeRepository.new
+    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(id: 'init-123', name: '', point_of_contact: 'Jordan')
