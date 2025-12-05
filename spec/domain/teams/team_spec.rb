@@ -93,4 +93,26 @@ RSpec.describe Team do
 
     expect(team.subordinate_teams.length).to eq(1)
   end
+
+  describe '#health' do
+    it 'returns a rollup of working owned projects' do
+      owned_projects = [
+        double('Project', current_state: :in_progress, health: :on_track),
+        double('Project', current_state: :blocked, health: :at_risk)
+      ]
+      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { owned_projects })
+
+      expect(team.health).to eq(:on_track)
+    end
+
+    it 'returns :not_available when no owned projects are in a working state' do
+      owned_projects = [
+        double('Project', current_state: :todo, health: :on_track),
+        double('Project', current_state: :done, health: :off_track)
+      ]
+      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { owned_projects })
+
+      expect(team.health).to eq(:not_available)
+    end
+  end
 end

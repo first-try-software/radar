@@ -1,3 +1,5 @@
+require_relative '../support/health_rollup'
+
 class Initiative
   attr_reader :name, :description, :point_of_contact
 
@@ -26,6 +28,10 @@ class Initiative
 
   def related_projects
     @related_projects ||= load_related_projects
+  end
+
+  def health
+    HealthRollup.rollup(related_projects)
   end
 
   private

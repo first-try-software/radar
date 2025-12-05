@@ -1,3 +1,5 @@
+require_relative '../support/health_rollup'
+
 class Team
   attr_reader :name, :mission, :vision, :point_of_contact
 
@@ -37,6 +39,10 @@ class Team
 
   def owned_projects
     @owned_projects ||= load_owned_projects
+  end
+
+  def health
+    HealthRollup.rollup(owned_projects)
   end
 
   def subordinate_teams

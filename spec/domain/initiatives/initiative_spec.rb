@@ -68,4 +68,33 @@ RSpec.describe Initiative do
 
     expect(initiative.related_projects.length).to eq(1)
   end
+
+  describe '#health' do
+    it 'returns a rollup of related projects in working states' do
+      related_projects = [
+        double('Project', current_state: :in_progress, health: :off_track),
+        double('Project', current_state: :blocked, health: :off_track),
+        double('Project', current_state: :todo, health: :on_track)
+      ]
+      initiative = described_class.new(
+        name: 'Modernize Infra',
+        related_projects_loader: ->(_initiative) { related_projects }
+      )
+
+      expect(initiative.health).to eq(:off_track)
+    end
+
+    it 'returns :not_available when no related projects are in a working state' do
+      related_projects = [
+        double('Project', current_state: :todo, health: :on_track),
+        double('Project', current_state: :done, health: :off_track)
+      ]
+      initiative = described_class.new(
+        name: 'Modernize Infra',
+        related_projects_loader: ->(_initiative) { related_projects }
+      )
+
+      expect(initiative.health).to eq(:not_available)
+    end
+  end
 end

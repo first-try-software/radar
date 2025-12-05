@@ -119,6 +119,53 @@ RSpec.describe Project do
 
       expect(project.health).to eq(:at_risk)
     end
+
+    it 'rolls up health from working subordinate projects' do
+      subordinate_projects = [
+        double('Project', current_state: :in_progress, health: :on_track),
+        double('Project', current_state: :blocked, health: :off_track)
+      ]
+      health_updates_loader = ->(_project) { [] }
+      project = described_class.new(
+        name: 'Status',
+        current_state: :in_progress,
+        subordinates_loader: ->(_project) { subordinate_projects },
+        health_updates_loader: health_updates_loader
+      )
+
+      expect(project.health).to eq(:at_risk)
+    end
+
+    it 'ignores non-working subordinates when rolling up health' do
+      subordinate_projects = [
+        double('Project', current_state: :done, health: :off_track),
+        double('Project', current_state: :todo, health: :on_track)
+      ]
+      project = described_class.new(
+        name: 'Status',
+        current_state: :in_progress,
+        subordinates_loader: ->(_project) { subordinate_projects },
+        health_updates_loader: ->(_project) { [] }
+      )
+
+      expect(project.health).to eq(:not_available)
+    end
+
+    it 'ignores :not_available subordinate health values' do
+      subordinate_projects = [
+        double('Project', current_state: :in_progress, health: :not_available),
+        double('Project', current_state: :blocked, health: :on_track)
+      ]
+      health_updates_loader = ->(_project) { [] }
+      project = described_class.new(
+        name: 'Status',
+        current_state: :in_progress,
+        subordinates_loader: ->(_project) { subordinate_projects },
+        health_updates_loader: health_updates_loader
+      )
+
+      expect(project.health).to eq(:on_track)
+    end
   end
 
   describe 'health_trend' do

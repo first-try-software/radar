@@ -1,3 +1,5 @@
+require_relative '../support/health_rollup'
+
 class Project
   ALLOWED_STATES = [:new, :todo, :in_progress, :blocked, :on_hold, :done].freeze
 
@@ -60,9 +62,11 @@ class Project
 
   def health
     return :not_available unless working_state?
+
+    return subordinate_health unless subordinate_health == :not_available
     return :not_available if health_updates.empty?
 
-    health_updates.max_by(&:date).health
+    latest_health_update.health
   end
 
   def health_trend
@@ -88,6 +92,14 @@ class Project
 
   def weekly_health_updates
     @weekly_health_updates ||= Array(weekly_health_updates_loader&.call(self))
+  end
+
+  def subordinate_health
+    @subordinate_health ||= HealthRollup.rollup(subordinate_projects)
+  end
+
+  def latest_health_update
+    @latest_health_update ||= health_updates.max_by(&:date)
   end
 
   def working_state?
