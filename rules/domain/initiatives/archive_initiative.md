@@ -1,4 +1,5 @@
-ArchiveInitiative is an action that marks an Initiative as archived and updates the InitiativeRepository.
-
-ArchiveInitiative fails and returns a Result with errors if the Initiative is not found.
-
+Action: ArchiveInitiative
+- Purpose: mark an Initiative as archived and persist it.
+- Inputs: initiative id.
+- Failures: initiative not found.
+- Success: returns Result.success with the archived Initiative persisted.

@@ -1,4 +1,5 @@
-CreateTeam is an action that instantiates a new Team and stores it in a TeamRepository.
-
-CreateTeam fails and returns a Result with errors when the new Team is not valid.
-
+Action: CreateTeam
+- Purpose: instantiate a new Team and persist it via TeamRepository.
+- Inputs: `name`, optional `vision`, optional `mission`, optional `point_of_contact`.
+- Failures: team invalid.
+- Success: returns Result.success with the created Team persisted.

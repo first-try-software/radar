@@ -1,5 +1,5 @@
-CreateProject is an action that instantiates a new Project and stores it in a ProjectRepository.
-
-CreateProject fails and returns a Result with errors if the new Project is not valid.
-
-CreateProject fails and returns a Result with errors if the new Project's name conflicts with an existing Project.
+Action: CreateProject
+- Purpose: instantiate a new Project and persist it via ProjectRepository.
+- Inputs: `name`, optional `description`, optional `point_of_contact`.
+- Failures: project invalid; project name conflicts with an existing Project.
+- Success: returns Result.success with the created Project persisted.

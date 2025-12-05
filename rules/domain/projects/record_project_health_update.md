@@ -1,9 +1,5 @@
-RecordProjectHealthUpdate is an action that captures a HealthUpdate for a Project.
-
-RecordProjectHealthUpdate fails and returns a Result with errors if the Project cannot be found.
-RecordProjectHealthUpdate fails and returns a Result with errors if the Project's current_state is not in [:in_progress, :blocked].
-RecordProjectHealthUpdate fails and returns a Result with errors if the supplied health is not one of [:on_track, :at_risk, :off_track].
-RecordProjectHealthUpdate fails and returns a Result with errors if the supplied date is missing.
-
-RecordProjectHealthUpdate succeeds and returns a Result with the created HealthUpdate when it successfully persists the HealthUpdate through the HealthUpdateRepository and associates it with the Project.***
-
+Action: RecordProjectHealthUpdate
+- Purpose: create and persist a HealthUpdate for a Project.
+- Inputs: `project_id`, `date`, `health` (`:on_track|:at_risk|:off_track`), optional `description`.
+- Failures: project not found; project state not in `[:in_progress, :blocked]`; missing date; health not allowed.
+- Success: returns Result.success with the created HealthUpdate after persisting via HealthUpdateRepository and associating to the Project.

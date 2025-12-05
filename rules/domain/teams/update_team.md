@@ -1,5 +1,5 @@
-UpdateTeam is an action that instantiates a new Team and stores it in a TeamRepository over the existing Team in the repository.
-
-UpdateTeam fails and returns a Result with errors if the Team is not found.
-UpdateTeam fails and returns a Result with errors if the new Team is not valid.
-
+Action: UpdateTeam
+- Purpose: replace an existing Team in the TeamRepository with a new instance.
+- Inputs: team id; team attributes (`name`, optional `vision`, optional `mission`, optional `point_of_contact`, archived flag, loaders as needed).
+- Failures: team not found; new team invalid.
+- Success: returns Result.success with the updated Team persisted.

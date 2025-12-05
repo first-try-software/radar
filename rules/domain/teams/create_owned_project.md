@@ -1,8 +1,5 @@
-CreateOwnedProject is an action that instantiates a new Project and adds it to a Team's owned_projects set as the last item.
-
-CreateOwnedProject fails and returns a Result with errors if the Team cannot be found.
-CreateOwnedProject fails and returns a Result with errors if the new Project is not valid.
-CreateOwnedProject fails and returns a Result with errors if the new Project's name conflicts with an existing Project.
-
-CreateOwnedProject succeeds and returns a Result with the newly created Project as the value when it successfully adds the new project to the Team and persists the Team-to-Project relationship with the correct order.
-
+Action: CreateOwnedProject
+- Purpose: create a new Project and append it to a Team’s `owned_projects` sorted set (as last).
+- Inputs: team id; project attributes (`name`, optional `description`, optional `point_of_contact`).
+- Failures: team not found; project invalid; project name conflicts with an existing Project.
+- Success: returns Result.success with the created Project; persists the Project and the team-to-project relationship with order at the end of the set.

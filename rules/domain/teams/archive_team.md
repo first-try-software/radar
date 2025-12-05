@@ -1,4 +1,5 @@
-ArchiveTeam is an action that marks a Team as archived and updates the TeamRepository.
-
-ArchiveTeam fails and returns a Result with errors if the Team is not found.
-
+Action: ArchiveTeam
+- Purpose: mark a Team as archived and persist it.
+- Inputs: team id.
+- Failures: team not found.
+- Success: returns Result.success with the archived Team persisted.

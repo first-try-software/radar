@@ -1,8 +1,5 @@
-CreateSubordinateTeam is an action that instantiates a new Team and adds it to a parent Team's subordinate_teams set as the last item.
-
-CreateSubordinateTeam fails and returns a Result with errors if the parent Team cannot be found.
-CreateSubordinateTeam fails and returns a Result with errors if the new Team is not valid.
-CreateSubordinateTeam fails and returns a Result with errors if the new Team's name conflicts with an existing Team.
-
-CreateSubordinateTeam succeeds and returns a Result with the newly created Team as the value when it successfully adds the team to the parent Team and persists the parent-child relationship with the correct order.
-
+Action: CreateSubordinateTeam
+- Purpose: create a new Team and append it to a parent Team’s `subordinate_teams` sorted set (as last).
+- Inputs: parent team id; team attributes (`name`, optional `vision`, optional `mission`, optional `point_of_contact`).
+- Failures: parent team not found; team invalid; team name conflicts with an existing Team.
+- Success: returns Result.success with the created Team; persists the Team and parent-child relationship with order at the end of the set.

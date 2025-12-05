@@ -1,6 +1,5 @@
-CreateInitiative is an action that instantiates a new Initiative and stores it in an InitiativeRepository.
-
-CreateInitiative fails and returns a Result with errors when the new Initiative is not valid.
-
-CreateInitiative fails and returns a Result with errors when the new Initiative's name conflicts with an existing Initiative.***
-
+Action: CreateInitiative
+- Purpose: instantiate a new Initiative and persist it via InitiativeRepository.
+- Inputs: `name`, optional `description`, optional `point_of_contact`.
+- Failures: initiative invalid; initiative name conflicts with an existing Initiative.
+- Success: returns Result.success with the created Initiative persisted.

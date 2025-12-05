@@ -1,7 +1,5 @@
-UpdateProject is an action that instantiates a new Project and stores it in a ProjectRepository over an existing Project in the Repository
-
-UpdateProject fails and returns a Result with errors if the Project is not found.
-
-UpdateProject fails and returns a Result with errors if the new Project is not valid.
-
-UpdateProject fails and returns a Result with errors if the new Project's name conflicts with an existing Project.
+Action: UpdateProject
+- Purpose: replace an existing Project in the ProjectRepository with a new instance.
+- Inputs: project id; project attributes (`name`, optional `description`, optional `point_of_contact`, optional `current_state`, optional archived flag, loaders as needed).
+- Failures: project not found; new project invalid; new project name conflicts with an existing Project.
+- Success: returns Result.success with the updated Project persisted.

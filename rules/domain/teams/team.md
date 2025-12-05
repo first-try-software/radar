@@ -1,13 +1,19 @@
 A Team represents a group of people working together.
 
-A Team has a name.
-A Team may have a vision.
-A Team may have a mission.
-A Team may have a point_of_contact.
-A Team tracks whether it has been archived.
-A Team owns a sorted set of Projects called owned_projects.
-A Team manages a sorted set of subordinate Teams called subordinate_teams.
+Identifiers and attributes
+- `name` is required and globally unique.
+- `vision`, `mission`, and `point_of_contact` are optional strings defaulting to `''`.
+- `archived` defaults to false and is exposed via `archived?`.
 
-A Team is valid when it has a non-empty name.
-A Team provides a `valid?` predicate and an `errors` collection describing validation failures.
+Structure and ordering
+- Owns an ordered set of projects (`owned_projects`) loaded lazily; order is persisted as integers within the team scope.
+- Manages an ordered set of subordinate teams (`subordinate_teams`) loaded lazily.
 
+Health model
+- Uses health rollup scoring (`:on_track => 1`, `:at_risk => 0`, `:off_track => -1`; thresholds >0 `:on_track`, <0 `:off_track`, else `:at_risk`); `:not_available` owned project health is ignored.
+- Current health is the rollup average of owned projects whose `current_state` is `:in_progress` or `:blocked`.
+- Owned projects in other states are ignored.
+- If no owned projects are in a working state, health is `:not_available`.
+
+Validation
+- `valid?` requires present `name`; exposes `errors` describing failures.

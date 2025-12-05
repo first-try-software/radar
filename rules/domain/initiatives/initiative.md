@@ -1,10 +1,18 @@
-An Initiative represents a strategic effort composed of projects and teams.
+An Initiative represents a strategic effort composed of projects.
 
-An Initiative has a globally unique name.
-An Initiative may have a description.
-An Initiative may have a point_of_contact.
-An Initiative has a sorted set of Projects called related_projects.
+Identifiers and attributes
+- `name` is required and globally unique.
+- `description` and `point_of_contact` are optional strings defaulting to `''`.
+- `archived` defaults to false and is exposed via `archived?`.
 
-An Initiative is valid when it has a non-empty name.
-An Initiative provides a `valid?` predicate and an `errors` collection describing validation failures.
+Structure and ordering
+- Holds an ordered set of related projects loaded lazily; ordering is persisted within the initiative scope.
 
+Health model
+- Uses health rollup scoring (`:on_track => 1`, `:at_risk => 0`, `:off_track => -1`; thresholds >0 `:on_track`, <0 `:off_track`, else `:at_risk`); `:not_available` related project health is ignored.
+- Current health is the rollup average of related projects whose `current_state` is `:in_progress` or `:blocked`.
+- Related projects in other states are ignored.
+- If no related projects are in a working state, health is `:not_available`.
+
+Validation
+- `valid?` requires present `name`; exposes `errors` describing failures.

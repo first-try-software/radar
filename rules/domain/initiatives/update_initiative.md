@@ -1,7 +1,5 @@
-UpdateInitiative is an action that instantiates a new Initiative and stores it in an InitiativeRepository over the existing Initiative in the repository.
-
-UpdateInitiative fails and returns a Result with errors if the Initiative is not found.
-UpdateInitiative fails and returns a Result with errors if the new Initiative is not valid.
-
-UpdateInitiative fails and returns a Result with errors if the new Initiative's name conflicts with an existing Initiative.
-
+Action: UpdateInitiative
+- Purpose: replace an existing Initiative in the InitiativeRepository with a new instance.
+- Inputs: initiative id; initiative attributes (`name`, optional `description`, optional `point_of_contact`, archived flag, loaders as needed).
+- Failures: initiative not found; new initiative invalid; new initiative name conflicts with an existing Initiative.
+- Success: returns Result.success with the updated Initiative persisted.

@@ -1,4 +1,5 @@
-FindInitiative is an action that retrieves an existing Initiative from an InitiativeRepository by id.
-
-FindInitiative fails and returns a Result with errors if the Initiative is not found.
-
+Action: FindInitiative
+- Purpose: retrieve an existing Initiative by id from InitiativeRepository.
+- Inputs: initiative id.
+- Failures: initiative not found.
+- Success: returns Result.success with the found Initiative.
