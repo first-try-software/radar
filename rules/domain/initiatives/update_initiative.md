@@ -3,3 +3,5 @@ UpdateInitiative is an action that instantiates a new Initiative and stores it i
 UpdateInitiative fails and returns a Result with errors if the Initiative is not found.
 UpdateInitiative fails and returns a Result with errors if the new Initiative is not valid.
 
+UpdateInitiative fails and returns a Result with errors if the new Initiative's name conflicts with an existing Initiative.
+

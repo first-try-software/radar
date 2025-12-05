@@ -1,6 +1,6 @@
 An Initiative represents a strategic effort composed of projects and teams.
 
-An Initiative has a name.
+An Initiative has a globally unique name.
 An Initiative may have a description.
 An Initiative may have a point_of_contact.
 An Initiative has a sorted set of Projects called related_projects.

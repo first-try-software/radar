@@ -72,4 +72,15 @@ RSpec.describe CreateInitiative do
 
     expect(result.errors).to eq(['name must be present'])
   end
+
+  it 'fails when the name conflicts with an existing initiative' do
+    repository = FakeInitiativeRepository.new
+    repository.save(Initiative.new(name: 'Modernize Infra'))
+    action = described_class.new(initiative_repository: repository)
+
+    result = action.perform(name: 'Modernize Infra')
+
+    expect(result.success?).to be(false)
+    expect(result.errors).to eq(['initiative name must be unique'])
+  end
 end

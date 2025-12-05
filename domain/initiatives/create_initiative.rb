@@ -10,6 +10,7 @@ class CreateInitiative
     @attributes = { name:, description:, point_of_contact: }
 
     return invalid_initiative_failure unless initiative.valid?
+    return duplicate_name_failure if initiative_repository.exists_with_name?(initiative.name)
 
     save
     success
@@ -25,6 +26,10 @@ class CreateInitiative
 
   def invalid_initiative_failure
     failure(initiative.errors)
+  end
+
+  def duplicate_name_failure
+    failure('initiative name must be unique')
   end
 
   def save

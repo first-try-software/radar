@@ -12,6 +12,7 @@ class UpdateInitiative
 
     return initiative_not_found_failure unless existing_initiative
     return invalid_initiative_failure unless updated_initiative.valid?
+    return duplicate_name_failure if name_conflict?
 
     save
     success
@@ -35,6 +36,15 @@ class UpdateInitiative
 
   def invalid_initiative_failure
     failure(updated_initiative.errors)
+  end
+
+  def name_conflict?
+    initiative_repository.exists_with_name?(updated_initiative.name) &&
+      updated_initiative.name != existing_initiative.name
+  end
+
+  def duplicate_name_failure
+    failure('initiative name must be unique')
   end
 
   def save
