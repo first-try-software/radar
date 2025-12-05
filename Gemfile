@@ -6,3 +6,6 @@ gem "rspec"
 gem "simplecov"
 gem "flog"
 gem "churn"
+
+gem "logger"
+gem "ostruct"
