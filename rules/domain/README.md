@@ -14,7 +14,7 @@ The application centers aroud three central concepts:
 
 Projects are the most important concept in the application. Users can record project health over time by adding health updates to the project. The latest health update becomes the current health of the project, and a rolling slice of recent weekly updates for the project's health trend.
 
-Each project has a name, description, and point of contact. Projects may be created, found, updated, and arvhived. Projects may contain an ordered list of subordinate projects. Projects also have a state which is goverened by a state machine, as follows:
+Each project has a name, description, and point of contact. Projects may be created, found, updated, and arvhived. Projects may contain an ordered list of subordinate projects; each subordinate belongs to exactly one parent, and ordering is scoped per parent. Projects also have a state which is goverened by a state machine, as follows:
 
 Projects begin in the `:new` state, move into delivery through `:todo` and `:in_progress`, and can detour to `:blocked` or `:on_hold` before ultimately reaching the terminal `:done` state.
 

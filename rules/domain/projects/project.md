@@ -7,7 +7,8 @@ Identifiers and attributes
 
 Structure and ordering
 - A project has a sorted set of subordinate projects loaded lazily via an injected loader.
-- Ordering is persisted via an integer order within the scope of the parent project’s set.
+- Each subordinate project belongs to exactly one parent project at a time.
+- Each parent project maintains its own ordering of its subordinate projects; order values are scoped to the parent.
 
 State machine
 - Allowed states: `:new, :todo, :in_progress, :blocked, :on_hold, :done`.

@@ -71,4 +71,5 @@ RSpec.describe CreateSubordinateProject do
     expect(second_attempt.success?).to be(false)
     expect(second_attempt.errors).to eq(['project name must be unique'])
   end
+
 end

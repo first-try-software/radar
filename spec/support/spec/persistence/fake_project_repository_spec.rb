@@ -50,4 +50,26 @@ RSpec.describe FakeProjectRepository do
     expect(relationship[:child]).to eq(child)
     expect(repository.next_subordinate_order(parent_id: '123')).to eq(1)
   end
+
+  it 'scopes subordinate ordering per parent' do
+    repository = FakeProjectRepository.new
+    first_child = Struct.new(:name).new('FirstChild')
+    second_child = Struct.new(:name).new('SecondChild')
+
+    repository.link_subordinate(parent_id: 'parent-1', child: first_child, order: 0)
+    repository.link_subordinate(parent_id: 'parent-2', child: second_child, order: 0)
+
+    expect(repository.next_subordinate_order(parent_id: 'parent-1')).to eq(1)
+    expect(repository.next_subordinate_order(parent_id: 'parent-2')).to eq(1)
+  end
+
+  it 'enforces a single parent per child' do
+    repository = FakeProjectRepository.new
+    child = Struct.new(:name).new('Child')
+    repository.link_subordinate(parent_id: 'parent-1', child: child, order: 0)
+
+    expect {
+      repository.link_subordinate(parent_id: 'parent-2', child: child, order: 0)
+    }.to raise_error(/already has a parent/)
+  end
 end

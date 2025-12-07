@@ -56,4 +56,6 @@ This project follows these rules:
   * Favor objects over primitives.
   * Require 100% test coverage before moving on to the next thing.
   * Require an average method complexity from flog below 10.
+  * Always ask for confirmation before doing anything.
+
   
