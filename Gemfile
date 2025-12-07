@@ -2,10 +2,14 @@
 
 source "https://rubygems.org"
 
-gem "rspec"
-gem "simplecov"
-gem "flog"
-gem "churn"
+gem "rails"
+gem "bootsnap"
 
-gem "logger"
-gem "ostruct"
+group :development, :test do
+  gem "rspec"
+  gem "simplecov"
+  gem "flog"
+  gem "churn"
+  gem "logger"
+  gem "ostruct"
+end
