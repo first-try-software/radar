@@ -63,6 +63,20 @@ RSpec.describe Project do
     expect(project.children.map(&:name)).to eq(['Child'])
   end
 
+  it 'lazy loads parent via the loader' do
+    parent = described_class.new(name: 'Parent')
+    loader = ->(_project) { parent }
+    project = described_class.new(name: 'Child', parent_loader: loader)
+
+    expect(project.parent).to eq(parent)
+  end
+
+  it 'returns nil parent when no loader provided' do
+    project = described_class.new(name: 'Child')
+
+    expect(project.parent).to be_nil
+  end
+
   it 'defaults current_state to :new' do
     project = described_class.new(name: 'Status')
 
