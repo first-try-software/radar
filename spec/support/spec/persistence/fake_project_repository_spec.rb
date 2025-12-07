@@ -72,4 +72,14 @@ RSpec.describe FakeProjectRepository do
       repository.link_subordinate(parent_id: 'parent-2', child: child, order: 0)
     }.to raise_error(/already has a parent/)
   end
+
+  it 'rejects linking the same child twice to the same parent' do
+    repository = FakeProjectRepository.new
+    child = Struct.new(:name).new('Child')
+    repository.link_subordinate(parent_id: 'parent-1', child: child, order: 0)
+
+    expect {
+      repository.link_subordinate(parent_id: 'parent-1', child: child, order: 1)
+    }.to raise_error(/already has a parent/)
+  end
 end

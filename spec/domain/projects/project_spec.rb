@@ -56,11 +56,11 @@ RSpec.describe Project do
     expect(project).not_to be_archived
   end
 
-  it 'lazy loads subordinate projects via the loader' do
+  it 'lazy loads children via the loader' do
     loader = ->(_project) { [described_class.new(name: 'Child')] }
-    project = described_class.new(name: 'Parent', subordinates_loader: loader)
+    project = described_class.new(name: 'Parent', children_loader: loader)
 
-    expect(project.subordinate_projects.map(&:name)).to eq(['Child'])
+    expect(project.children.map(&:name)).to eq(['Child'])
   end
 
   it 'defaults current_state to :new' do
@@ -121,7 +121,7 @@ RSpec.describe Project do
     end
 
     it 'rolls up health from working subordinate projects' do
-      subordinate_projects = [
+      children = [
         double('Project', current_state: :in_progress, health: :on_track),
         double('Project', current_state: :blocked, health: :off_track)
       ]
@@ -129,7 +129,7 @@ RSpec.describe Project do
       project = described_class.new(
         name: 'Status',
         current_state: :in_progress,
-        subordinates_loader: ->(_project) { subordinate_projects },
+        children_loader: ->(_project) { children },
         health_updates_loader: health_updates_loader
       )
 
@@ -137,14 +137,14 @@ RSpec.describe Project do
     end
 
     it 'ignores non-working subordinates when rolling up health' do
-      subordinate_projects = [
+      children = [
         double('Project', current_state: :done, health: :off_track),
         double('Project', current_state: :todo, health: :on_track)
       ]
       project = described_class.new(
         name: 'Status',
         current_state: :in_progress,
-        subordinates_loader: ->(_project) { subordinate_projects },
+        children_loader: ->(_project) { children },
         health_updates_loader: ->(_project) { [] }
       )
 
@@ -152,7 +152,7 @@ RSpec.describe Project do
     end
 
     it 'ignores :not_available subordinate health values' do
-      subordinate_projects = [
+      children = [
         double('Project', current_state: :in_progress, health: :not_available),
         double('Project', current_state: :blocked, health: :on_track)
       ]
@@ -160,7 +160,7 @@ RSpec.describe Project do
       project = described_class.new(
         name: 'Status',
         current_state: :in_progress,
-        subordinates_loader: ->(_project) { subordinate_projects },
+        children_loader: ->(_project) { children },
         health_updates_loader: health_updates_loader
       )
 

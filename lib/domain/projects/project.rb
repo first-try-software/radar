@@ -10,7 +10,8 @@ class Project
     description: '',
     point_of_contact: '',
     archived: false,
-    subordinates_loader: nil,
+    children_loader: nil,
+    parent_loader: nil,
     health_updates_loader: nil,
     weekly_health_updates_loader: nil,
     current_state: :new
@@ -19,10 +20,12 @@ class Project
     @description = description.to_s
     @point_of_contact = point_of_contact.to_s
     @archived = archived
-    @subordinates_loader = subordinates_loader
+    @children_loader = children_loader
+    @parent_loader = parent_loader
     @health_updates_loader = health_updates_loader
     @weekly_health_updates_loader = weekly_health_updates_loader
-    @subordinate_projects = nil
+    @children = nil
+    @parent = nil
     @health_updates = nil
     @weekly_health_updates = nil
     @current_state = (current_state || :new).to_sym
@@ -43,8 +46,16 @@ class Project
     !!archived
   end
 
+  def children
+    @children ||= load_children
+  end
+
   def subordinate_projects
-    @subordinate_projects ||= load_subordinates
+    children
+  end
+
+  def parent
+    @parent ||= load_parent
   end
 
   def with_state(state:)
@@ -53,7 +64,8 @@ class Project
       description: description,
       point_of_contact: point_of_contact,
       archived: archived?,
-      subordinates_loader: subordinates_loader,
+      children_loader: children_loader,
+      parent_loader: parent_loader,
       health_updates_loader: health_updates_loader,
       weekly_health_updates_loader: weekly_health_updates_loader,
       current_state: state
@@ -78,12 +90,18 @@ class Project
 
   private
 
-  attr_reader :archived, :subordinates_loader, :health_updates_loader, :weekly_health_updates_loader
+  attr_reader :archived, :children_loader, :parent_loader, :health_updates_loader, :weekly_health_updates_loader
 
-  def load_subordinates
-    return [] unless subordinates_loader
+  def load_children
+    return [] unless children_loader
 
-    subordinates_loader.call(self)
+    children_loader.call(self)
+  end
+
+  def load_parent
+    return nil unless parent_loader
+
+    parent_loader.call(self)
   end
 
   def health_updates

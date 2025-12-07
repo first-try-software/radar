@@ -45,7 +45,7 @@ class FakeProjectRepository
   def ensure_single_parent!(child:, parent_id:)
     key = child_key(child)
     existing = relationships.find { |rel| rel[:child_key] == key }
-    return unless existing && existing[:parent_id] != parent_id
+    return unless existing
 
     raise StandardError, 'child project already has a parent'
   end

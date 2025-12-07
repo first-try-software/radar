@@ -6,9 +6,9 @@ Identifiers and attributes
 - `archived` defaults to false and is exposed via `archived?`.
 
 Structure and ordering
-- A project has a sorted set of subordinate projects loaded lazily via an injected loader.
-- Each subordinate project belongs to exactly one parent project at a time.
-- Each parent project maintains its own ordering of its subordinate projects; order values are scoped to the parent.
+- A project has a sorted set of child projects loaded lazily via an injected loader.
+- Each child project belongs to exactly one parent project at a time.
+- Each parent project maintains its own ordering of its child projects; order values are scoped to the parent.
 
 State machine
 - Allowed states: `:new, :todo, :in_progress, :blocked, :on_hold, :done`.
