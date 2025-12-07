@@ -1,6 +1,6 @@
 require 'spec_helper'
-require_relative '../../../domain/projects/record_project_health_update'
-require_relative '../../../domain/projects/project'
+require 'domain/projects/record_project_health_update'
+require 'domain/projects/project'
 require_relative '../../support/persistence/fake_project_repository'
 require_relative '../../support/persistence/fake_health_update_repository'
 

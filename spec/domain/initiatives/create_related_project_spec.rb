@@ -1,7 +1,7 @@
 require 'spec_helper'
-require_relative '../../../domain/initiatives/create_related_project'
-require_relative '../../../domain/initiatives/initiative'
-require_relative '../../../domain/projects/project'
+require 'domain/initiatives/create_related_project'
+require 'domain/initiatives/initiative'
+require 'domain/projects/project'
 require_relative '../../support/persistence/fake_initiative_repository'
 require_relative '../../support/persistence/fake_project_repository'
 

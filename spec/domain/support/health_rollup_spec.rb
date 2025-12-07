@@ -1,5 +1,5 @@
 require 'spec_helper'
-require_relative '../../../domain/support/health_rollup'
+require 'domain/support/health_rollup'
 
 RSpec.describe HealthRollup do
   it 'returns :not_available when no projects are provided' do

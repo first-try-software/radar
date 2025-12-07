@@ -1,7 +1,7 @@
 require 'spec_helper'
-require_relative '../../../domain/teams/create_owned_project'
-require_relative '../../../domain/teams/team'
-require_relative '../../../domain/projects/project'
+require 'domain/teams/create_owned_project'
+require 'domain/teams/team'
+require 'domain/projects/project'
 require_relative '../../support/persistence/fake_team_repository'
 require_relative '../../support/persistence/fake_project_repository'
 

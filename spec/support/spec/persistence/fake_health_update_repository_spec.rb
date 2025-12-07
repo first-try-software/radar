@@ -1,8 +1,8 @@
 require 'spec_helper'
 require 'date'
 
-require_relative '../../support/persistence/fake_health_update_repository'
-require_relative '../../../domain/projects/health_update'
+require_relative '../../persistence/fake_health_update_repository'
+require 'domain/projects/health_update'
 
 RSpec.describe FakeHealthUpdateRepository do
   it 'stores health updates when saved' do

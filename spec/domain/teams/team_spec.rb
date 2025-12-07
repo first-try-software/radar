@@ -1,5 +1,5 @@
 require 'spec_helper'
-require_relative '../../../domain/teams/team'
+require 'domain/teams/team'
 
 RSpec.describe Team do
   it 'returns its name' do

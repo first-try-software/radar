@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-require_relative '../../support/persistence/fake_initiative_repository'
+require_relative '../../persistence/fake_initiative_repository'
 
 RSpec.describe FakeInitiativeRepository do
   it 'finds initiatives by id' do

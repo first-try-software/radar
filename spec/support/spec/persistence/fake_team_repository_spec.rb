@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-require_relative '../../support/persistence/fake_team_repository'
+require_relative '../../persistence/fake_team_repository'
 
 RSpec.describe FakeTeamRepository do
   it 'finds teams by id' do

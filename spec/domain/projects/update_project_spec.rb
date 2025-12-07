@@ -1,6 +1,6 @@
 require 'spec_helper'
-require_relative '../../../domain/projects/update_project'
-require_relative '../../../domain/projects/project'
+require 'domain/projects/update_project'
+require 'domain/projects/project'
 require_relative '../../support/persistence/fake_project_repository'
 
 RSpec.describe UpdateProject do

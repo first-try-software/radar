@@ -1,6 +1,6 @@
 require 'spec_helper'
-require_relative '../../../domain/teams/find_team'
-require_relative '../../../domain/teams/team'
+require 'domain/teams/find_team'
+require 'domain/teams/team'
 require_relative '../../support/persistence/fake_team_repository'
 
 RSpec.describe FindTeam do

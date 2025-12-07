@@ -1,6 +1,6 @@
 require 'spec_helper'
-require_relative '../../../domain/projects/set_project_state'
-require_relative '../../../domain/projects/project'
+require 'domain/projects/set_project_state'
+require 'domain/projects/project'
 require_relative '../../support/persistence/fake_project_repository'
 
 RSpec.describe SetProjectState do

@@ -1,6 +1,6 @@
 require 'spec_helper'
-require_relative '../../../domain/projects/archive_project'
-require_relative '../../../domain/projects/project'
+require 'domain/projects/archive_project'
+require 'domain/projects/project'
 require_relative '../../support/persistence/fake_project_repository'
 
 RSpec.describe ArchiveProject do
