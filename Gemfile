@@ -12,7 +12,7 @@ gem "turbo-rails"
 gem "stimulus-rails"
 
 group :development, :test do
-  gem "rspec"
+  gem "rspec-rails"
   gem "simplecov"
   gem "flog"
   gem "churn"
