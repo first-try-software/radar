@@ -9,7 +9,7 @@ class ProjectRecord < ApplicationRecord
            inverse_of: :parent,
            dependent: :destroy
 
-  has_many :subordinate_projects, through: :subordinate_relationships, source: :child
+  has_many :children, through: :subordinate_relationships, source: :child
 
   has_one :parent_relationship,
           class_name: 'ProjectsProjectRecord',
@@ -17,7 +17,7 @@ class ProjectRecord < ApplicationRecord
           inverse_of: :child,
           dependent: :destroy
 
-  has_one :parent_project, through: :parent_relationship, source: :parent
+  has_one :parent, through: :parent_relationship, source: :parent
 
   validates :name, presence: true, uniqueness: true
   validates :current_state, presence: true, inclusion: { in: ALLOWED_STATES }
