@@ -1,6 +1,7 @@
 require 'simplecov'
 SimpleCov.start do
   add_filter '/spec/'
+  add_filter '/app/views/'
 end
 
 lib_path = File.expand_path('../lib', __dir__)

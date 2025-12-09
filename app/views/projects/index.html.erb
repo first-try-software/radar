@@ -1,0 +1,43 @@
+<div class="grid">
+  <div class="card root-projects-card">
+    <h2 class="section-title">Root Projects</h2>
+    <% if defined?(@errors) && @errors.present? %>
+      <div class="errors">
+        <ul>
+          <% @errors.each do |err| %>
+            <li><%= err %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    <ul class="list">
+      <% @projects.each do |project| %>
+        <li class="list-item">
+          <div>
+            <div><%= link_to project.name, project_path(project) %></div>
+            <div class="muted"><%= truncate(project.description, length: 80) %></div>
+          </div>
+          <div class="badges">
+            <span class="badge state"><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
+            <% if project.archived %>
+              <span class="badge archived">archived</span>
+            <% end %>
+          </div>
+        </li>
+      <% end %>
+      <li class="list-item">
+        <%= form_with model: ProjectRecord.new,
+                      url: projects_path,
+                      method: :post,
+                      scope: :project,
+                      local: true,
+                      html: { class: 'child-form' } do |form| %>
+          <div class="child-actions">
+            <%= form.text_field :name, required: true, placeholder: 'New root project name' %>
+            <%= form.submit 'Add', class: 'btn secondary' %>
+          </div>
+        <% end %>
+      </li>
+    </ul>
+  </div>
+</div>

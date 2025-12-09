@@ -1,26 +1,126 @@
 class ProjectsController < ApplicationController
+  def index
+    @projects = root_projects.order(:name)
+
+    respond_to do |format|
+      format.html
+      format.json { render json: @projects.map { |proj| project_json(proj) }, status: :ok }
+    end
+  end
+
   def show
-    render_result project_actions.find_project.perform(id: params[:id])
+    result = project_actions.find_project.perform(id: params[:id])
+
+    respond_to do |format|
+      format.json { render_result(result) }
+      format.html do
+        if result.success?
+          @project = result.value
+          @project_record = ProjectRecord.find(params[:id])
+          render :show
+        else
+          render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
+        end
+      end
+    end
   end
 
   def create
-    render_result project_actions.create_project.perform(**create_params), success_status: :created
+    result = project_actions.create_project.perform(**create_params)
+
+    respond_to do |format|
+      format.json { render_result(result, success_status: :created) }
+      format.html do
+        if result.success?
+          record = ProjectRecord.find_by(name: result.value.name)
+          redirect_to(project_path(record), notice: 'Project created')
+        else
+          @projects = root_projects.order(:name)
+          @errors = result.errors
+          render :index, status: :unprocessable_content
+        end
+      end
+    end
   end
 
   def update
-    render_result project_actions.update_project.perform(id: params[:id], **update_params)
+    record = ProjectRecord.find(params[:id])
+    attrs = {
+      name: record.name,
+      description: record.description,
+      point_of_contact: record.point_of_contact
+    }.merge(update_params.compact)
+
+    result = project_actions.update_project.perform(id: params[:id], **attrs)
+
+    respond_to do |format|
+      format.json { render_result(result) }
+      format.html do
+        if result.success?
+          redirect_to(project_path(params[:id]), notice: 'Project updated')
+        else
+          @project_record = ProjectRecord.find(params[:id])
+          @project = result.value
+          @errors = result.errors
+          render :show, status: error_status(result.errors)
+        end
+      end
+    end
   end
 
   def set_state
-    render_result project_actions.set_project_state.perform(id: params[:id], state: params[:state])
+    result = project_actions.set_project_state.perform(id: params[:id], state: params[:state])
+
+    respond_to do |format|
+      format.json { render_result(result) }
+      format.html do
+        if result.success?
+          redirect_to(project_path(params[:id]), notice: 'State updated')
+        else
+          @project_record = ProjectRecord.find(params[:id])
+          @project = project_actions.find_project.perform(id: params[:id]).value if result.errors.exclude?('project not found')
+          @errors = result.errors
+          render :show, status: error_status(result.errors)
+        end
+      end
+    end
   end
 
   def archive
-    render_result project_actions.archive_project.perform(id: params[:id])
+    result = project_actions.archive_project.perform(id: params[:id])
+
+    respond_to do |format|
+      format.json { render_result(result) }
+      format.html do
+        if result.success?
+          redirect_to(project_path(params[:id]), notice: 'Project archived')
+        else
+          render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
+        end
+      end
+    end
   end
 
   def create_subordinate
-    render_result project_actions.create_subordinate_project.perform(parent_id: params[:id], **create_params), success_status: :created
+    result = project_actions.create_subordinate_project.perform(parent_id: params[:id], **create_params)
+
+    respond_to do |format|
+      format.json { render_result(result, success_status: :created) }
+      format.html do
+        if result.success?
+          redirect_to(project_path(params[:id]), notice: 'Child project created')
+        else
+          if result.errors.include?('project not found')
+            render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
+          else
+            @project_record = ProjectRecord.find_by(id: params[:id])
+            @project = project_actions.find_project.perform(id: params[:id]).value if @project_record
+            @errors = result.errors
+            render :show, status: error_status(result.errors)
+          end
+        end
+      end
+    end
   end
 
   private
@@ -51,11 +151,19 @@ class ProjectsController < ApplicationController
     }
   end
 
+  def root_projects
+    ProjectRecord.left_outer_joins(:parent_relationship).where(projects_projects: { parent_id: nil })
+  end
+
   def create_params
-    params.require(:project).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
+    permitted = params.fetch(:project, {}).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
+    permitted[:name] ||= ''
+    permitted[:description] ||= ''
+    permitted[:point_of_contact] ||= ''
+    permitted
   end
 
   def update_params
-    params.require(:project).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
+    params.fetch(:project, {}).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
   end
 end
