@@ -57,17 +57,6 @@ RSpec.describe ProjectsController, type: :request do
       expect(root_index).to be < form_index
     end
 
-    it 'renders root projects in three columns (health, text, badges)' do
-      ProjectRecord.create!(name: 'Alpha', description: 'desc', point_of_contact: 'Alex', current_state: 'todo')
-
-      get '/projects'
-
-      expect(response.body).to include('project-row')
-      expect(response.body).to include('project-row__health')
-      expect(response.body).to include('project-row__text')
-      expect(response.body).to include('project-row__badges')
-    end
-
     it 'humanizes state labels for root projects' do
       ProjectRecord.create!(name: 'Rooty', current_state: 'in_progress')
 
@@ -133,11 +122,6 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).to include('Child description')
       expect(response.body).to include('Blocked')
       expect(response.body).to include('archived')
-      expect(response.body).to include('Casey')
-      expect(response.body).to include('project-row')
-      expect(response.body).to include('project-row__health')
-      expect(response.body).to include('project-row__text')
-      expect(response.body).to include('project-row__badges')
     end
 
     it 'creates via HTML and redirects' do

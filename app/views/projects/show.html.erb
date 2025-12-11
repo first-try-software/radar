@@ -54,30 +54,7 @@
   <div class="card">
     <h3 class="section-title children-title">Projects</h3>
     <ul class="list children-list">
-      <% @project_record.children.each do |child| %>
-        <li class="list-item project-row">
-          <div class="project-row__health">
-            <%= project_health_indicator(child) %>
-          </div>
-          <div class="project-row__text">
-            <div class="project-title-row">
-              <%= link_to child.name, project_path(child), class: 'project-name' %>
-            </div>
-            <div class="muted project-description"><%= truncate(child.description.to_s, length: 80) %></div>
-            <% if child.point_of_contact.present? %>
-              <div class="muted project-poc"><%= child.point_of_contact %></div>
-            <% end %>
-          </div>
-          <div class="project-row__badges">
-            <div class="badges">
-              <span class="badge state"><%= child.current_state.to_s.tr('_', ' ').titleize %></span>
-              <% if child.archived %>
-                <span class="badge archived">archived</span>
-              <% end %>
-            </div>
-          </div>
-        </li>
-      <% end %>
+      <%= render partial: 'projects/project_list_item', collection: @project_record.children, as: :project %>
       <% if @project_record.children.empty? %>
         <li class="list-item"><span class="muted">No children yet.</span></li>
       <% end %>
