@@ -19,6 +19,12 @@ class ProjectRecord < ApplicationRecord
 
   has_one :parent, through: :parent_relationship, source: :parent
 
+  has_many :health_updates,
+           class_name: 'HealthUpdateRecord',
+           foreign_key: :project_id,
+           inverse_of: :project,
+           dependent: :destroy
+
   validates :name, presence: true, uniqueness: true
   validates :current_state, presence: true, inclusion: { in: ALLOWED_STATES }
 end

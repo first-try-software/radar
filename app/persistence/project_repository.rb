@@ -1,4 +1,8 @@
 class ProjectRepository
+  def initialize(health_update_repository:)
+    @health_update_repository = health_update_repository
+  end
+
   def find(id)
     record = ProjectRecord.find_by(id: id)
     return nil unless record
@@ -67,6 +71,8 @@ class ProjectRepository
 
   private
 
+  attr_reader :health_update_repository
+
   def build_entity(record)
     Project.new(
       name: record.name,
@@ -74,9 +80,23 @@ class ProjectRepository
       point_of_contact: record.point_of_contact,
       archived: record.archived,
       current_state: record.current_state.to_sym,
+      health_updates_loader: health_updates_loader_for(record),
+      weekly_health_updates_loader: weekly_health_updates_loader_for(record),
       children_loader: children_loader_for(record),
       parent_loader: parent_loader_for(record)
     )
+  end
+
+  def health_updates_loader_for(record)
+    lambda do |_project|
+      health_update_repository.all_for_project(record.id)
+    end
+  end
+
+  def weekly_health_updates_loader_for(record)
+    lambda do |_project|
+      health_update_repository.weekly_for_project(record.id)
+    end
   end
 
   def children_loader_for(record)

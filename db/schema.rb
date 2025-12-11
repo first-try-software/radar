@@ -10,7 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_07_010100) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_09_120000) do
+  create_table "health_updates", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.text "description"
+    t.string "health", null: false
+    t.integer "project_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id", "date"], name: "index_health_updates_on_project_id_and_date"
+    t.index ["project_id"], name: "index_health_updates_on_project_id"
+  end
+
   create_table "projects", force: :cascade do |t|
     t.boolean "archived", default: false, null: false
     t.datetime "created_at", null: false
@@ -34,6 +45,46 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_07_010100) do
     t.index ["parent_id"], name: "index_projects_projects_on_parent_id"
   end
 
+  create_table "teams", force: :cascade do |t|
+    t.boolean "archived", default: false, null: false
+    t.datetime "created_at", null: false
+    t.text "mission", default: "", null: false
+    t.string "name", null: false
+    t.string "point_of_contact", default: "", null: false
+    t.datetime "updated_at", null: false
+    t.text "vision", default: "", null: false
+    t.index ["name"], name: "index_teams_on_name", unique: true
+  end
+
+  create_table "teams_projects", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "order", null: false
+    t.integer "project_id", null: false
+    t.integer "team_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id"], name: "index_teams_projects_on_project_id", unique: true
+    t.index ["team_id", "order"], name: "index_teams_projects_on_team_id_and_order", unique: true
+    t.index ["team_id", "project_id"], name: "index_teams_projects_on_team_id_and_project_id", unique: true
+    t.index ["team_id"], name: "index_teams_projects_on_team_id"
+  end
+
+  create_table "teams_teams", force: :cascade do |t|
+    t.integer "child_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "order", null: false
+    t.integer "parent_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["child_id"], name: "index_teams_teams_on_child_id"
+    t.index ["parent_id", "child_id"], name: "index_teams_teams_on_parent_id_and_child_id", unique: true
+    t.index ["parent_id", "order"], name: "index_teams_teams_on_parent_id_and_order", unique: true
+    t.index ["parent_id"], name: "index_teams_teams_on_parent_id"
+  end
+
+  add_foreign_key "health_updates", "projects"
   add_foreign_key "projects_projects", "projects", column: "child_id"
   add_foreign_key "projects_projects", "projects", column: "parent_id"
+  add_foreign_key "teams_projects", "projects"
+  add_foreign_key "teams_projects", "teams"
+  add_foreign_key "teams_teams", "teams", column: "child_id"
+  add_foreign_key "teams_teams", "teams", column: "parent_id"
 end

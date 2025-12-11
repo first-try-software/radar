@@ -1,26 +1,42 @@
 <div class="grid">
   <div class="card">
     <% allowed_states = SetProjectState::STATE_TRANSITIONS[@project_record.current_state.to_sym] || [] %>
-    <div class="state-dropdown" data-state-url="<%= state_project_path(@project_record) %>">
-      <button class="state-toggle" type="button">
-        <span class="badge state"><%= @project_record.current_state.to_s.tr('_', ' ').titleize %></span>
-      </button>
-      <div class="state-menu">
-        <% if allowed_states.any? %>
-          <% allowed_states.each do |state| %>
-            <button type="button" data-state="<%= state %>"><%= state.to_s.tr('_', ' ').titleize %></button>
-          <% end %>
-        <% else %>
-          <div class="empty">No further transitions</div>
-        <% end %>
+    <div class="project-header">
+      <div class="project-header__health">
+        <%= project_health_indicator(@project_record) %>
       </div>
-    </div>
+      <div class="project-header__text">
+        <div class="editable-field project-name"
+             contenteditable="true"
+             data-field="name"
+             data-update-url="<%= project_path(@project_record) %>"><%= @project_record.name %></div>
 
-    <div class="section-title section-title-large">
-      <div class="editable-field"
-           contenteditable="true"
-           data-field="name"
-           data-update-url="<%= project_path(@project_record) %>"><%= @project_record.name %></div>
+        <div class="editable-field project-description"
+             contenteditable="true"
+             data-field="description"
+             data-update-url="<%= project_path(@project_record) %>"><%= @project_record.description.presence || 'No description yet.' %></div>
+
+        <div class="editable-field project-poc"
+              contenteditable="true"
+              data-field="point_of_contact"
+              data-update-url="<%= project_path(@project_record) %>"><%= @project_record.point_of_contact.presence || 'Enter a person, email, or slack channel.' %></div>
+      </div>
+      <div class="project-header__state">
+        <div class="state-dropdown" data-state-url="<%= state_project_path(@project_record) %>">
+          <button class="state-toggle" type="button">
+            <span class="badge state"><%= @project_record.current_state.to_s.tr('_', ' ').titleize %></span>
+          </button>
+          <div class="state-menu">
+            <% if allowed_states.any? %>
+              <% allowed_states.each do |state| %>
+                <button type="button" data-state="<%= state %>"><%= state.to_s.tr('_', ' ').titleize %></button>
+              <% end %>
+            <% else %>
+              <div class="empty">No further transitions</div>
+            <% end %>
+          </div>
+        </div>
+      </div>
     </div>
 
     <% if defined?(@errors) && @errors.present? %>
@@ -33,36 +49,32 @@
       </div>
     <% end %>
 
-    <div class="form-group">
-      <div class="editable-field project-description"
-           contenteditable="true"
-           data-field="description"
-           data-update-url="<%= project_path(@project_record) %>"><%= @project_record.description.presence || 'No description yet.' %></div>
-    </div>
-
-    <div class="form-group poc-row">
-      <span class="poc-label">POC:</span>
-      <div class="editable-field poc-field"
-           contenteditable="true"
-           data-field="point_of_contact"
-           data-update-url="<%= project_path(@project_record) %>"><%= @project_record.point_of_contact.presence || 'Enter a person, email, or slack channel.' %></div>
-    </div>
   </div>
 
   <div class="card">
     <h3 class="section-title children-title">Projects</h3>
     <ul class="list children-list">
       <% @project_record.children.each do |child| %>
-        <li class="list-item">
-          <div>
-            <div><%= link_to child.name, project_path(child) %></div>
-            <div class="muted"><%= truncate(child.description.to_s, length: 80) %></div>
+        <li class="list-item project-row">
+          <div class="project-row__health">
+            <%= project_health_indicator(child) %>
           </div>
-          <div class="badges">
-            <span class="badge state"><%= child.current_state.to_s.tr('_', ' ').titleize %></span>
-            <% if child.archived %>
-              <span class="badge archived">archived</span>
+          <div class="project-row__text">
+            <div class="project-title-row">
+              <%= link_to child.name, project_path(child), class: 'project-name' %>
+            </div>
+            <div class="muted project-description"><%= truncate(child.description.to_s, length: 80) %></div>
+            <% if child.point_of_contact.present? %>
+              <div class="muted project-poc"><%= child.point_of_contact %></div>
             <% end %>
+          </div>
+          <div class="project-row__badges">
+            <div class="badges">
+              <span class="badge state"><%= child.current_state.to_s.tr('_', ' ').titleize %></span>
+              <% if child.archived %>
+                <span class="badge archived">archived</span>
+              <% end %>
+            </div>
           </div>
         </li>
       <% end %>

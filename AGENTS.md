@@ -56,6 +56,8 @@ This project follows these rules:
   * Favor objects over primitives.
   * Require 100% test coverage before moving on to the next thing.
   * Require an average method complexity from flog below 10.
-  * Always ask for confirmation before doing anything.
+  * Confirmation behavior:
+    * Skip confirmation for small/single-file changes.
+    * If a change will touch 10+ files, share a plan and get confirmation first.
 
   

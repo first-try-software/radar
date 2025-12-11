@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe 'domain dependency wiring' do
   let(:actions) { Rails.application.config.x.project_actions }
   let(:repository) { Rails.application.config.x.project_repository }
+  let(:health_repository) { Rails.application.config.x.health_update_repository }
 
   it 'builds project actions with the shared project repository' do
     expect(actions).to be_a(ProjectActionsFactory)
@@ -14,5 +15,7 @@ RSpec.describe 'domain dependency wiring' do
     expect(actions.archive_project).to be_a(ArchiveProject)
     expect(actions.find_project).to be_a(FindProject)
     expect(actions.create_subordinate_project).to be_a(CreateSubordinateProject)
+    expect(actions.record_project_health_update).to be_a(RecordProjectHealthUpdate)
+    expect(actions.record_project_health_update.instance_variable_get(:@health_update_repository)).to equal(health_repository)
   end
 end

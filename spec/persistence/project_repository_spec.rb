@@ -1,12 +1,30 @@
 require 'rails_helper'
 require 'domain/projects/project'
 require Rails.root.join('app/persistence/project_repository')
+require Rails.root.join('app/persistence/health_update_repository')
 
 RSpec.describe ProjectRepository do
-  subject(:repository) { described_class.new }
+  let(:health_repository) { HealthUpdateRepository.new }
+  subject(:repository) { described_class.new(health_update_repository: health_repository) }
 
   def build_project(name)
     Project.new(name: name)
+  end
+
+  it 'loads health updates into the domain project' do
+    project_record = ProjectRecord.create!(
+      name: 'Status',
+      description: 'Status dashboard',
+      point_of_contact: 'Alex',
+      current_state: 'in_progress'
+    )
+    HealthUpdateRecord.create!(project: project_record, date: Date.new(2025, 1, 1), health: 'at_risk')
+    HealthUpdateRecord.create!(project: project_record, date: Date.new(2025, 1, 8), health: 'on_track')
+
+    project = repository.find(project_record.id)
+
+    expect(project.health).to eq(:on_track)
+    expect(project.health_trend.last).to be_a(HealthUpdate)
   end
 
   describe '#find' do

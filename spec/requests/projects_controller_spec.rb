@@ -14,6 +14,14 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).to include('Alpha')
     end
 
+    it 'renders a health indicator for projects on the index' do
+      ProjectRecord.create!(name: 'Alpha', current_state: 'todo')
+
+      get '/projects'
+
+      expect(response.body).to include('project-health--not_available')
+    end
+
     it 'only lists projects without a parent' do
       parent = ProjectRecord.create!(name: 'Parent')
       child = ProjectRecord.create!(name: 'Child')
@@ -25,12 +33,20 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).not_to include('Child')
     end
 
+    it 'renders the point of contact beneath root project descriptions' do
+      ProjectRecord.create!(name: 'Alpha', description: 'desc', point_of_contact: 'Alex')
+
+      get '/projects'
+
+      expect(response.body).to include('Alex')
+    end
+
     it 'renders the new project form inline at the bottom of root projects' do
       ProjectRecord.create!(name: 'Rooty')
 
       get '/projects'
 
-      expect(response.body).to include('Root Projects')
+      expect(response.body).to include('Projects')
       expect(response.body).not_to include('All Projects')
       expect(response.body).to include('child-actions')
       expect(response.body).to include('New root project name')
@@ -39,6 +55,17 @@ RSpec.describe ProjectsController, type: :request do
       root_index = response.body.index('Rooty')
       form_index = response.body.index('New root project name')
       expect(root_index).to be < form_index
+    end
+
+    it 'renders root projects in three columns (health, text, badges)' do
+      ProjectRecord.create!(name: 'Alpha', description: 'desc', point_of_contact: 'Alex', current_state: 'todo')
+
+      get '/projects'
+
+      expect(response.body).to include('project-row')
+      expect(response.body).to include('project-row__health')
+      expect(response.body).to include('project-row__text')
+      expect(response.body).to include('project-row__badges')
     end
 
     it 'humanizes state labels for root projects' do
@@ -57,6 +84,14 @@ RSpec.describe ProjectsController, type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Alpha')
+    end
+
+    it 'renders a health indicator for the project on the show page' do
+      record = ProjectRecord.create!(name: 'Alpha')
+
+      get "/projects/#{record.id}"
+
+      expect(response.body).to include('project-health')
     end
 
     it 'links children to their show pages' do
@@ -87,7 +122,8 @@ RSpec.describe ProjectsController, type: :request do
         name: 'Child',
         description: 'Child description',
         current_state: 'blocked',
-        archived: true
+        archived: true,
+        point_of_contact: 'Casey'
       )
       ProjectsProjectRecord.create!(parent: parent, child: child, order: 0)
 
@@ -97,6 +133,11 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).to include('Child description')
       expect(response.body).to include('Blocked')
       expect(response.body).to include('archived')
+      expect(response.body).to include('Casey')
+      expect(response.body).to include('project-row')
+      expect(response.body).to include('project-row__health')
+      expect(response.body).to include('project-row__text')
+      expect(response.body).to include('project-row__badges')
     end
 
     it 'creates via HTML and redirects' do

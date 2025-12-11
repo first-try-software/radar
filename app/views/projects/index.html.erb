@@ -1,6 +1,6 @@
 <div class="grid">
   <div class="card root-projects-card">
-    <h2 class="section-title">Root Projects</h2>
+    <h2 class="section-title">Projects</h2>
     <% if defined?(@errors) && @errors.present? %>
       <div class="errors">
         <ul>
@@ -12,16 +12,26 @@
     <% end %>
     <ul class="list">
       <% @projects.each do |project| %>
-        <li class="list-item">
-          <div>
-            <div><%= link_to project.name, project_path(project) %></div>
-            <div class="muted"><%= truncate(project.description, length: 80) %></div>
+        <li class="list-item project-row">
+          <div class="project-row__health">
+            <%= project_health_indicator(project) %>
           </div>
-          <div class="badges">
-            <span class="badge state"><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
-            <% if project.archived %>
-              <span class="badge archived">archived</span>
+          <div class="project-row__text">
+            <div class="project-title-row">
+              <%= link_to project.name, project_path(project), class: 'project-name' %>
+            </div>
+            <div class="muted project-description"><%= truncate(project.description, length: 80) %></div>
+            <% if project.point_of_contact.present? %>
+              <div class="muted project-poc"><%= project.point_of_contact %></div>
             <% end %>
+          </div>
+          <div class="project-row__badges">
+            <div class="badges">
+              <span class="badge state"><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
+              <% if project.archived %>
+                <span class="badge archived">archived</span>
+              <% end %>
+            </div>
           </div>
         </li>
       <% end %>
