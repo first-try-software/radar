@@ -117,7 +117,7 @@ class Project
   end
 
   def latest_health_update
-    @latest_health_update ||= health_updates.max_by(&:date)
+    @latest_health_update ||= health_updates.last
   end
 
   def working_state?

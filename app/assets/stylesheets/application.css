@@ -205,6 +205,107 @@ a:hover {
   justify-content: flex-end;
 }
 
+.project-header__health-update {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  width: 100%;
+  display: none;
+}
+
+.project-header__health-update.open {
+  display: block;
+}
+
+.health-toggle-button {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.health-toggle-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.health-update-form {
+  width: 100%;
+}
+
+.health-update-fields {
+  display: grid;
+  grid-template-columns: 170px 170px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.health-select {
+  position: relative;
+}
+
+.health-select__toggle {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: #0e1430;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.health-select__label {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+.health-select__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  display: none;
+  flex-direction: column;
+  padding: 6px;
+  z-index: 10;
+}
+
+.health-select__menu.open {
+  display: flex;
+}
+
+.health-select__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 8px;
+  width: 100%;
+  text-align: left;
+}
+
+.health-select__option:hover,
+.health-select__option:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  outline: none;
+}
+
 .editable-field {
   display: inline-block;
   width: auto;
@@ -310,7 +411,9 @@ a:hover {
   margin-left: auto;
 }
 
-input[type="text"] {
+input[type="text"],
+input[type="date"],
+select {
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
@@ -413,11 +516,17 @@ input[type="text"] {
   display: inline-block;
   width: 36px;
   height: 36px;
-  margin-top: 8px;
+  margin-top: 4px;
   border-radius: 50%;
   background: #6b7280;
   vertical-align: middle;
   flex-shrink: 0;
+}
+
+.project-health--small {
+  width: 14px;
+  height: 14px;
+  margin-top: 0;
 }
 
 .project-health--on_track {
@@ -430,6 +539,9 @@ input[type="text"] {
   margin-right: 0.1em;
   border-radius: 2px;
   background: transparent;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 22px solid #d97706;
 }
 
 .project-health--off_track {
@@ -451,4 +563,20 @@ input[type="text"] {
   border-left: 12px solid transparent;
   border-right: 12px solid transparent;
   border-bottom: 22px solid #d97706;
+}
+
+.project-health--at_risk.project-health--small {
+  border-left-width: 8px;
+  border-right-width: 8px;
+  border-bottom-width: 14px;
+  border-bottom-color: #d97706;
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+
+.health-update-fields .health-select__toggle,
+.health-update-fields .health-date-field,
+.health-update-fields .health-description-field {
+  height: 44px;
 }

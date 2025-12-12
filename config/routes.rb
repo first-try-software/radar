@@ -6,6 +6,7 @@ Rails.application.routes.draw do
       patch :state, to: 'projects#set_state'
       patch :archive
       post :subordinates, to: 'projects#create_subordinate'
+      post :health_updates, to: 'projects#create_health_update'
     end
   end
 end

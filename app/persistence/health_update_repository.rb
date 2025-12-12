@@ -2,12 +2,16 @@ require Rails.root.join('lib/domain/projects/health_update')
 
 class HealthUpdateRepository
   def save(update)
-    HealthUpdateRecord.create!(
-      project_id: update.project_id,
-      date: update.date,
-      health: update.health,
-      description: update.description
-    )
+    HealthUpdateRecord.transaction do
+      project_id = update.project_id.to_i
+      HealthUpdateRecord.where(project_id: project_id, date: update.date).delete_all
+      HealthUpdateRecord.create!(
+        project_id: project_id,
+        date: update.date,
+        health: update.health,
+        description: update.description
+      )
+    end
 
     update
   end
@@ -15,7 +19,7 @@ class HealthUpdateRepository
   def all_for_project(project_id)
     HealthUpdateRecord
       .where(project_id: project_id)
-      .order(:date)
+      .order(:date, :created_at, :id)
       .map { |record| build_entity(record) }
   end
 
