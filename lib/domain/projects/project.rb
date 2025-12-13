@@ -3,8 +3,9 @@ require_relative '../support/health_rollup'
 
 class Project
   ALLOWED_STATES = [:new, :todo, :in_progress, :blocked, :on_hold, :done].freeze
+  STATE_PRIORITY = [:blocked, :in_progress, :on_hold, :todo, :new, :done].freeze
 
-  attr_reader :name, :description, :point_of_contact, :current_state
+  attr_reader :name, :description, :point_of_contact
 
   def initialize(
     name:,
@@ -59,6 +60,22 @@ class Project
     @parent ||= load_parent
   end
 
+  def leaf?
+    children.empty?
+  end
+
+  def leaf_descendants
+    return [self] if leaf?
+
+    children.flat_map(&:leaf_descendants)
+  end
+
+  def current_state
+    return @current_state if leaf?
+
+    derive_state_from_leaves
+  end
+
   def with_state(state:)
     self.class.new(
       name: name,
@@ -74,8 +91,6 @@ class Project
   end
 
   def health
-    return :not_available unless working_state?
-
     return subordinate_health unless subordinate_health == :not_available
     return :not_available if health_updates.empty?
 
@@ -83,8 +98,6 @@ class Project
   end
 
   def health_trend
-    return [] unless working_state?
-
     if children.any?
       children_weekly_rollups_with_current
     else
@@ -153,7 +166,32 @@ class Project
   end
 
   def subordinate_health
-    @subordinate_health ||= HealthRollup.rollup(subordinate_projects)
+    @subordinate_health ||= rollup_subordinate_health
+  end
+
+  def rollup_subordinate_health
+    return :not_available if subordinate_projects.empty?
+
+    healths = subordinate_projects.map(&:health).reject { |h| h == :not_available }
+    return :not_available if healths.empty?
+
+    scores = healths.map { |h| { on_track: 1, at_risk: 0, off_track: -1 }[h] }.compact
+    return :not_available if scores.empty?
+
+    average = scores.sum(0.0) / scores.length
+    case average.round(0)
+    when 1 then :on_track
+    when -1 then :off_track
+    else :at_risk
+    end
+  end
+
+  def derive_state_from_leaves
+    leaves = leaf_descendants
+    return :new if leaves.empty?
+
+    leaf_states = leaves.map(&:current_state)
+    STATE_PRIORITY.find { |state| leaf_states.include?(state) } || :new
   end
 
   def children_weekly_rollups_with_current
@@ -178,22 +216,30 @@ class Project
       child_healths = child_trends.map do |trend|
         monday_update = trend.find { |u| u.date == monday }
         monday_update&.health
-      end.compact
+      end.compact.reject { |h| h == :not_available }
 
-      rolled_health = HealthRollup.rollup(
-        child_healths.map { |h| OpenStruct.new(current_state: :in_progress, health: h) }
-      )
+      rolled_health = rollup_health_values(child_healths)
 
       OpenStruct.new(date: monday, health: rolled_health)
     end
   end
 
-  def latest_health_update
-    @latest_health_update ||= health_updates.last
+  def rollup_health_values(healths)
+    return :not_available if healths.empty?
+
+    scores = healths.map { |h| { on_track: 1, at_risk: 0, off_track: -1 }[h] }.compact
+    return :not_available if scores.empty?
+
+    average = scores.sum(0.0) / scores.length
+    case average.round(0)
+    when 1 then :on_track
+    when -1 then :off_track
+    else :at_risk
+    end
   end
 
-  def working_state?
-    [:in_progress, :blocked].include?(current_state)
+  def latest_health_update
+    @latest_health_update ||= health_updates.last
   end
 
   def name_present?

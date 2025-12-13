@@ -895,3 +895,71 @@ input::placeholder {
   text-overflow: ellipsis;
   max-width: 150px;
 }
+
+/* Confirmation Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  max-width: 420px;
+  width: 90%;
+  animation: modal-appear 200ms ease-out;
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal__header {
+  padding: 20px 24px 0;
+}
+
+.modal__header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.modal__body {
+  padding: 16px 24px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.modal__body p {
+  margin: 0 0 12px;
+}
+
+.modal__body p:last-child {
+  margin-bottom: 0;
+}
+
+.modal__actions {
+  padding: 16px 24px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

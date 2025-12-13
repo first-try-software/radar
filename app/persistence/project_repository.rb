@@ -33,6 +33,19 @@ class ProjectRepository
     )
   end
 
+  def update_by_name(name:, project:)
+    record = ProjectRecord.find_by(name: name)
+    return unless record
+
+    record.update!(
+      name: project.name,
+      description: project.description,
+      point_of_contact: project.point_of_contact,
+      archived: project.archived?,
+      current_state: project.current_state
+    )
+  end
+
   def exists_with_name?(name)
     ProjectRecord.exists?(name: name)
   end

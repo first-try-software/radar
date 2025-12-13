@@ -4,7 +4,6 @@ require_relative 'health_update'
 
 class RecordProjectHealthUpdate
   ALLOWED_HEALTHS = [:on_track, :at_risk, :off_track].freeze
-  ALLOWED_PROJECT_STATES = [:in_progress, :blocked].freeze
 
   def initialize(project_repository:, health_update_repository:)
     @project_repository = project_repository
@@ -18,7 +17,6 @@ class RecordProjectHealthUpdate
     @description = description
 
     return project_not_found_failure unless project
-    return invalid_project_state_failure unless allowed_project_state?
     return missing_date_failure unless date_present?
     return future_date_failure if future_date?
     return invalid_health_failure unless allowed_health?
@@ -33,10 +31,6 @@ class RecordProjectHealthUpdate
 
   def project
     @project ||= project_repository.find(project_id)
-  end
-
-  def allowed_project_state?
-    ALLOWED_PROJECT_STATES.include?(project.current_state)
   end
 
   def allowed_health?
@@ -59,10 +53,6 @@ class RecordProjectHealthUpdate
 
   def project_not_found_failure
     failure('project not found')
-  end
-
-  def invalid_project_state_failure
-    failure('invalid project state')
   end
 
   def missing_date_failure

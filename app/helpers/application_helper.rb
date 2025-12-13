@@ -1,6 +1,4 @@
 module ApplicationHelper
-  WORKING_PROJECT_STATES = [:in_progress, :blocked].freeze
-
   def project_health_indicator(project_like, with_tooltip: false)
     health_value = project_health_value(project_like)
     label = project_health_label(health_value)
@@ -72,20 +70,11 @@ module ApplicationHelper
   private
 
   def project_health_value(project_like)
-    state = project_state(project_like)
-    return :not_available unless WORKING_PROJECT_STATES.include?(state)
-
     if project_like.respond_to?(:health)
       project_like.health
     else
       domain_project_for(project_like)&.health || :not_available
     end
-  end
-
-  def project_state(project_like)
-    return nil unless project_like.respond_to?(:current_state)
-
-    project_like.current_state&.to_sym
   end
 
   def domain_project_for(project_record)

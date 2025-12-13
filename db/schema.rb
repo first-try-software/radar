@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_09_120000) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_13_120000) do
   create_table "health_updates", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.date "date", null: false
@@ -25,7 +25,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_09_120000) do
   create_table "projects", force: :cascade do |t|
     t.boolean "archived", default: false, null: false
     t.datetime "created_at", null: false
-    t.string "current_state", default: "new", null: false
+    t.string "current_state", default: "new"
     t.text "description", default: "", null: false
     t.string "name", null: false
     t.string "point_of_contact", default: "", null: false

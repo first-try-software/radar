@@ -19,23 +19,8 @@ RSpec.describe RecordProjectHealthUpdate do
     expect(result.errors).to eq(['project not found'])
   end
 
-  it 'fails when the project state does not allow updates' do
-    project = Project.new(name: 'Status', current_state: :todo)
-    project_repository = FakeProjectRepository.new(projects: { '123' => project })
-    health_repository = FakeHealthUpdateRepository.new
-    action = described_class.new(
-      project_repository: project_repository,
-      health_update_repository: health_repository
-    )
-
-    result = action.perform(project_id: '123', date: Date.today, health: :on_track)
-
-    expect(result.success?).to be(false)
-    expect(result.errors).to eq(['invalid project state'])
-  end
-
   it 'fails when the date is missing' do
-    project = Project.new(name: 'Status', current_state: :in_progress)
+    project = Project.new(name: 'Status')
     project_repository = FakeProjectRepository.new(projects: { '123' => project })
     health_repository = FakeHealthUpdateRepository.new
     action = described_class.new(
@@ -50,7 +35,7 @@ RSpec.describe RecordProjectHealthUpdate do
   end
 
   it 'fails when health is not allowed' do
-    project = Project.new(name: 'Status', current_state: :in_progress)
+    project = Project.new(name: 'Status')
     project_repository = FakeProjectRepository.new(projects: { '123' => project })
     health_repository = FakeHealthUpdateRepository.new
     action = described_class.new(
@@ -65,7 +50,7 @@ RSpec.describe RecordProjectHealthUpdate do
   end
 
   it 'fails when the date is in the future' do
-    project = Project.new(name: 'Status', current_state: :in_progress)
+    project = Project.new(name: 'Status')
     project_repository = FakeProjectRepository.new(projects: { '123' => project })
     health_repository = FakeHealthUpdateRepository.new
     action = described_class.new(
@@ -81,7 +66,7 @@ RSpec.describe RecordProjectHealthUpdate do
   end
 
   it 'persists the health update when valid' do
-    project = Project.new(name: 'Status', current_state: :in_progress)
+    project = Project.new(name: 'Status')
     project_repository = FakeProjectRepository.new(projects: { '123' => project })
     health_repository = FakeHealthUpdateRepository.new
     action = described_class.new(

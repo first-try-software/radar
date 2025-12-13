@@ -99,86 +99,214 @@ RSpec.describe Project do
     expect(updated).not_to equal(project)
   end
 
-  describe 'health' do
-    it 'returns :not_available when state is :new' do
-      project = described_class.new(name: 'Status')
+  describe 'leaf?' do
+    it 'returns true when project has no children' do
+      project = described_class.new(name: 'Leaf', children_loader: ->(_) { [] })
 
-      expect(project.health).to eq(:not_available)
+      expect(project.leaf?).to be(true)
     end
 
-    it 'returns :not_available when state is :blocked and no updates exist' do
-      loader = ->(_project) { [] }
+    it 'returns true when children_loader is nil' do
+      project = described_class.new(name: 'Leaf')
+
+      expect(project.leaf?).to be(true)
+    end
+
+    it 'returns false when project has children' do
+      child = described_class.new(name: 'Child')
+      project = described_class.new(name: 'Parent', children_loader: ->(_) { [child] })
+
+      expect(project.leaf?).to be(false)
+    end
+  end
+
+  describe 'leaf_descendants' do
+    it 'returns itself when project is a leaf' do
+      project = described_class.new(name: 'Leaf', children_loader: ->(_) { [] })
+
+      expect(project.leaf_descendants).to eq([project])
+    end
+
+    it 'returns direct children when they are all leaves' do
+      child1 = described_class.new(name: 'Child1', children_loader: ->(_) { [] })
+      child2 = described_class.new(name: 'Child2', children_loader: ->(_) { [] })
+      parent = described_class.new(name: 'Parent', children_loader: ->(_) { [child1, child2] })
+
+      expect(parent.leaf_descendants).to eq([child1, child2])
+    end
+
+    it 'returns grandchildren when children are parents' do
+      grandchild1 = described_class.new(name: 'GC1', children_loader: ->(_) { [] })
+      grandchild2 = described_class.new(name: 'GC2', children_loader: ->(_) { [] })
+      child = described_class.new(name: 'Child', children_loader: ->(_) { [grandchild1, grandchild2] })
+      grandparent = described_class.new(name: 'Grandparent', children_loader: ->(_) { [child] })
+
+      expect(grandparent.leaf_descendants).to eq([grandchild1, grandchild2])
+    end
+
+    it 'returns mixed leaves from different levels' do
+      grandchild = described_class.new(name: 'GC', children_loader: ->(_) { [] })
+      parent_child = described_class.new(name: 'ParentChild', children_loader: ->(_) { [grandchild] })
+      leaf_child = described_class.new(name: 'LeafChild', children_loader: ->(_) { [] })
+      root = described_class.new(name: 'Root', children_loader: ->(_) { [parent_child, leaf_child] })
+
+      expect(root.leaf_descendants).to eq([grandchild, leaf_child])
+    end
+  end
+
+  describe 'derived state for parent projects' do
+    it 'returns stored state for leaf projects' do
+      project = described_class.new(name: 'Leaf', current_state: :in_progress, children_loader: ->(_) { [] })
+
+      expect(project.current_state).to eq(:in_progress)
+    end
+
+    it 'returns :blocked when any leaf is blocked' do
+      child1 = described_class.new(name: 'C1', current_state: :blocked, children_loader: ->(_) { [] })
+      child2 = described_class.new(name: 'C2', current_state: :in_progress, children_loader: ->(_) { [] })
+      parent = described_class.new(name: 'Parent', children_loader: ->(_) { [child1, child2] })
+
+      expect(parent.current_state).to eq(:blocked)
+    end
+
+    it 'returns :in_progress when any leaf is in_progress and none blocked' do
+      child1 = described_class.new(name: 'C1', current_state: :in_progress, children_loader: ->(_) { [] })
+      child2 = described_class.new(name: 'C2', current_state: :done, children_loader: ->(_) { [] })
+      parent = described_class.new(name: 'Parent', children_loader: ->(_) { [child1, child2] })
+
+      expect(parent.current_state).to eq(:in_progress)
+    end
+
+    it 'returns :on_hold when any leaf is on_hold and none blocked/in_progress' do
+      child1 = described_class.new(name: 'C1', current_state: :on_hold, children_loader: ->(_) { [] })
+      child2 = described_class.new(name: 'C2', current_state: :done, children_loader: ->(_) { [] })
+      parent = described_class.new(name: 'Parent', children_loader: ->(_) { [child1, child2] })
+
+      expect(parent.current_state).to eq(:on_hold)
+    end
+
+    it 'returns :todo when any leaf is todo and none blocked/in_progress/on_hold' do
+      child1 = described_class.new(name: 'C1', current_state: :todo, children_loader: ->(_) { [] })
+      child2 = described_class.new(name: 'C2', current_state: :done, children_loader: ->(_) { [] })
+      parent = described_class.new(name: 'Parent', children_loader: ->(_) { [child1, child2] })
+
+      expect(parent.current_state).to eq(:todo)
+    end
+
+    it 'returns :new when any leaf is new and none blocked/in_progress/on_hold/todo' do
+      child1 = described_class.new(name: 'C1', current_state: :new, children_loader: ->(_) { [] })
+      child2 = described_class.new(name: 'C2', current_state: :done, children_loader: ->(_) { [] })
+      parent = described_class.new(name: 'Parent', children_loader: ->(_) { [child1, child2] })
+
+      expect(parent.current_state).to eq(:new)
+    end
+
+    it 'returns :done when all leaves are done' do
+      child1 = described_class.new(name: 'C1', current_state: :done, children_loader: ->(_) { [] })
+      child2 = described_class.new(name: 'C2', current_state: :done, children_loader: ->(_) { [] })
+      parent = described_class.new(name: 'Parent', children_loader: ->(_) { [child1, child2] })
+
+      expect(parent.current_state).to eq(:done)
+    end
+
+    it 'rolls up state from grandchildren' do
+      grandchild = described_class.new(name: 'GC', current_state: :blocked, children_loader: ->(_) { [] })
+      child = described_class.new(name: 'Child', children_loader: ->(_) { [grandchild] })
+      grandparent = described_class.new(name: 'GP', children_loader: ->(_) { [child] })
+
+      expect(grandparent.current_state).to eq(:blocked)
+    end
+
+    it 'returns :new when parent has no leaf descendants' do
+      child = described_class.new(name: 'Child', children_loader: ->(_) { [] })
+      # Simulate a weird edge case: parent whose only "child" returns empty leaves
+      # In practice, a child with no children IS a leaf, so this tests empty children
+      parent = described_class.new(name: 'Parent', children_loader: ->(_) { [] })
+
+      expect(parent.current_state).to eq(:new)
+    end
+  end
+
+  describe 'health' do
+    it 'returns :not_available for leaf with no health updates' do
       project = described_class.new(
         name: 'Status',
-        current_state: :blocked,
-        health_updates_loader: loader,
-        weekly_health_updates_loader: loader
+        children_loader: ->(_) { [] },
+        health_updates_loader: ->(_) { [] }
       )
 
       expect(project.health).to eq(:not_available)
     end
 
-    it 'returns the latest health when state is :in_progress' do
+    it 'returns the latest health for leaf with updates' do
       updates = [
         double('HealthUpdate', date: Date.new(2025, 1, 1), health: :on_track),
         double('HealthUpdate', date: Date.new(2025, 1, 8), health: :at_risk)
       ]
-      loader = ->(_project) { updates }
       project = described_class.new(
         name: 'Status',
-        current_state: :in_progress,
-        health_updates_loader: loader,
-        weekly_health_updates_loader: loader
+        children_loader: ->(_) { [] },
+        health_updates_loader: ->(_) { updates },
+        weekly_health_updates_loader: ->(_) { updates }
       )
 
       expect(project.health).to eq(:at_risk)
     end
 
-    it 'rolls up health from working subordinate projects' do
+    it 'rolls up health from subordinate projects' do
       children = [
-        double('Project', current_state: :in_progress, health: :on_track),
-        double('Project', current_state: :blocked, health: :off_track)
+        double('Project', health: :on_track),
+        double('Project', health: :off_track)
       ]
-      health_updates_loader = ->(_project) { [] }
       project = described_class.new(
         name: 'Status',
-        current_state: :in_progress,
-        children_loader: ->(_project) { children },
-        health_updates_loader: health_updates_loader
+        children_loader: ->(_) { children },
+        health_updates_loader: ->(_) { [] }
       )
 
       expect(project.health).to eq(:at_risk)
     end
 
-    it 'ignores non-working subordinates when rolling up health' do
+    it 'ignores :not_available subordinate health values' do
       children = [
-        double('Project', current_state: :done, health: :off_track),
-        double('Project', current_state: :todo, health: :on_track)
+        double('Project', health: :not_available),
+        double('Project', health: :on_track)
       ]
       project = described_class.new(
         name: 'Status',
-        current_state: :in_progress,
-        children_loader: ->(_project) { children },
-        health_updates_loader: ->(_project) { [] }
+        children_loader: ->(_) { children },
+        health_updates_loader: ->(_) { [] }
+      )
+
+      expect(project.health).to eq(:on_track)
+    end
+
+    it 'returns :not_available when all subordinates have :not_available health' do
+      children = [
+        double('Project', health: :not_available),
+        double('Project', health: :not_available)
+      ]
+      project = described_class.new(
+        name: 'Status',
+        children_loader: ->(_) { children },
+        health_updates_loader: ->(_) { [] }
       )
 
       expect(project.health).to eq(:not_available)
     end
 
-    it 'ignores :not_available subordinate health values' do
+    it 'returns :off_track when all subordinates are off_track' do
       children = [
-        double('Project', current_state: :in_progress, health: :not_available),
-        double('Project', current_state: :blocked, health: :on_track)
+        double('Project', health: :off_track),
+        double('Project', health: :off_track)
       ]
-      health_updates_loader = ->(_project) { [] }
       project = described_class.new(
         name: 'Status',
-        current_state: :in_progress,
-        children_loader: ->(_project) { children },
-        health_updates_loader: health_updates_loader
+        children_loader: ->(_) { children },
+        health_updates_loader: ->(_) { [] }
       )
 
-      expect(project.health).to eq(:on_track)
+      expect(project.health).to eq(:off_track)
     end
 
     it 'excludes future-dated health updates from current health' do
@@ -188,7 +316,7 @@ RSpec.describe Project do
       ]
       project = described_class.new(
         name: 'Status',
-        current_state: :in_progress,
+        children_loader: ->(_) { [] },
         health_updates_loader: ->(_) { updates },
         weekly_health_updates_loader: ->(_) { [] }
       )
@@ -198,17 +326,11 @@ RSpec.describe Project do
   end
 
   describe 'health_trend' do
-    it 'returns empty trend when state is :todo' do
-      project = described_class.new(name: 'Status')
-
-      expect(project.health_trend).to eq([])
-    end
-
     it 'returns only current health when no weekly updates exist for leaf project' do
       loader = ->(_project) { [] }
       project = described_class.new(
         name: 'Status',
-        current_state: :in_progress,
+        children_loader: loader,
         health_updates_loader: loader,
         weekly_health_updates_loader: loader
       )
@@ -232,7 +354,7 @@ RSpec.describe Project do
       ]
       project = described_class.new(
         name: 'Status',
-        current_state: :in_progress,
+        children_loader: ->(_) { [] },
         health_updates_loader: ->(_) { health_updates },
         weekly_health_updates_loader: ->(_) { weekly_updates }
       )
@@ -258,12 +380,11 @@ RSpec.describe Project do
         double('HealthUpdate', date: monday1, health: :off_track),
         double('HealthUpdate', date: monday2, health: :off_track)
       ]
-      child1 = double('Project', health_trend: child1_trend, current_state: :in_progress, health: :on_track)
-      child2 = double('Project', health_trend: child2_trend, current_state: :in_progress, health: :off_track)
+      child1 = double('Project', health_trend: child1_trend, health: :on_track)
+      child2 = double('Project', health_trend: child2_trend, health: :off_track)
 
       project = described_class.new(
         name: 'Parent',
-        current_state: :in_progress,
         children_loader: ->(_) { [child1, child2] },
         health_updates_loader: ->(_) { [] },
         weekly_health_updates_loader: ->(_) { [] }
@@ -284,11 +405,10 @@ RSpec.describe Project do
     it 'includes all 6 historical weeks plus current for parent project' do
       mondays = (1..6).map { |i| Date.new(2025, 1, 6) + (i * 7) }
       child_trend = mondays.map { |m| double('HealthUpdate', date: m, health: :on_track) }
-      child = double('Project', health_trend: child_trend, current_state: :in_progress, health: :on_track)
+      child = double('Project', health_trend: child_trend, health: :on_track)
 
       project = described_class.new(
         name: 'Parent',
-        current_state: :in_progress,
         children_loader: ->(_) { [child] },
         health_updates_loader: ->(_) { [] },
         weekly_health_updates_loader: ->(_) { [] }
@@ -304,10 +424,9 @@ RSpec.describe Project do
     end
 
     it 'returns only current health for parent when children have no trends' do
-      child = double('Project', health_trend: [], current_state: :in_progress, health: :on_track)
+      child = double('Project', health_trend: [], health: :on_track)
       project = described_class.new(
         name: 'Parent',
-        current_state: :in_progress,
         children_loader: ->(_) { [child] },
         health_updates_loader: ->(_) { [] },
         weekly_health_updates_loader: ->(_) { [] }
@@ -329,7 +448,7 @@ RSpec.describe Project do
       ]
       project = described_class.new(
         name: 'Status',
-        current_state: :in_progress,
+        children_loader: ->(_) { [] },
         health_updates_loader: ->(_) { [] },
         weekly_health_updates_loader: ->(_) { updates }
       )
@@ -350,11 +469,10 @@ RSpec.describe Project do
         double('HealthUpdate', date: past_monday, health: :on_track),
         double('HealthUpdate', date: future_monday, health: :off_track)
       ]
-      child = double('Project', health_trend: child_trend, current_state: :in_progress, health: :on_track)
+      child = double('Project', health_trend: child_trend, health: :on_track)
 
       project = described_class.new(
         name: 'Parent',
-        current_state: :in_progress,
         children_loader: ->(_) { [child] },
         health_updates_loader: ->(_) { [] },
         weekly_health_updates_loader: ->(_) { [] }
@@ -365,6 +483,25 @@ RSpec.describe Project do
       expect(trend.length).to eq(2)
       expect(trend[0].date).to eq(past_monday)
       expect(trend[1].date).to eq(current_date)
+    end
+
+    it 'returns :off_track in weekly rollup when all children are off_track' do
+      monday = Date.new(2025, 1, 6)
+      child1_trend = [double('HealthUpdate', date: monday, health: :off_track)]
+      child2_trend = [double('HealthUpdate', date: monday, health: :off_track)]
+      child1 = double('Project', health_trend: child1_trend, health: :off_track)
+      child2 = double('Project', health_trend: child2_trend, health: :off_track)
+
+      project = described_class.new(
+        name: 'Parent',
+        children_loader: ->(_) { [child1, child2] },
+        health_updates_loader: ->(_) { [] },
+        weekly_health_updates_loader: ->(_) { [] }
+      )
+
+      trend = project.health_trend
+
+      expect(trend[0].health).to eq(:off_track)
     end
   end
 

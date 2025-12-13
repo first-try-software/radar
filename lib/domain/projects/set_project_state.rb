@@ -2,14 +2,7 @@ require_relative '../support/result'
 require_relative 'project'
 
 class SetProjectState
-  STATE_TRANSITIONS = {
-    new: [:todo],
-    todo: [:in_progress, :blocked, :on_hold, :done],
-    in_progress: [:blocked, :on_hold, :done],
-    blocked: [:todo, :done],
-    on_hold: [:todo, :done],
-    done: []
-  }.freeze
+  SETTABLE_STATES = [:todo, :in_progress, :blocked, :on_hold, :done].freeze
 
   def initialize(project_repository:)
     @project_repository = project_repository
@@ -21,11 +14,9 @@ class SetProjectState
 
     return project_not_found_failure unless project
     return invalid_state_failure unless valid_state?
-    return invalid_transition_failure unless allowed_transition?
 
-    updated_project = project.with_state(state: @state)
-    project_repository.update(id: id, project: updated_project)
-    Result.success(value: updated_project)
+    update_leaf_descendants
+    Result.success(value: refreshed_project)
   end
 
   private
@@ -36,15 +27,20 @@ class SetProjectState
     @project ||= project_repository.find(id)
   end
 
-  def valid_state?
-    Project::ALLOWED_STATES.include?(@state)
+  def refreshed_project
+    project_repository.find(id)
   end
 
-  def allowed_transition?
-    return false if @state.nil?
-    return false if project.current_state == @state
+  def valid_state?
+    SETTABLE_STATES.include?(@state)
+  end
 
-    STATE_TRANSITIONS.fetch(project.current_state).include?(@state)
+  def update_leaf_descendants
+    leaves = project.leaf_descendants
+    leaves.each do |leaf|
+      updated_leaf = leaf.with_state(state: @state)
+      project_repository.update_by_name(name: leaf.name, project: updated_leaf)
+    end
   end
 
   def project_not_found_failure
@@ -53,10 +49,6 @@ class SetProjectState
 
   def invalid_state_failure
     failure('invalid state')
-  end
-
-  def invalid_transition_failure
-    failure('invalid state transition')
   end
 
   def failure(errors)

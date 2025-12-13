@@ -12,6 +12,11 @@ class FakeProjectRepository
     records[id] = project
   end
 
+  def update_by_name(name:, project:)
+    key = records.keys.find { |k| records[k].name == name }
+    records[key] = project if key
+  end
+
   def save(project)
     records[project.name] = project
   end

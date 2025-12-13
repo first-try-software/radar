@@ -49,6 +49,17 @@ RSpec.describe ProjectRepository do
     end
   end
 
+  describe '#update_by_name' do
+    it 'updates projects by name' do
+      record = ProjectRecord.create!(name: 'Status', current_state: 'new')
+      project = Project.new(name: 'Status', current_state: :done)
+
+      repository.update_by_name(name: 'Status', project: project)
+
+      expect(repository.find(record.id).current_state).to eq(:done)
+    end
+  end
+
   describe '#save' do
     it 'saves new projects without specifying an id' do
       project = build_project('Status')

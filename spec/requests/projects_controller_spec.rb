@@ -116,8 +116,7 @@ RSpec.describe ProjectsController, type: :request do
 
       get "/projects/#{parent.id}"
 
-      expect(response.body).to include('In Progress')
-      expect(response.body).not_to include('in_progress')
+      expect(response.body).to include('<span class="badge state">In Progress</span>')
     end
 
     it 'renders child project cards like the index, with heading and description' do
