@@ -24,7 +24,8 @@ RSpec.describe ProjectRepository do
     project = repository.find(project_record.id)
 
     expect(project.health).to eq(:on_track)
-    expect(project.health_trend.last).to be_a(HealthUpdate)
+    expect(project.health_trend).not_to be_empty
+    expect(project.health_trend.last.health).to eq(:on_track)
   end
 
   describe '#find' do

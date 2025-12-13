@@ -1,27 +1,100 @@
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li><%= link_to 'Projects', projects_path %></li>
+    <% ancestors = [] %>
+    <% current = @project_record.parent %>
+    <% while current do %>
+      <% ancestors.unshift(current) %>
+      <% current = current.parent %>
+    <% end %>
+    <% ancestors.each do |ancestor| %>
+      <li><%= link_to ancestor.name, project_path(ancestor) %></li>
+    <% end %>
+    <li aria-current="page"><%= @project_record.name %></li>
+  </ol>
+</nav>
+
 <div class="grid">
   <div class="card">
     <% allowed_states = SetProjectState::STATE_TRANSITIONS[@project_record.current_state.to_sym] || [] %>
     <div class="project-header">
-      <button type="button" class="health-toggle-button" data-health-toggle>
-        <div class="project-header__health">
-          <%= project_health_indicator(@project || @project_record) %>
+      <% if @project_record.children.empty? %>
+        <button type="button" class="health-toggle-button" data-health-toggle>
+          <div class="project-header__health">
+            <%= project_health_indicator(@project || @project_record, with_tooltip: true) %>
+          </div>
+        </button>
+      <% else %>
+        <div class="health-toggle-placeholder">
+          <div class="project-header__health">
+            <%= project_health_indicator(@project || @project_record, with_tooltip: true) %>
+          </div>
         </div>
-      </button>
+      <% end %>
       <div class="project-header__text">
         <div class="editable-field project-name"
              contenteditable="true"
              data-field="name"
              data-update-url="<%= project_path(@project_record) %>"><%= @project_record.name %></div>
 
-        <div class="editable-field project-description"
+        <div class="editable-field project-description<%= ' editable-field--empty' if @project_record.description.blank? %>"
              contenteditable="true"
              data-field="description"
-             data-update-url="<%= project_path(@project_record) %>"><%= @project_record.description.presence || 'No description yet.' %></div>
+             data-hint="What is this project about?"
+             data-update-url="<%= project_path(@project_record) %>"><%= @project_record.description.presence || 'What is this project about?' %></div>
 
-        <div class="editable-field project-poc"
-              contenteditable="true"
-              data-field="point_of_contact"
-              data-update-url="<%= project_path(@project_record) %>"><%= @project_record.point_of_contact.presence || 'Enter a person, email, or slack channel.' %></div>
+        <div class="editable-field project-poc<%= ' editable-field--empty' if @project_record.point_of_contact.blank? %>"
+             contenteditable="true"
+             data-field="point_of_contact"
+             data-hint="Where can I get more information (person, email, slack channel, etc.)?"
+             data-update-url="<%= project_path(@project_record) %>"><%= @project_record.point_of_contact.presence || 'Where can I get more information (person, email, slack channel, etc.)?' %></div>
+        <% if @project && project_health_trend(@project, interactive: @project_record.children.empty?) %>
+          <%= project_health_trend(@project, interactive: @project_record.children.empty?) %>
+        <% end %>
+        <% if @project_record.children.empty? %>
+          <% health_form_classes = ['project-header__health-update'] %>
+          <% health_form_classes << 'open' if @show_health_update_form %>
+          <div class="<%= health_form_classes.join(' ') %>" data-health-update-form>
+            <%= form_with model: HealthUpdateRecord.new,
+                          url: health_updates_project_path(@project_record),
+                          method: :post,
+                          scope: :health_update,
+                          local: true,
+                          html: { class: 'health-update-form', data: { turbo: false } } do |form| %>
+              <div class="health-update-fields">
+                <div class="health-select" data-health-select>
+                  <%= form.hidden_field :health, value: @selected_health, data: { health_select_value: true } %>
+                  <button type="button" class="health-select__toggle" data-health-select-toggle>
+                    <span class="project-health project-health--<%= @selected_health %> project-health--small" aria-hidden="true"></span>
+                    <span class="health-select__label"><%= @selected_health.to_s.tr('_', ' ').titleize %></span>
+                  </button>
+                  <div class="health-select__menu" data-health-select-menu>
+                    <% @health_options.each do |option| %>
+                      <button type="button"
+                              class="health-select__option"
+                              data-health-option="<%= option %>">
+                        <span class="project-health project-health--<%= option %> project-health--small" aria-hidden="true"></span>
+                        <span><%= option.to_s.tr('_', ' ').titleize %></span>
+                      </button>
+                    <% end %>
+                  </div>
+                </div>
+                <%= form.date_field :date, value: Date.current, required: true, class: 'health-date-field' %>
+                <%= form.text_field :description, placeholder: 'Description (optional)', class: 'health-description-field' %>
+                <%= form.submit 'Add', class: 'btn' %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+        <% if defined?(@errors) && @errors.present? %>
+          <div class="errors">
+            <ul>
+              <% @errors.each do |err| %>
+                <li><%= err %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
       </div>
       <div class="project-header__state">
         <div class="state-dropdown" data-state-url="<%= state_project_path(@project_record) %>">
@@ -40,51 +113,6 @@
         </div>
       </div>
     </div>
-    <% if @project_record.children.empty? %>
-      <% health_form_classes = ['project-header__health-update'] %>
-      <% health_form_classes << 'open' if @show_health_update_form %>
-      <div class="<%= health_form_classes.join(' ') %>" data-health-update-form>
-        <%= form_with model: HealthUpdateRecord.new,
-                      url: health_updates_project_path(@project_record),
-                      method: :post,
-                      scope: :health_update,
-                      local: true,
-                      html: { class: 'health-update-form', data: { turbo: false } } do |form| %>
-          <div class="health-update-fields">
-            <div class="health-select" data-health-select>
-              <%= form.hidden_field :health, value: @selected_health, data: { health_select_value: true } %>
-              <button type="button" class="health-select__toggle" data-health-select-toggle>
-                <span class="project-health project-health--<%= @selected_health %> project-health--small" aria-hidden="true"></span>
-                <span class="health-select__label"><%= @selected_health.to_s.tr('_', ' ').titleize %></span>
-              </button>
-              <div class="health-select__menu" data-health-select-menu>
-                <% @health_options.each do |option| %>
-                  <button type="button"
-                          class="health-select__option"
-                          data-health-option="<%= option %>">
-                    <span class="project-health project-health--<%= option %> project-health--small" aria-hidden="true"></span>
-                    <span><%= option.to_s.tr('_', ' ').titleize %></span>
-                  </button>
-                <% end %>
-              </div>
-            </div>
-            <%= form.date_field :date, value: Date.current, required: true, class: 'health-date-field' %>
-            <%= form.text_field :description, placeholder: 'Description (optional)', class: 'health-description-field' %>
-            <%= form.submit 'Update', class: 'btn' %>
-          </div>
-        <% end %>
-      </div>
-    <% end %>
-
-    <% if defined?(@errors) && @errors.present? %>
-      <div class="errors">
-        <ul>
-          <% @errors.each do |err| %>
-            <li><%= err %></li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
 
   </div>
 
@@ -112,16 +140,40 @@
   </div>
 </div>
 
-<p class="muted back-link"><%= link_to '← Back to projects', projects_path %></p>
-
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const token = document.querySelector('meta[name="csrf-token"]')?.content;
+
     document.querySelectorAll('.editable-field').forEach((el) => {
+      const hint = el.dataset.hint;
       let original = el.innerText;
+      let isShowingHint = el.classList.contains('editable-field--empty');
+
+      // On focus: clear hint text if showing
+      el.addEventListener('focus', () => {
+        if (isShowingHint && hint) {
+          el.innerText = '';
+          el.classList.remove('editable-field--empty');
+          isShowingHint = false;
+        }
+      });
+
       el.addEventListener('blur', () => {
         const value = el.innerText.trim();
-        if (value === original) return;
+
+        // If empty, show hint
+        if (!value && hint) {
+          el.innerText = hint;
+          el.classList.add('editable-field--empty');
+          isShowingHint = true;
+        }
+
+        // Save the actual value (empty string if hint is showing)
+        const saveValue = isShowingHint ? '' : value;
+        const originalValue = original === hint ? '' : original;
+
+        if (saveValue === originalValue) return;
+
         const field = el.dataset.field;
         const url = el.dataset.updateUrl;
         fetch(url, {
@@ -131,9 +183,9 @@
             'Accept': 'application/json',
             'X-CSRF-Token': token
           },
-          body: JSON.stringify({ project: { [field]: value } })
+          body: JSON.stringify({ project: { [field]: saveValue } })
         }).then((resp) => {
-          if (resp.ok) { original = value; }
+          if (resp.ok) { original = isShowingHint ? hint : value; }
         }).catch((err) => console.error(err));
       });
     });
@@ -178,17 +230,49 @@
 
     const healthToggle = document.querySelector('[data-health-toggle]');
     const healthFormRow = document.querySelector('[data-health-update-form]');
+    const healthDateField = document.querySelector('.health-date-field');
+
     healthToggle?.addEventListener('click', () => {
       healthFormRow?.classList.toggle('open');
     });
 
     const healthSelect = document.querySelector('[data-health-select]');
+    const hiddenInput = healthSelect?.querySelector('[data-health-select-value]');
+    const healthLabel = healthSelect?.querySelector('.health-select__label');
+    const currentIcon = healthSelect?.querySelector('.health-select__toggle .project-health');
+
+    const setHealthValue = (value) => {
+      if (!value || !hiddenInput) return;
+      hiddenInput.value = value;
+      if (healthLabel) {
+        healthLabel.textContent = value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      }
+      if (currentIcon) {
+        currentIcon.className = `project-health project-health--${value} project-health--small`;
+      }
+    };
+
+    document.querySelectorAll('[data-trend-date]').forEach((trendItem) => {
+      trendItem.addEventListener('click', () => {
+        const date = trendItem.dataset.trendDate;
+        const health = trendItem.dataset.trendHealth;
+        if (healthFormRow && healthDateField) {
+          const isOpen = healthFormRow.classList.contains('open');
+          const isSameDate = healthDateField.value === date;
+          if (isOpen && isSameDate) {
+            healthFormRow.classList.remove('open');
+          } else {
+            healthFormRow.classList.add('open');
+            healthDateField.value = date;
+            setHealthValue(health);
+          }
+        }
+      });
+    });
+
     if (healthSelect) {
       const toggle = healthSelect.querySelector('[data-health-select-toggle]');
       const menu = healthSelect.querySelector('[data-health-select-menu]');
-      const hiddenInput = healthSelect.querySelector('[data-health-select-value]');
-      const label = healthSelect.querySelector('.health-select__label');
-      const currentIcon = healthSelect.querySelector('.health-select__toggle .project-health');
 
       const closeMenu = () => menu?.classList.remove('open');
       const openMenu = () => menu?.classList.add('open');
@@ -204,12 +288,7 @@
       menu?.querySelectorAll('[data-health-option]').forEach((optionBtn) => {
         optionBtn.addEventListener('click', () => {
           const value = optionBtn.dataset.healthOption;
-          if (!value) return;
-          hiddenInput.value = value;
-          label.textContent = value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-          if (currentIcon) {
-            currentIcon.className = `project-health project-health--${value} project-health--small`;
-          }
+          setHealthValue(value);
           closeMenu();
         });
       });

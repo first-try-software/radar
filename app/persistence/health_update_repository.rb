@@ -24,10 +24,59 @@ class HealthUpdateRepository
   end
 
   def weekly_for_project(project_id)
-    all_for_project(project_id)
+    updates = all_for_project(project_id)
+    bucket_by_week(updates)
   end
 
   private
+
+  def bucket_by_week(updates)
+    mondays = last_six_mondays
+    return [] if mondays.empty?
+
+    weekly_points = mondays.map do |monday|
+      updates_before = updates.select { |u| u.date <= monday }
+
+      if updates_before.empty?
+        HealthUpdate.new(
+          project_id: nil,
+          date: monday,
+          health: :not_available,
+          description: nil
+        )
+      else
+        latest = updates_before.max_by(&:date)
+        HealthUpdate.new(
+          project_id: latest.project_id,
+          date: monday,
+          health: latest.health,
+          description: latest.description
+        )
+      end
+    end
+
+    current_week_update = latest_update_after_monday(updates, mondays.last)
+    weekly_points << current_week_update if current_week_update
+
+    weekly_points
+  end
+
+  def latest_update_after_monday(updates, last_monday)
+    return nil unless last_monday
+
+    updates_after = updates.select { |u| u.date > last_monday }
+    return nil if updates_after.empty?
+
+    updates_after.max_by(&:date)
+  end
+
+  def last_six_mondays
+    today = Date.current
+    most_recent_monday = today - ((today.wday - 1) % 7)
+    most_recent_monday -= 7 if most_recent_monday >= today
+
+    (0...6).map { |i| most_recent_monday - (i * 7) }.reverse
+  end
 
   def build_entity(record)
     HealthUpdate.new(

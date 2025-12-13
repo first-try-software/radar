@@ -1,3 +1,4 @@
+require 'ostruct'
 require_relative '../support/health_rollup'
 
 class Project
@@ -83,9 +84,26 @@ class Project
 
   def health_trend
     return [] unless working_state?
-    return [] if weekly_health_updates.empty?
 
-    weekly_health_updates.last(6)
+    if children.any?
+      children_weekly_rollups_with_current
+    else
+      weekly_health_updates_with_current
+    end
+  end
+
+  def health_updates_for_tooltip
+    return nil if children.any?
+
+    health_updates
+  end
+
+  def children_health_for_tooltip
+    return nil if children.empty?
+
+    children.map do |child|
+      OpenStruct.new(name: child.name, health: child.health)
+    end
   end
 
   private
@@ -105,15 +123,69 @@ class Project
   end
 
   def health_updates
-    @health_updates ||= Array(health_updates_loader&.call(self))
+    @health_updates ||= Array(health_updates_loader&.call(self)).reject { |u| future_date?(u.date) }
   end
 
   def weekly_health_updates
-    @weekly_health_updates ||= Array(weekly_health_updates_loader&.call(self))
+    @weekly_health_updates ||= Array(weekly_health_updates_loader&.call(self)).reject { |u| future_date?(u.date) }
+  end
+
+  def weekly_health_updates_with_current
+    historical = weekly_health_updates
+    latest = health_updates.last
+    current_health_value = latest ? latest.health : :not_available
+    current_description = latest&.description
+    current = OpenStruct.new(date: current_date, health: current_health_value, description: current_description)
+
+    # Keep last 6 historical items plus current (7 total)
+    historical.last(6) + [current]
+  end
+
+  def future_date?(date)
+    return false unless date.respond_to?(:to_date)
+
+    date.to_date > current_date
+  end
+
+  def current_date
+    # Use Date.current if available (Rails), otherwise Date.today
+    Date.respond_to?(:current) ? Date.current : Date.today
   end
 
   def subordinate_health
     @subordinate_health ||= HealthRollup.rollup(subordinate_projects)
+  end
+
+  def children_weekly_rollups_with_current
+    historical = children_weekly_rollups
+    current = OpenStruct.new(date: current_date, health: subordinate_health)
+
+    # Keep all 6 historical items plus current (7 total)
+    historical + [current]
+  end
+
+  def children_weekly_rollups
+    child_trends = children.map(&:health_trend)
+    return [] if child_trends.all?(&:empty?)
+
+    mondays_from_children = child_trends.flat_map { |trend| trend.map(&:date) }
+                                        .uniq
+                                        .reject { |d| future_date?(d) }
+                                        .sort
+    return [] if mondays_from_children.empty?
+
+    mondays_from_children.last(6).map do |monday|
+      child_healths = child_trends.map do |trend|
+        monday_update = trend.find { |u| u.date == monday }
+        monday_update&.health
+      end.compact
+
+      rolled_health = HealthRollup.rollup(
+        child_healths.map { |h| OpenStruct.new(current_state: :in_progress, health: h) }
+      )
+
+      OpenStruct.new(date: monday, health: rolled_health)
+    end
   end
 
   def latest_health_update

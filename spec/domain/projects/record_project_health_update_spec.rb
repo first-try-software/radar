@@ -64,6 +64,22 @@ RSpec.describe RecordProjectHealthUpdate do
     expect(result.errors).to eq(['invalid health'])
   end
 
+  it 'fails when the date is in the future' do
+    project = Project.new(name: 'Status', current_state: :in_progress)
+    project_repository = FakeProjectRepository.new(projects: { '123' => project })
+    health_repository = FakeHealthUpdateRepository.new
+    action = described_class.new(
+      project_repository: project_repository,
+      health_update_repository: health_repository
+    )
+
+    future_date = Date.today + 1
+    result = action.perform(project_id: '123', date: future_date, health: :on_track)
+
+    expect(result.success?).to be(false)
+    expect(result.errors).to eq(['date cannot be in the future'])
+  end
+
   it 'persists the health update when valid' do
     project = Project.new(name: 'Status', current_state: :in_progress)
     project_repository = FakeProjectRepository.new(projects: { '123' => project })

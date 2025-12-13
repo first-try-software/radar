@@ -32,4 +32,61 @@ RSpec.describe HealthUpdateRepository do
       expect(updates.map(&:date)).to eq([earlier.date, later.date])
     end
   end
+
+  describe '#weekly_for_project' do
+    it 'returns 6 Mondays in ascending order when no current week updates' do
+      project = ProjectRecord.create!(name: 'Beta', description: '', point_of_contact: '')
+      repository = described_class.new
+
+      updates = repository.weekly_for_project(project.id)
+
+      expect(updates.length).to eq(6)
+      updates.each { |u| expect(u.date.wday).to eq(1) }
+      expect(updates.map(&:date)).to eq(updates.map(&:date).sort)
+    end
+
+    it 'returns :not_available for Mondays with no prior updates' do
+      project = ProjectRecord.create!(name: 'Gamma', description: '', point_of_contact: '')
+      repository = described_class.new
+
+      updates = repository.weekly_for_project(project.id)
+
+      expect(updates.map(&:health)).to all(eq(:not_available))
+    end
+
+    it 'uses most recent update as of each Monday' do
+      project = ProjectRecord.create!(name: 'Delta', description: '', point_of_contact: '')
+      repository = described_class.new
+
+      today = Date.current
+      last_monday = today - ((today.wday - 1) % 7)
+      last_monday -= 7 if last_monday >= today
+
+      HealthUpdateRecord.create!(project: project, date: last_monday - 10, health: 'off_track')
+      HealthUpdateRecord.create!(project: project, date: last_monday - 3, health: 'on_track')
+
+      updates = repository.weekly_for_project(project.id)
+      monday_update = updates.find { |u| u.date == last_monday }
+
+      expect(monday_update.health).to eq(:on_track)
+    end
+
+    it 'includes current week update after the last Monday' do
+      project = ProjectRecord.create!(name: 'Epsilon', description: '', point_of_contact: '')
+      repository = described_class.new
+
+      today = Date.current
+      last_monday = today - ((today.wday - 1) % 7)
+      last_monday -= 7 if last_monday >= today
+
+      HealthUpdateRecord.create!(project: project, date: last_monday + 2, health: 'at_risk', description: 'Current week')
+
+      updates = repository.weekly_for_project(project.id)
+
+      expect(updates.length).to eq(7)
+      expect(updates.last.date).to eq(last_monday + 2)
+      expect(updates.last.health).to eq(:at_risk)
+      expect(updates.last.description).to eq('Current week')
+    end
+  end
 end

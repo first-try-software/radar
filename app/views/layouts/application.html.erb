@@ -37,10 +37,23 @@
       </div>
 
       <% flash.each do |_, message| %>
-        <div class="flash"><%= message %></div>
+        <div class="flash">
+          <span class="flash__message"><%= message %></span>
+          <button type="button" class="flash__close" aria-label="Dismiss" data-dismiss-flash>&times;</button>
+        </div>
       <% end %>
 
       <%= yield %>
     </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('[data-dismiss-flash]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            btn.closest('.flash')?.remove();
+          });
+        });
+      });
+    </script>
   </body>
 </html>

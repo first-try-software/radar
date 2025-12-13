@@ -95,7 +95,7 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).to include('name="health_update[date]"')
       expect(response.body).to include(Date.current.to_s)
       expect(response.body).to include('Description (optional)')
-      expect(response.body).to include('Update')
+      expect(response.body).to include('value="Add"')
     end
 
     it 'links children to their show pages' do
@@ -211,6 +211,34 @@ RSpec.describe ProjectsController, type: :request do
       expect(response).to have_http_status(:found)
       follow_redirect!
       expect(response.body).to include('project-health--on_track')
+    end
+
+    it 'renders validation errors on HTML health update with invalid health' do
+      record = ProjectRecord.create!(name: 'Solo', current_state: 'in_progress')
+      params = { health_update: { date: Date.current, health: 'bogus' } }
+
+      post "/projects/#{record.id}/health_updates", params: params
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('invalid health')
+    end
+
+    it 'renders validation errors on HTML health update with invalid date' do
+      record = ProjectRecord.create!(name: 'Solo', current_state: 'in_progress')
+      params = { health_update: { date: 'not-a-date', health: 'on_track' } }
+
+      post "/projects/#{record.id}/health_updates", params: params
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('date is required')
+    end
+
+    it 'returns 404 on HTML health update for missing project' do
+      params = { health_update: { date: Date.current, health: 'on_track' } }
+
+      post '/projects/999/health_updates', params: params
+
+      expect(response).to have_http_status(:not_found)
     end
 
     it 'creates via HTML and redirects' do
@@ -433,8 +461,8 @@ RSpec.describe ProjectsController, type: :request do
   end
 
   describe 'POST /projects/:id/health_updates' do
-    it 'creates a health update via JSON' do
-      record = ProjectRecord.create!(name: 'Solo', current_state: 'in_progress')
+    it 'creates a health update and returns the new health as JSON' do
+      record = ProjectRecord.create!(name: 'Alpha', current_state: 'in_progress')
       params = { health_update: { date: Date.current, health: 'on_track' } }
 
       post "/projects/#{record.id}/health_updates", params: params, headers: json_headers
@@ -443,8 +471,8 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.parsed_body['health']).to eq('on_track')
     end
 
-    it 'returns errors for invalid health update via JSON' do
-      record = ProjectRecord.create!(name: 'Solo', current_state: 'in_progress')
+    it 'returns errors for invalid health update as JSON' do
+      record = ProjectRecord.create!(name: 'Alpha', current_state: 'in_progress')
       params = { health_update: { date: Date.current, health: 'bogus' } }
 
       post "/projects/#{record.id}/health_updates", params: params, headers: json_headers
@@ -453,40 +481,12 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.parsed_body['errors']).to include('invalid health')
     end
 
-    it 'returns 404 for missing project via JSON' do
+    it 'returns 404 for missing project as JSON' do
       params = { health_update: { date: Date.current, health: 'on_track' } }
 
       post '/projects/999/health_updates', params: params, headers: json_headers
 
       expect(response).to have_http_status(:not_found)
-    end
-
-    it 'renders validation errors on HTML health update' do
-      record = ProjectRecord.create!(name: 'Solo', current_state: 'in_progress')
-      params = { health_update: { date: Date.current, health: 'bogus' } }
-
-      post "/projects/#{record.id}/health_updates", params: params
-
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include('invalid health')
-    end
-
-    it 'returns 404 for missing project via HTML' do
-      params = { health_update: { date: Date.current, health: 'on_track' } }
-
-      post '/projects/999/health_updates', params: params
-
-      expect(response).to have_http_status(:not_found)
-    end
-
-    it 'handles invalid date format gracefully' do
-      record = ProjectRecord.create!(name: 'Solo', current_state: 'in_progress')
-      params = { health_update: { date: 'not-a-date', health: 'on_track' } }
-
-      post "/projects/#{record.id}/health_updates", params: params, headers: json_headers
-
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body['errors']).to include('date is required')
     end
   end
 end

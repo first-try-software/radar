@@ -20,6 +20,7 @@ class RecordProjectHealthUpdate
     return project_not_found_failure unless project
     return invalid_project_state_failure unless allowed_project_state?
     return missing_date_failure unless date_present?
+    return future_date_failure if future_date?
     return invalid_health_failure unless allowed_health?
 
     save
@@ -46,6 +47,16 @@ class RecordProjectHealthUpdate
     !date.nil?
   end
 
+  def future_date?
+    return false unless date.respond_to?(:to_date)
+
+    date.to_date > current_date
+  end
+
+  def current_date
+    Date.respond_to?(:current) ? Date.current : Date.today
+  end
+
   def project_not_found_failure
     failure('project not found')
   end
@@ -56,6 +67,10 @@ class RecordProjectHealthUpdate
 
   def missing_date_failure
     failure('date is required')
+  end
+
+  def future_date_failure
+    failure('date cannot be in the future')
   end
 
   def invalid_health_failure
