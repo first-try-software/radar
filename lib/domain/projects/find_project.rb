@@ -6,17 +6,17 @@ class FindProject
   end
 
   def perform(id:)
-    project = project_repository.find(id)
+    @project = project_repository.find(id)
     return project_not_found_failure unless project
 
-    success(project)
+    success
   end
 
   private
 
-  attr_reader :project_repository
+  attr_reader :project_repository, :project
 
-  def success(project)
+  def success
     Result.success(value: project)
   end
 
