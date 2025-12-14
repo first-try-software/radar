@@ -33,6 +33,14 @@ class FakeInitiativeRepository
     max ? max + 1 : 0
   end
 
+  def related_project_exists?(initiative_id:, project_id:)
+    relationships.any? { |rel| rel[:initiative_id] == initiative_id && rel[:project].name == project_id }
+  end
+
+  def unlink_related_project(initiative_id:, project_id:)
+    relationships.reject! { |rel| rel[:initiative_id] == initiative_id && rel[:project].name == project_id }
+  end
+
   private
 
   attr_reader :records, :relationships

@@ -83,25 +83,43 @@ class InitiativesController < ApplicationController
     end
   end
 
-  def create_related_project
-    result = initiative_actions.create_related_project.perform(initiative_id: params[:id], **project_params)
+  def link_related_project
+    result = initiative_actions.link_related_project.perform(
+      initiative_id: params[:id],
+      project_id: params[:project_id]
+    )
 
     respond_to do |format|
       format.json { render_project_result(result, success_status: :created) }
       format.html do
         if result.success?
-          redirect_to(initiative_path(params[:id]), notice: 'Related project created')
+          redirect_to(initiative_path(params[:id]), notice: 'Project linked')
         else
-          if result.errors.include?('initiative not found')
-            render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
-          else
-            @initiative_record = InitiativeRecord.find_by(id: params[:id])
-            return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @initiative_record
+          render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
+        end
+      end
+    end
+  end
 
-            @initiative = initiative_actions.find_initiative.perform(id: params[:id]).value
-            @errors = result.errors
-            render :show, status: error_status(result.errors)
-          end
+  def unlink_related_project
+    result = initiative_actions.unlink_related_project.perform(
+      initiative_id: params[:id],
+      project_id: params[:project_id]
+    )
+
+    respond_to do |format|
+      format.json do
+        if result.success?
+          render json: { success: true }, status: :ok
+        else
+          render json: { errors: result.errors }, status: error_status(result.errors)
+        end
+      end
+      format.html do
+        if result.success?
+          redirect_to(initiative_path(params[:id]), notice: 'Project unlinked')
+        else
+          render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
         end
       end
     end
@@ -130,7 +148,11 @@ class InitiativesController < ApplicationController
   end
 
   def error_status(errors)
-    errors.include?('initiative not found') ? :not_found : :unprocessable_content
+    return :not_found if errors.include?('initiative not found')
+    return :not_found if errors.include?('project not found')
+    return :not_found if errors.include?('project not linked to initiative')
+
+    :unprocessable_content
   end
 
   def initiative_json(initiative)
@@ -162,13 +184,5 @@ class InitiativesController < ApplicationController
 
   def update_params
     params.fetch(:initiative, {}).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
-  end
-
-  def project_params
-    permitted = params.fetch(:project, {}).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
-    permitted[:name] ||= ''
-    permitted[:description] ||= ''
-    permitted[:point_of_contact] ||= ''
-    permitted
   end
 end

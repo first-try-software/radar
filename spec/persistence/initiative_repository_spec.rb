@@ -134,5 +134,36 @@ RSpec.describe InitiativeRepository do
 
       expect(loaded_initiative.health).to eq(:on_track)
     end
+
+    it 'checks if a related project relationship exists' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      project = ProjectRecord.create!(name: 'Feature A')
+      InitiativesProjectRecord.create!(initiative: initiative, project: project, order: 0)
+
+      expect(repository.related_project_exists?(initiative_id: initiative.id, project_id: project.id)).to be(true)
+      expect(repository.related_project_exists?(initiative_id: initiative.id, project_id: 999)).to be(false)
+    end
+
+    it 'unlinks a related project' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      project = ProjectRecord.create!(name: 'Feature A')
+      InitiativesProjectRecord.create!(initiative: initiative, project: project, order: 0)
+
+      repository.unlink_related_project(initiative_id: initiative.id, project_id: project.id)
+
+      expect(InitiativesProjectRecord.where(initiative: initiative, project: project)).to be_empty
+    end
+
+    it 'allows linking a project to multiple initiatives' do
+      initiative1 = InitiativeRecord.create!(name: 'Launch 2025')
+      initiative2 = InitiativeRecord.create!(name: 'Launch 2026')
+      project = build_project('Shared Project')
+      project_repository.save(project)
+
+      repository.link_related_project(initiative_id: initiative1.id, project: project, order: 0)
+      repository.link_related_project(initiative_id: initiative2.id, project: project, order: 0)
+
+      expect(InitiativesProjectRecord.where(project_id: ProjectRecord.find_by(name: 'Shared Project').id).count).to eq(2)
+    end
   end
 end

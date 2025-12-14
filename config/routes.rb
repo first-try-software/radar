@@ -13,7 +13,8 @@ Rails.application.routes.draw do
   resources :initiatives, only: [:index, :show, :create, :update] do
     member do
       patch :archive
-      post :related_projects, to: 'initiatives#create_related_project'
+      post :related_projects, to: 'initiatives#link_related_project'
+      delete 'related_projects/:project_id', to: 'initiatives#unlink_related_project', as: :unlink_related_project
     end
   end
 end

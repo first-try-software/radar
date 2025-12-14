@@ -67,6 +67,14 @@ class InitiativeRepository
     max ? max + 1 : 0
   end
 
+  def related_project_exists?(initiative_id:, project_id:)
+    InitiativesProjectRecord.exists?(initiative_id: initiative_id, project_id: project_id)
+  end
+
+  def unlink_related_project(initiative_id:, project_id:)
+    InitiativesProjectRecord.where(initiative_id: initiative_id, project_id: project_id).destroy_all
+  end
+
   private
 
   attr_reader :project_repository

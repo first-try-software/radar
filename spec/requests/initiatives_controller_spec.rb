@@ -106,42 +106,29 @@ RSpec.describe InitiativesController, type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
-    it 'creates related project via HTML and redirects' do
+    it 'links existing project via HTML and redirects' do
       initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      project = ProjectRecord.create!(name: 'Feature A')
 
-      post "/initiatives/#{initiative.id}/related_projects", params: { project: { name: 'Feature A' } }
+      post "/initiatives/#{initiative.id}/related_projects", params: { project_id: project.id }
 
       expect(response).to have_http_status(:found)
       follow_redirect!
       expect(response.body).to include('Feature A')
     end
 
-    it 'renders validation errors on HTML related project create' do
-      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+    it 'returns 404 for missing initiative on HTML link project' do
+      project = ProjectRecord.create!(name: 'Feature A')
 
-      post "/initiatives/#{initiative.id}/related_projects", params: { project: { name: '' } }
-
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include('name must be present')
-    end
-
-    it 'returns 404 for missing initiative on HTML related project create' do
-      post '/initiatives/999/related_projects', params: { project: { name: 'Feature A' } }
+      post '/initiatives/999/related_projects', params: { project_id: project.id }
 
       expect(response).to have_http_status(:not_found)
     end
 
-    it 'returns 404 on HTML related project create when initiative deleted mid-request' do
-      initiative = InitiativeRecord.create!(name: 'Ephemeral')
-      params = { project: { name: '' } }
+    it 'returns 404 for missing project on HTML link project' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
 
-      call_count = 0
-      allow(InitiativeRecord).to receive(:find_by).and_wrap_original do |method, *args|
-        call_count += 1
-        call_count <= 1 ? method.call(*args) : nil
-      end
-
-      post "/initiatives/#{initiative.id}/related_projects", params: params
+      post "/initiatives/#{initiative.id}/related_projects", params: { project_id: 999 }
 
       expect(response).to have_http_status(:not_found)
     end
@@ -229,28 +216,94 @@ RSpec.describe InitiativesController, type: :request do
   end
 
   describe 'POST /initiatives/:id/related_projects' do
-    it 'creates a related project' do
+    it 'links an existing project' do
       initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      project = ProjectRecord.create!(name: 'Feature A')
 
-      post "/initiatives/#{initiative.id}/related_projects", params: { project: { name: 'Feature A' } }, headers: json_headers
+      post "/initiatives/#{initiative.id}/related_projects", params: { project_id: project.id }, headers: json_headers
 
       expect(response).to have_http_status(:created)
       expect(response.parsed_body['name']).to eq('Feature A')
     end
 
     it 'returns 404 when initiative not found' do
-      post '/initiatives/999/related_projects', params: { project: { name: 'Feature A' } }, headers: json_headers
+      project = ProjectRecord.create!(name: 'Feature A')
+
+      post '/initiatives/999/related_projects', params: { project_id: project.id }, headers: json_headers
 
       expect(response).to have_http_status(:not_found)
     end
 
-    it 'returns errors for invalid project' do
+    it 'returns 404 when project not found' do
       initiative = InitiativeRecord.create!(name: 'Launch 2025')
 
-      post "/initiatives/#{initiative.id}/related_projects", params: { project: { name: '' } }, headers: json_headers
+      post "/initiatives/#{initiative.id}/related_projects", params: { project_id: 999 }, headers: json_headers
 
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body['errors']).to include('name must be present')
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'allows linking a project to multiple initiatives' do
+      initiative1 = InitiativeRecord.create!(name: 'Launch 2025')
+      initiative2 = InitiativeRecord.create!(name: 'Launch 2026')
+      project = ProjectRecord.create!(name: 'Shared Project')
+
+      post "/initiatives/#{initiative1.id}/related_projects", params: { project_id: project.id }, headers: json_headers
+      expect(response).to have_http_status(:created)
+
+      post "/initiatives/#{initiative2.id}/related_projects", params: { project_id: project.id }, headers: json_headers
+      expect(response).to have_http_status(:created)
+
+      expect(InitiativesProjectRecord.where(project_id: project.id).count).to eq(2)
+    end
+  end
+
+  describe 'DELETE /initiatives/:id/related_projects/:project_id' do
+    it 'unlinks a project from an initiative' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      project = ProjectRecord.create!(name: 'Feature A')
+      InitiativesProjectRecord.create!(initiative: initiative, project: project, order: 0)
+
+      delete "/initiatives/#{initiative.id}/related_projects/#{project.id}", headers: json_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(InitiativesProjectRecord.where(initiative: initiative, project: project)).to be_empty
+    end
+
+    it 'unlinks via HTML and redirects' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      project = ProjectRecord.create!(name: 'Feature A')
+      InitiativesProjectRecord.create!(initiative: initiative, project: project, order: 0)
+
+      delete "/initiatives/#{initiative.id}/related_projects/#{project.id}"
+
+      expect(response).to have_http_status(:found)
+      expect(InitiativesProjectRecord.where(initiative: initiative, project: project)).to be_empty
+    end
+
+    it 'returns 404 when initiative not found' do
+      project = ProjectRecord.create!(name: 'Feature A')
+
+      delete "/initiatives/999/related_projects/#{project.id}", headers: json_headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 when project not linked' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      project = ProjectRecord.create!(name: 'Feature A')
+
+      delete "/initiatives/#{initiative.id}/related_projects/#{project.id}", headers: json_headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 for HTML when project not linked' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      project = ProjectRecord.create!(name: 'Feature A')
+
+      delete "/initiatives/#{initiative.id}/related_projects/#{project.id}"
+
+      expect(response).to have_http_status(:not_found)
     end
   end
 end

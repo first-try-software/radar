@@ -20,11 +20,15 @@ class InitiativeActionsFactory
     ArchiveInitiative.new(initiative_repository: initiative_repository)
   end
 
-  def create_related_project
-    CreateRelatedProject.new(
+  def link_related_project
+    LinkRelatedProject.new(
       initiative_repository: initiative_repository,
       project_repository: project_repository
     )
+  end
+
+  def unlink_related_project
+    UnlinkRelatedProject.new(initiative_repository: initiative_repository)
   end
 
   private

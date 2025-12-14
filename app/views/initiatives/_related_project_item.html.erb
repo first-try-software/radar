@@ -1,0 +1,30 @@
+<li class="list-item project-row project-row--unlinkable">
+  <div class="project-row__health">
+    <%= project_health_indicator(project) %>
+  </div>
+  <div class="project-row__text">
+    <div class="project-title-row">
+      <%= link_to project.name, project_path(project), class: 'project-name' %>
+    </div>
+    <div class="muted project-description"><%= truncate(project.description.to_s, length: 80) %></div>
+    <% if project.point_of_contact.present? %>
+      <div class="muted project-poc"><%= project.point_of_contact %></div>
+    <% end %>
+  </div>
+  <div class="project-row__badges">
+    <div class="badges">
+      <span class="badge state"><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
+      <% if project.archived %>
+        <span class="badge archived">archived</span>
+      <% end %>
+    </div>
+  </div>
+  <button type="button"
+          class="unlink-btn"
+          data-unlink-url="/initiatives/<%= initiative.id %>/related_projects/<%= project.id %>"
+          data-project-name="<%= project.name %>"
+          aria-label="Unlink <%= project.name %>"
+          title="Unlink project">
+    <span class="unlink-btn__icon">×</span>
+  </button>
+</li>

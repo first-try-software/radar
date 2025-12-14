@@ -5,7 +5,6 @@ class InitiativesProjectRecord < ApplicationRecord
   belongs_to :project, class_name: 'ProjectRecord', inverse_of: false
 
   validates :order, presence: true
-  validates :project_id, uniqueness: true
   validates :project_id, uniqueness: { scope: :initiative_id }
   validates :order, uniqueness: { scope: :initiative_id }
 end

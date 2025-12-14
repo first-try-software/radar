@@ -53,26 +53,72 @@
 
   <div class="card">
     <h3 class="section-title children-title">Related Projects</h3>
-    <ul class="list children-list">
+    <ul class="list children-list" data-related-projects-list>
       <% related_projects = @initiative_record.related_project_relationships.includes(:project).order(:order).map(&:project) %>
-      <%= render partial: 'projects/project_list_item', collection: related_projects, as: :project %>
+      <%= render partial: 'initiatives/related_project_item', collection: related_projects, as: :project, locals: { initiative: @initiative_record } %>
       <% if related_projects.empty? %>
-        <li class="list-item"><span class="muted">No related projects yet.</span></li>
+        <li class="list-item" data-empty-message><span class="muted">No related projects yet.</span></li>
       <% end %>
-      <li class="list-item">
-        <%= form_with model: ProjectRecord.new,
-                      url: related_projects_initiative_path(@initiative_record),
-                      method: :post,
-                      scope: :project,
-                      local: true,
-                      html: { class: 'child-form' } do |form| %>
-          <div class="child-actions">
-            <%= form.text_field :name, required: true, placeholder: 'New project name' %>
-            <%= form.submit 'Add', class: 'btn secondary' %>
-          </div>
-        <% end %>
-      </li>
+      <% available_projects = ProjectRecord.where.not(id: related_projects.map(&:id)).order(:name) %>
+      <% if available_projects.any? %>
+        <li class="list-item">
+          <%= form_with url: related_projects_initiative_path(@initiative_record),
+                        method: :post,
+                        local: true,
+                        html: { class: 'child-form', data: { project_link_form: true } } do |form| %>
+            <div class="child-actions">
+              <div class="project-dropdown" data-project-dropdown>
+                <%= form.hidden_field :project_id, value: '', data: { project_dropdown_value: true } %>
+                <div class="project-dropdown__input-wrapper">
+                  <input type="text"
+                         class="project-dropdown__input"
+                         placeholder="Select a project..."
+                         data-project-dropdown-input
+                         autocomplete="off" />
+                  <span class="project-dropdown__arrow">▼</span>
+                </div>
+                <div class="project-dropdown__menu" data-project-dropdown-menu>
+                  <div class="project-dropdown__options" data-project-options>
+                    <% available_projects.each do |project| %>
+                      <button type="button"
+                              class="project-dropdown__option"
+                              data-project-id="<%= project.id %>"
+                              data-project-name="<%= project.name %>"
+                              data-project-search-text="<%= project.name.downcase %>">
+                        <span class="project-dropdown__option-name"><%= project.name %></span>
+                        <% if project.description.present? %>
+                          <span class="project-dropdown__option-desc"><%= truncate(project.description, length: 50) %></span>
+                        <% end %>
+                      </button>
+                    <% end %>
+                  </div>
+                  <div class="project-dropdown__no-results" data-no-results hidden>
+                    No matching projects
+                  </div>
+                </div>
+              </div>
+              <%= form.submit 'Link', class: 'btn secondary', data: { project_link_submit: true } %>
+            </div>
+          <% end %>
+        </li>
+      <% end %>
     </ul>
+  </div>
+</div>
+
+<div class="modal-overlay" data-unlink-modal hidden>
+  <div class="modal">
+    <div class="modal__header">
+      <h3>Unlink Project</h3>
+    </div>
+    <div class="modal__body">
+      <p>Remove <strong data-unlink-project-name></strong> from this initiative?</p>
+      <p>The project itself will not be deleted.</p>
+    </div>
+    <div class="modal__actions">
+      <button type="button" class="btn secondary" data-unlink-cancel>Cancel</button>
+      <button type="button" class="btn danger" data-unlink-confirm>Unlink</button>
+    </div>
   </div>
 </div>
 
@@ -120,6 +166,150 @@
         }).then((resp) => {
           if (resp.ok) { original = isShowingHint ? hint : value; }
         }).catch((err) => console.error(err));
+      });
+    });
+
+    // Project dropdown with inline search
+    const projectDropdown = document.querySelector('[data-project-dropdown]');
+    if (projectDropdown) {
+      const input = projectDropdown.querySelector('[data-project-dropdown-input]');
+      const menu = projectDropdown.querySelector('[data-project-dropdown-menu]');
+      const hiddenInput = projectDropdown.querySelector('[data-project-dropdown-value]');
+      const optionsContainer = projectDropdown.querySelector('[data-project-options]');
+      const noResults = projectDropdown.querySelector('[data-no-results]');
+      let selectedProjectName = '';
+
+      const closeMenu = () => {
+        menu?.classList.remove('open');
+        filterOptions('');
+        if (selectedProjectName) {
+          input.value = selectedProjectName;
+        }
+      };
+
+      const openMenu = () => {
+        menu?.classList.add('open');
+        if (selectedProjectName && input.value === selectedProjectName) {
+          input.value = '';
+        }
+      };
+
+      const filterOptions = (query) => {
+        const lowerQuery = query.toLowerCase();
+        let visibleCount = 0;
+
+        optionsContainer?.querySelectorAll('.project-dropdown__option').forEach((option) => {
+          const searchText = option.dataset.projectSearchText || '';
+          const matches = searchText.includes(lowerQuery);
+          option.style.display = matches ? '' : 'none';
+          if (matches) visibleCount++;
+        });
+
+        if (noResults) {
+          noResults.hidden = visibleCount > 0;
+        }
+      };
+
+      input?.addEventListener('focus', openMenu);
+
+      input?.addEventListener('input', (e) => {
+        if (!menu?.classList.contains('open')) {
+          openMenu();
+        }
+        filterOptions(e.target.value);
+      });
+
+      input?.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeMenu();
+          input?.blur();
+        }
+      });
+
+      optionsContainer?.querySelectorAll('.project-dropdown__option').forEach((optionBtn) => {
+        optionBtn.addEventListener('click', () => {
+          const projectId = optionBtn.dataset.projectId;
+          const projectName = optionBtn.dataset.projectName;
+
+          hiddenInput.value = projectId;
+          selectedProjectName = projectName;
+          input.value = projectName;
+          input.classList.add('project-dropdown__input--selected');
+          closeMenu();
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!projectDropdown.contains(e.target)) {
+          closeMenu();
+        }
+      });
+
+      const form = document.querySelector('[data-project-link-form]');
+      form?.addEventListener('submit', (e) => {
+        if (!hiddenInput.value) {
+          e.preventDefault();
+          input?.focus();
+        }
+      });
+    }
+
+    // Unlink modal
+    const unlinkModal = document.querySelector('[data-unlink-modal]');
+    const unlinkProjectName = document.querySelector('[data-unlink-project-name]');
+    const unlinkConfirmBtn = document.querySelector('[data-unlink-confirm]');
+    const unlinkCancelBtn = document.querySelector('[data-unlink-cancel]');
+    let pendingUnlinkUrl = null;
+
+    const showUnlinkModal = (projectName, url) => {
+      unlinkProjectName.textContent = projectName;
+      pendingUnlinkUrl = url;
+      unlinkModal.hidden = false;
+      unlinkConfirmBtn?.focus();
+    };
+
+    const hideUnlinkModal = () => {
+      unlinkModal.hidden = true;
+      pendingUnlinkUrl = null;
+    };
+
+    const performUnlink = () => {
+      if (!pendingUnlinkUrl) return;
+
+      const url = pendingUnlinkUrl;
+      hideUnlinkModal();
+
+      fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRF-Token': token
+        }
+      }).then((resp) => {
+        if (resp.ok) {
+          window.location.reload();
+        }
+      }).catch((err) => console.error(err));
+    };
+
+    unlinkConfirmBtn?.addEventListener('click', performUnlink);
+    unlinkCancelBtn?.addEventListener('click', hideUnlinkModal);
+
+    unlinkModal?.addEventListener('click', (e) => {
+      if (e.target === unlinkModal) hideUnlinkModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !unlinkModal?.hidden) {
+        hideUnlinkModal();
+      }
+    });
+
+    document.querySelectorAll('.unlink-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const url = btn.dataset.unlinkUrl;
+        const projectName = btn.dataset.projectName;
+        showUnlinkModal(projectName, url);
       });
     });
   });
