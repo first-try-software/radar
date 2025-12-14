@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'domain/projects/create_project'
 require 'domain/projects/project'
 require_relative '../../support/persistence/fake_project_repository'
+require_relative '../../support/project_builder'
 
 RSpec.describe CreateProject do
   it 'stores the created project in the provided repository' do
@@ -70,7 +71,7 @@ RSpec.describe CreateProject do
 
   it 'returns a failure result when the project name already exists' do
     repository = FakeProjectRepository.new
-    repository.save(Project.new(name: 'Status'))
+    repository.save(ProjectBuilder.build(name: 'Status'))
     action = described_class.new(project_repository: repository)
 
     result = action.perform(name: 'Status')
@@ -80,7 +81,7 @@ RSpec.describe CreateProject do
 
   it 'returns an error message when the project name already exists' do
     repository = FakeProjectRepository.new
-    repository.save(Project.new(name: 'Status'))
+    repository.save(ProjectBuilder.build(name: 'Status'))
     action = described_class.new(project_repository: repository)
 
     result = action.perform(name: 'Status')

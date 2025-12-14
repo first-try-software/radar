@@ -1,5 +1,7 @@
 require 'rails_helper'
 require 'domain/projects/project'
+require 'domain/projects/project_attributes'
+require 'domain/projects/project_loaders'
 require Rails.root.join('app/persistence/project_repository')
 require Rails.root.join('app/persistence/health_update_repository')
 
@@ -7,8 +9,9 @@ RSpec.describe ProjectRepository do
   let(:health_repository) { HealthUpdateRepository.new }
   subject(:repository) { described_class.new(health_update_repository: health_repository) }
 
-  def build_project(name)
-    Project.new(name: name)
+  def build_project(name, current_state: :new)
+    attrs = ProjectAttributes.new(name: name, current_state: current_state)
+    Project.new(attributes: attrs)
   end
 
   it 'loads health updates into the domain project' do
@@ -60,7 +63,7 @@ RSpec.describe ProjectRepository do
   describe '#update_by_name' do
     it 'updates projects by name' do
       record = ProjectRecord.create!(name: 'Status', current_state: 'new')
-      project = Project.new(name: 'Status', current_state: :done)
+      project = build_project('Status', current_state: :done)
 
       repository.update_by_name(name: 'Status', project: project)
 
@@ -68,7 +71,7 @@ RSpec.describe ProjectRepository do
     end
 
     it 'returns nil when project not found by name' do
-      project = Project.new(name: 'NonExistent', current_state: :done)
+      project = build_project('NonExistent', current_state: :done)
 
       result = repository.update_by_name(name: 'NonExistent', project: project)
 

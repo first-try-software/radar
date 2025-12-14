@@ -1,3 +1,7 @@
+require_relative '../../lib/domain/projects/project'
+require_relative '../../lib/domain/projects/project_attributes'
+require_relative '../../lib/domain/projects/project_loaders'
+
 class ProjectRepository
   def initialize(health_update_repository:)
     @health_update_repository = health_update_repository
@@ -87,17 +91,20 @@ class ProjectRepository
   attr_reader :health_update_repository
 
   def build_entity(record)
-    Project.new(
+    attrs = ProjectAttributes.new(
       name: record.name,
       description: record.description,
       point_of_contact: record.point_of_contact,
       archived: record.archived,
-      current_state: record.current_state.to_sym,
-      health_updates_loader: health_updates_loader_for(record),
-      weekly_health_updates_loader: weekly_health_updates_loader_for(record),
-      children_loader: children_loader_for(record),
-      parent_loader: parent_loader_for(record)
+      current_state: record.current_state.to_sym
     )
+    loaders = ProjectLoaders.new(
+      health_updates: health_updates_loader_for(record),
+      weekly_health_updates: weekly_health_updates_loader_for(record),
+      children: children_loader_for(record),
+      parent: parent_loader_for(record)
+    )
+    Project.new(attributes: attrs, loaders: loaders)
   end
 
   def health_updates_loader_for(record)

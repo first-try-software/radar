@@ -3,9 +3,10 @@ require 'domain/projects/record_project_health_update'
 require 'domain/projects/project'
 require_relative '../../support/persistence/fake_project_repository'
 require_relative '../../support/persistence/fake_health_update_repository'
+require_relative '../../support/project_builder'
 
 RSpec.describe RecordProjectHealthUpdate do
-   it 'fails when the project cannot be found' do
+  it 'fails when the project cannot be found' do
     project_repository = FakeProjectRepository.new
     health_repository = FakeHealthUpdateRepository.new
     action = described_class.new(
@@ -20,7 +21,7 @@ RSpec.describe RecordProjectHealthUpdate do
   end
 
   it 'fails when the date is missing' do
-    project = Project.new(name: 'Status')
+    project = ProjectBuilder.build(name: 'Status')
     project_repository = FakeProjectRepository.new(projects: { '123' => project })
     health_repository = FakeHealthUpdateRepository.new
     action = described_class.new(
@@ -35,7 +36,7 @@ RSpec.describe RecordProjectHealthUpdate do
   end
 
   it 'fails when health is not allowed' do
-    project = Project.new(name: 'Status')
+    project = ProjectBuilder.build(name: 'Status')
     project_repository = FakeProjectRepository.new(projects: { '123' => project })
     health_repository = FakeHealthUpdateRepository.new
     action = described_class.new(
@@ -50,7 +51,7 @@ RSpec.describe RecordProjectHealthUpdate do
   end
 
   it 'fails when health is nil' do
-    project = Project.new(name: 'Status')
+    project = ProjectBuilder.build(name: 'Status')
     project_repository = FakeProjectRepository.new(projects: { '123' => project })
     health_repository = FakeHealthUpdateRepository.new
     action = described_class.new(
@@ -65,7 +66,7 @@ RSpec.describe RecordProjectHealthUpdate do
   end
 
   it 'fails when the date is in the future' do
-    project = Project.new(name: 'Status')
+    project = ProjectBuilder.build(name: 'Status')
     project_repository = FakeProjectRepository.new(projects: { '123' => project })
     health_repository = FakeHealthUpdateRepository.new
     action = described_class.new(
@@ -83,7 +84,7 @@ RSpec.describe RecordProjectHealthUpdate do
   end
 
   it 'treats non-date objects as not in the future' do
-    project = Project.new(name: 'Status')
+    project = ProjectBuilder.build(name: 'Status')
     project_repository = FakeProjectRepository.new(projects: { '123' => project })
     health_repository = FakeHealthUpdateRepository.new
     action = described_class.new(
@@ -100,7 +101,7 @@ RSpec.describe RecordProjectHealthUpdate do
   end
 
   it 'persists the health update when valid' do
-    project = Project.new(name: 'Status')
+    project = ProjectBuilder.build(name: 'Status')
     project_repository = FakeProjectRepository.new(projects: { '123' => project })
     health_repository = FakeHealthUpdateRepository.new
     action = described_class.new(
@@ -118,5 +119,4 @@ RSpec.describe RecordProjectHealthUpdate do
     expect(stored_update.health).to eq(:on_track)
     expect(stored_update.description).to eq('Green')
   end
-
 end

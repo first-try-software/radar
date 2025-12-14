@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'domain/projects/create_subordinate_project'
 require 'domain/projects/project'
 require_relative '../../support/persistence/fake_project_repository'
+require_relative '../../support/project_builder'
 
 RSpec.describe CreateSubordinateProject do
   it 'returns an error when the parent project cannot be found' do
@@ -15,7 +16,7 @@ RSpec.describe CreateSubordinateProject do
   end
 
   it 'returns an error when the subordinate project is invalid' do
-    parent = Project.new(name: 'Parent')
+    parent = ProjectBuilder.build(name: 'Parent')
     repository = FakeProjectRepository.new(projects: { '123' => parent })
     action = described_class.new(project_repository: repository)
 
@@ -26,9 +27,9 @@ RSpec.describe CreateSubordinateProject do
   end
 
   it 'returns an error when the subordinate project name already exists' do
-    parent = Project.new(name: 'Parent')
+    parent = ProjectBuilder.build(name: 'Parent')
     repository = FakeProjectRepository.new(
-      projects: { '123' => parent, '456' => Project.new(name: 'Child') }
+      projects: { '123' => parent, '456' => ProjectBuilder.build(name: 'Child') }
     )
     action = described_class.new(project_repository: repository)
 
@@ -39,7 +40,7 @@ RSpec.describe CreateSubordinateProject do
   end
 
   it 'adds the subordinate project to the parent and repository' do
-    parent = Project.new(name: 'Parent')
+    parent = ProjectBuilder.build(name: 'Parent')
     repository = FakeProjectRepository.new(projects: { '123' => parent })
     action = described_class.new(project_repository: repository)
 
@@ -61,7 +62,7 @@ RSpec.describe CreateSubordinateProject do
   end
 
   it 'rejects duplicate subordinate names that were just persisted' do
-    parent = Project.new(name: 'Parent')
+    parent = ProjectBuilder.build(name: 'Parent')
     repository = FakeProjectRepository.new(projects: { '123' => parent })
     action = described_class.new(project_repository: repository)
 
@@ -71,5 +72,4 @@ RSpec.describe CreateSubordinateProject do
     expect(second_attempt.success?).to be(false)
     expect(second_attempt.errors).to eq(['project name must be unique'])
   end
-
 end

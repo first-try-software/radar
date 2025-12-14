@@ -1,5 +1,6 @@
 require_relative '../support/result'
 require_relative 'project'
+require_relative 'project_attributes'
 
 class ArchiveProject
   def initialize(project_repository:)
@@ -25,10 +26,12 @@ class ArchiveProject
 
   def archived_project
     @archived_project ||= Project.new(
-      name: project.name,
-      description: project.description,
-      point_of_contact: project.point_of_contact,
-      archived: true
+      attributes: ProjectAttributes.new(
+        name: project.name,
+        description: project.description,
+        point_of_contact: project.point_of_contact,
+        archived: true
+      )
     )
   end
 

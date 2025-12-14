@@ -1,5 +1,6 @@
 require_relative '../support/result'
 require_relative 'project'
+require_relative 'project_attributes'
 
 class CreateSubordinateProject
   def initialize(project_repository:)
@@ -8,7 +9,7 @@ class CreateSubordinateProject
 
   def perform(parent_id:, name:, description: '', point_of_contact: '')
     @parent_id = parent_id
-    @attributes = { name:, description:, point_of_contact: }
+    @attrs = ProjectAttributes.new(name:, description:, point_of_contact:)
 
     return parent_not_found_failure unless parent_project
     return invalid_project_failure unless subordinate_project.valid?
@@ -21,14 +22,14 @@ class CreateSubordinateProject
 
   private
 
-  attr_reader :project_repository, :parent_id, :attributes
+  attr_reader :project_repository, :parent_id, :attrs
 
   def parent_project
     @parent_project ||= project_repository.find(parent_id)
   end
 
   def subordinate_project
-    @subordinate_project ||= Project.new(**attributes)
+    @subordinate_project ||= Project.new(attributes: attrs)
   end
 
   def next_order

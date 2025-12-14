@@ -4,6 +4,7 @@ require 'domain/initiatives/initiative'
 require 'domain/projects/project'
 require_relative '../../support/persistence/fake_initiative_repository'
 require_relative '../../support/persistence/fake_project_repository'
+require_relative '../../support/project_builder'
 
 RSpec.describe CreateRelatedProject do
   it 'fails when the initiative cannot be found' do
@@ -39,7 +40,7 @@ RSpec.describe CreateRelatedProject do
     initiative = Initiative.new(name: 'Modernize Infra')
     initiative_repository = FakeInitiativeRepository.new(initiatives: { 'init-123' => initiative })
     project_repository = FakeProjectRepository.new
-    project_repository.save(Project.new(name: 'Project'))
+    project_repository.save(ProjectBuilder.build(name: 'Project'))
     action = described_class.new(
       initiative_repository: initiative_repository,
       project_repository: project_repository

@@ -1,5 +1,6 @@
 require_relative '../support/result'
 require_relative 'project'
+require_relative 'project_attributes'
 
 class CreateProject
   def initialize(project_repository:)
@@ -7,7 +8,7 @@ class CreateProject
   end
 
   def perform(name:, description: '', point_of_contact: '')
-    @attributes = { name:, description:, point_of_contact: }
+    @attrs = ProjectAttributes.new(name:, description:, point_of_contact:)
 
     return invalid_project_failure unless project.valid?
     return duplicate_name_failure unless unique_name?
@@ -18,10 +19,10 @@ class CreateProject
 
   private
 
-  attr_reader :project_repository, :attributes
+  attr_reader :project_repository, :attrs
 
   def project
-    @project ||= Project.new(**attributes)
+    @project ||= Project.new(attributes: attrs)
   end
 
   def duplicate_name?

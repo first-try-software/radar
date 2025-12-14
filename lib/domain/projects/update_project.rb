@@ -1,5 +1,6 @@
 require_relative '../support/result'
 require_relative 'project'
+require_relative 'project_attributes'
 
 class UpdateProject
   def initialize(project_repository:)
@@ -8,7 +9,7 @@ class UpdateProject
 
   def perform(id:, name:, description: '', point_of_contact: '')
     @id = id
-    @attributes = { name:, description:, point_of_contact: }
+    @attrs = ProjectAttributes.new(name:, description:, point_of_contact:)
 
     return project_not_found_failure unless existing_project
     return invalid_project_failure unless updated_project.valid?
@@ -20,14 +21,14 @@ class UpdateProject
 
   private
 
-  attr_reader :project_repository, :id, :attributes
+  attr_reader :project_repository, :id, :attrs
 
   def existing_project
     @existing_project ||= project_repository.find(id)
   end
 
   def updated_project
-    @updated_project ||= Project.new(**attributes)
+    @updated_project ||= Project.new(attributes: attrs)
   end
 
   def duplicate_name?

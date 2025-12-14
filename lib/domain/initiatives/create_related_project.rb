@@ -1,5 +1,6 @@
 require_relative '../support/result'
 require_relative '../projects/project'
+require_relative '../projects/project_attributes'
 
 class CreateRelatedProject
   def initialize(initiative_repository:, project_repository:)
@@ -9,7 +10,7 @@ class CreateRelatedProject
 
   def perform(initiative_id:, name:, description: '', point_of_contact: '')
     @initiative_id = initiative_id
-    @attributes = { name:, description:, point_of_contact: }
+    @attrs = ProjectAttributes.new(name:, description:, point_of_contact:)
 
     return initiative_not_found_failure unless initiative
     return invalid_project_failure unless project.valid?
@@ -22,14 +23,14 @@ class CreateRelatedProject
 
   private
 
-  attr_reader :initiative_repository, :project_repository, :initiative_id, :attributes
+  attr_reader :initiative_repository, :project_repository, :initiative_id, :attrs
 
   def initiative
     @initiative ||= initiative_repository.find(initiative_id)
   end
 
   def project
-    @project ||= Project.new(**attributes)
+    @project ||= Project.new(attributes: attrs)
   end
 
   def unique_name?

@@ -4,6 +4,7 @@ require 'domain/teams/team'
 require 'domain/projects/project'
 require_relative '../../support/persistence/fake_team_repository'
 require_relative '../../support/persistence/fake_project_repository'
+require_relative '../../support/project_builder'
 
 RSpec.describe CreateOwnedProject do
   it 'fails when the team cannot be found' do
@@ -33,7 +34,7 @@ RSpec.describe CreateOwnedProject do
     team = Team.new(name: 'Platform')
     team_repository = FakeTeamRepository.new(teams: { 'team-123' => team })
     project_repository = FakeProjectRepository.new
-    project_repository.save(Project.new(name: 'Project'))
+    project_repository.save(ProjectBuilder.build(name: 'Project'))
     action = described_class.new(team_repository: team_repository, project_repository: project_repository)
 
     result = action.perform(team_id: 'team-123', name: 'Project')

@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'domain/projects/set_project_state'
 require 'domain/projects/project'
 require_relative '../../support/persistence/fake_project_repository'
+require_relative '../../support/project_builder'
 
 RSpec.describe SetProjectState do
   it 'fails when the project cannot be found' do
@@ -15,7 +16,7 @@ RSpec.describe SetProjectState do
   end
 
   it 'fails when an invalid state is provided' do
-    project = Project.new(name: 'Status')
+    project = ProjectBuilder.build(name: 'Status')
     repository = FakeProjectRepository.new(projects: { '123' => project })
     action = described_class.new(project_repository: repository)
 
@@ -26,7 +27,7 @@ RSpec.describe SetProjectState do
   end
 
   it 'fails when state is nil' do
-    project = Project.new(name: 'Status')
+    project = ProjectBuilder.build(name: 'Status')
     repository = FakeProjectRepository.new(projects: { '123' => project })
     action = described_class.new(project_repository: repository)
 
@@ -37,7 +38,7 @@ RSpec.describe SetProjectState do
   end
 
   it 'fails when attempting to set state to :new' do
-    project = Project.new(name: 'Status', current_state: :todo, children_loader: ->(_) { [] })
+    project = ProjectBuilder.build(name: 'Status', current_state: :todo, children_loader: ->(_) { [] })
     repository = FakeProjectRepository.new(projects: { '123' => project })
     action = described_class.new(project_repository: repository)
 
@@ -48,7 +49,7 @@ RSpec.describe SetProjectState do
   end
 
   it 'updates the state of a leaf project' do
-    project = Project.new(name: 'Leaf', current_state: :new, children_loader: ->(_) { [] })
+    project = ProjectBuilder.build(name: 'Leaf', current_state: :new, children_loader: ->(_) { [] })
     repository = FakeProjectRepository.new(projects: { '123' => project })
     action = described_class.new(project_repository: repository)
 
@@ -60,7 +61,7 @@ RSpec.describe SetProjectState do
   end
 
   it 'allows any state transition for leaf projects' do
-    project = Project.new(name: 'Leaf', current_state: :new, children_loader: ->(_) { [] })
+    project = ProjectBuilder.build(name: 'Leaf', current_state: :new, children_loader: ->(_) { [] })
     repository = FakeProjectRepository.new(projects: { '123' => project })
     action = described_class.new(project_repository: repository)
 
@@ -71,9 +72,9 @@ RSpec.describe SetProjectState do
   end
 
   it 'cascades state to all leaf descendants of a parent project' do
-    child1 = Project.new(name: 'Child1', current_state: :new, children_loader: ->(_) { [] })
-    child2 = Project.new(name: 'Child2', current_state: :todo, children_loader: ->(_) { [] })
-    parent = Project.new(name: 'Parent', children_loader: ->(_) { [child1, child2] })
+    child1 = ProjectBuilder.build(name: 'Child1', current_state: :new, children_loader: ->(_) { [] })
+    child2 = ProjectBuilder.build(name: 'Child2', current_state: :todo, children_loader: ->(_) { [] })
+    parent = ProjectBuilder.build(name: 'Parent', children_loader: ->(_) { [child1, child2] })
     repository = FakeProjectRepository.new(projects: {
       'parent' => parent,
       'child1' => child1,
@@ -89,9 +90,9 @@ RSpec.describe SetProjectState do
   end
 
   it 'cascades state to grandchildren through intermediate parents' do
-    grandchild = Project.new(name: 'GC', current_state: :new, children_loader: ->(_) { [] })
-    child = Project.new(name: 'Child', children_loader: ->(_) { [grandchild] })
-    grandparent = Project.new(name: 'GP', children_loader: ->(_) { [child] })
+    grandchild = ProjectBuilder.build(name: 'GC', current_state: :new, children_loader: ->(_) { [] })
+    child = ProjectBuilder.build(name: 'Child', children_loader: ->(_) { [grandchild] })
+    grandparent = ProjectBuilder.build(name: 'GP', children_loader: ->(_) { [child] })
     repository = FakeProjectRepository.new(projects: {
       'gp' => grandparent,
       'child' => child,
@@ -106,8 +107,8 @@ RSpec.describe SetProjectState do
   end
 
   it 'returns success after cascading to parent project' do
-    child = Project.new(name: 'Child', current_state: :new, children_loader: ->(_) { [] })
-    parent = Project.new(name: 'Parent', children_loader: ->(_) { [child] })
+    child = ProjectBuilder.build(name: 'Child', current_state: :new, children_loader: ->(_) { [] })
+    parent = ProjectBuilder.build(name: 'Parent', children_loader: ->(_) { [child] })
     repository = FakeProjectRepository.new(projects: {
       'parent' => parent,
       'child' => child
