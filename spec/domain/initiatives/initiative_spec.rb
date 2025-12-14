@@ -62,6 +62,18 @@ RSpec.describe Initiative do
     expect(initiative.errors).to eq(['name must be present'])
   end
 
+  it 'returns no validation errors when valid' do
+    initiative = described_class.new(name: 'Modernize Infra')
+
+    expect(initiative.errors).to eq([])
+  end
+
+  it 'returns empty related projects when no loader provided' do
+    initiative = described_class.new(name: 'Modernize Infra')
+
+    expect(initiative.related_projects).to eq([])
+  end
+
   it 'lazy loads related projects via the loader' do
     loader = ->(_initiative) { [double('Project')] }
     initiative = described_class.new(name: 'Modernize Infra', related_projects_loader: loader)

@@ -25,6 +25,17 @@ RSpec.describe SetProjectState do
     expect(result.errors).to eq(['invalid state'])
   end
 
+  it 'fails when state is nil' do
+    project = Project.new(name: 'Status')
+    repository = FakeProjectRepository.new(projects: { '123' => project })
+    action = described_class.new(project_repository: repository)
+
+    result = action.perform(id: '123', state: nil)
+
+    expect(result.success?).to be(false)
+    expect(result.errors).to eq(['invalid state'])
+  end
+
   it 'fails when attempting to set state to :new' do
     project = Project.new(name: 'Status', current_state: :todo, children_loader: ->(_) { [] })
     repository = FakeProjectRepository.new(projects: { '123' => project })

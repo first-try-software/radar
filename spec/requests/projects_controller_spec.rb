@@ -232,10 +232,36 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).to include('date is required')
     end
 
+    it 'renders validation errors on HTML health update with nil date' do
+      record = ProjectRecord.create!(name: 'Solo', current_state: 'in_progress')
+      params = { health_update: { date: nil, health: 'on_track' } }
+
+      post "/projects/#{record.id}/health_updates", params: params
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('date is required')
+    end
+
     it 'returns 404 on HTML health update for missing project' do
       params = { health_update: { date: Date.current, health: 'on_track' } }
 
       post '/projects/999/health_updates', params: params
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 on HTML health update when project deleted mid-request' do
+      record = ProjectRecord.create!(name: 'Ephemeral', current_state: 'in_progress')
+      params = { health_update: { date: Date.current, health: 'bogus' } }
+
+      # First call finds project (in action), subsequent calls return nil (simulating deletion)
+      call_count = 0
+      allow(ProjectRecord).to receive(:find_by).and_wrap_original do |method, *args|
+        call_count += 1
+        call_count <= 1 ? method.call(*args) : nil
+      end
+
+      post "/projects/#{record.id}/health_updates", params: params
 
       expect(response).to have_http_status(:not_found)
     end
@@ -304,6 +330,21 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).to include('name must be present')
     end
 
+    it 'returns 404 on HTML subordinate create when parent deleted mid-request' do
+      parent = ProjectRecord.create!(name: 'Ephemeral')
+
+      # First call finds parent (in action), subsequent calls return nil (simulating deletion)
+      call_count = 0
+      allow(ProjectRecord).to receive(:find_by).and_wrap_original do |method, *args|
+        call_count += 1
+        call_count <= 1 ? method.call(*args) : nil
+      end
+
+      post "/projects/#{parent.id}/subordinates", params: { project: { name: '' } }
+
+      expect(response).to have_http_status(:not_found)
+    end
+
     it 'returns 404 for missing parent on HTML subordinate create' do
       post "/projects/999/subordinates", params: { project: { name: 'MissingParent' } }
 
@@ -329,6 +370,27 @@ RSpec.describe ProjectsController, type: :request do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('invalid state')
+    end
+
+    it 'returns 404 for HTML state change on missing project' do
+      patch '/projects/999/state', params: { state: 'done' }
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 for HTML state change when project deleted mid-request' do
+      record = ProjectRecord.create!(name: 'Ephemeral', current_state: 'todo')
+
+      # First call finds project (in action), subsequent calls return nil (simulating deletion)
+      call_count = 0
+      allow(ProjectRecord).to receive(:find_by).and_wrap_original do |method, *args|
+        call_count += 1
+        call_count <= 1 ? method.call(*args) : nil
+      end
+
+      patch "/projects/#{record.id}/state", params: { state: 'bogus' }
+
+      expect(response).to have_http_status(:not_found)
     end
 
     it 'renders validation errors on HTML update' do
@@ -456,6 +518,33 @@ RSpec.describe ProjectsController, type: :request do
       post "/projects/999/subordinates", params: { project: { name: 'Child' } }, headers: json_headers
 
       expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe 'parse_date private method' do
+    it 'returns the value unchanged when it is already a Date' do
+      controller = ProjectsController.new
+      date = Date.new(2025, 6, 15)
+
+      result = controller.send(:parse_date, date)
+
+      expect(result).to eq(date)
+    end
+
+    it 'returns nil when value is nil' do
+      controller = ProjectsController.new
+
+      result = controller.send(:parse_date, nil)
+
+      expect(result).to be_nil
+    end
+
+    it 'returns nil when value is empty string' do
+      controller = ProjectsController.new
+
+      result = controller.send(:parse_date, '')
+
+      expect(result).to be_nil
     end
   end
 

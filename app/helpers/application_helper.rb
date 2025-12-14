@@ -78,8 +78,6 @@ module ApplicationHelper
   end
 
   def domain_project_for(project_record)
-    return project_record if project_record.respond_to?(:health)
-
     cache_key = project_record.respond_to?(:id) ? project_record.id.to_s : nil
     @_domain_project_cache ||= {}
 
@@ -108,8 +106,6 @@ module ApplicationHelper
   end
 
   def latest_health_update_for(project)
-    return nil unless project.respond_to?(:health_updates_for_tooltip)
-
     project.health_updates_for_tooltip&.last
   end
 

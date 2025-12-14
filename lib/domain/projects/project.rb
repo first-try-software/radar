@@ -161,8 +161,7 @@ class Project
   end
 
   def current_date
-    # Use Date.current if available (Rails), otherwise Date.today
-    Date.respond_to?(:current) ? Date.current : Date.today
+    Date.current
   end
 
   def subordinate_health

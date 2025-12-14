@@ -32,6 +32,28 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       2.times { helper.project_health_indicator(record) }
     end
+
+    it 'returns :not_available when find_project fails' do
+      record = instance_double('ProjectRecord', id: '456')
+      result = instance_double('Result', success?: false, value: nil, errors: ['project not found'])
+      actions = Rails.application.config.x.project_actions
+      allow(actions.find_project).to receive(:perform).with(id: '456').and_return(result)
+
+      html = helper.project_health_indicator(record)
+
+      expect(html).to include('project-health--not_available')
+    end
+
+    it 'handles project_record without id method' do
+      record = Object.new
+      result = instance_double('Result', success?: false, value: nil, errors: ['project not found'])
+      actions = Rails.application.config.x.project_actions
+      allow(actions.find_project).to receive(:perform).with(id: nil).and_return(result)
+
+      html = helper.project_health_indicator(record)
+
+      expect(html).to include('project-health--not_available')
+    end
   end
 
   describe '#project_health_trend' do
@@ -159,6 +181,21 @@ RSpec.describe ApplicationHelper, type: :helper do
         children_health_for_tooltip: nil,
         health_updates_for_tooltip: nil
       )
+
+      html = helper.project_health_indicator(project, with_tooltip: true)
+
+      expect(html).not_to include('health-indicator-wrapper')
+    end
+
+    it 'returns plain indicator when project does not respond to health_updates_for_tooltip' do
+      project = instance_double(
+        'Project',
+        health: :on_track,
+        children_health_for_tooltip: nil
+      )
+      allow(project).to receive(:respond_to?).with(:children_health_for_tooltip).and_return(true)
+      allow(project).to receive(:respond_to?).with(:health_updates_for_tooltip).and_return(false)
+      allow(project).to receive(:respond_to?).with(:health).and_return(true)
 
       html = helper.project_health_indicator(project, with_tooltip: true)
 

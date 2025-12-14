@@ -47,6 +47,14 @@ RSpec.describe ProjectRepository do
 
       expect(repository.find(record.id).name).to eq('Updated')
     end
+
+    it 'returns nil when project not found' do
+      project = build_project('Updated')
+
+      result = repository.update(id: 999, project: project)
+
+      expect(result).to be_nil
+    end
   end
 
   describe '#update_by_name' do
@@ -57,6 +65,14 @@ RSpec.describe ProjectRepository do
       repository.update_by_name(name: 'Status', project: project)
 
       expect(repository.find(record.id).current_state).to eq(:done)
+    end
+
+    it 'returns nil when project not found by name' do
+      project = Project.new(name: 'NonExistent', current_state: :done)
+
+      result = repository.update_by_name(name: 'NonExistent', project: project)
+
+      expect(result).to be_nil
     end
   end
 
@@ -115,6 +131,14 @@ RSpec.describe ProjectRepository do
       loaded_child = repository.find(child_record.id)
 
       expect(loaded_child.parent.name).to eq('Parent')
+    end
+
+    it 'returns nil parent when project has no parent' do
+      record = ProjectRecord.create!(name: 'Orphan')
+
+      loaded_project = repository.find(record.id)
+
+      expect(loaded_project.parent).to be_nil
     end
 
     it 'scopes subordinate ordering per parent' do

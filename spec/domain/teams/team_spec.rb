@@ -80,11 +80,23 @@ RSpec.describe Team do
     expect(team.errors).to eq([])
   end
 
+  it 'returns empty owned projects when no loader provided' do
+    team = described_class.new(name: 'Platform')
+
+    expect(team.owned_projects).to eq([])
+  end
+
   it 'lazy loads owned projects via the loader' do
     loader = ->(_team) { [double('Project')] }
     team = described_class.new(name: 'Platform', owned_projects_loader: loader)
 
     expect(team.owned_projects.length).to eq(1)
+  end
+
+  it 'returns empty subordinate teams when no loader provided' do
+    team = described_class.new(name: 'Platform')
+
+    expect(team.subordinate_teams).to eq([])
   end
 
   it 'lazy loads subordinate teams via the loader' do

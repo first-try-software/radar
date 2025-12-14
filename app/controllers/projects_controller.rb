@@ -79,8 +79,10 @@ class ProjectsController < ApplicationController
         if result.success?
           redirect_to(project_path(params[:id]), notice: 'State updated')
         else
-          @project_record = ProjectRecord.find(params[:id])
-          @project = project_actions.find_project.perform(id: params[:id]).value if result.errors.exclude?('project not found')
+          @project_record = ProjectRecord.find_by(id: params[:id])
+          return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @project_record
+
+          @project = project_actions.find_project.perform(id: params[:id]).value
           @errors = result.errors
           prepare_health_form(project: @project)
           render :show, status: error_status(result.errors)
@@ -117,7 +119,9 @@ class ProjectsController < ApplicationController
             render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
           else
             @project_record = ProjectRecord.find_by(id: params[:id])
-            @project = project_actions.find_project.perform(id: params[:id]).value if @project_record
+            return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @project_record
+
+            @project = project_actions.find_project.perform(id: params[:id]).value
             @errors = result.errors
             prepare_health_form(project: @project)
             render :show, status: error_status(result.errors)
@@ -231,7 +235,9 @@ class ProjectsController < ApplicationController
     end
 
     @project_record = ProjectRecord.find_by(id: params[:id])
-    @project = project_actions.find_project.perform(id: params[:id]).value if @project_record
+    return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @project_record
+
+    @project = project_actions.find_project.perform(id: params[:id]).value
     @errors = result.errors
     prepare_health_form(project: @project, open: true)
     render :show, status: error_status(result.errors)

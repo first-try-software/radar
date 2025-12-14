@@ -48,7 +48,7 @@ class RecordProjectHealthUpdate
   end
 
   def current_date
-    Date.respond_to?(:current) ? Date.current : Date.today
+    Date.current
   end
 
   def project_not_found_failure

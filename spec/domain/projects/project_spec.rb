@@ -217,11 +217,16 @@ RSpec.describe Project do
       expect(grandparent.current_state).to eq(:blocked)
     end
 
-    it 'returns :new when parent has no leaf descendants' do
-      child = described_class.new(name: 'Child', children_loader: ->(_) { [] })
-      # Simulate a weird edge case: parent whose only "child" returns empty leaves
-      # In practice, a child with no children IS a leaf, so this tests empty children
+    it 'returns :new when parent has no children' do
       parent = described_class.new(name: 'Parent', children_loader: ->(_) { [] })
+
+      expect(parent.current_state).to eq(:new)
+    end
+
+    it 'returns :new when leaf_descendants returns empty due to stubbing' do
+      child = described_class.new(name: 'Child', children_loader: ->(_) { [] })
+      parent = described_class.new(name: 'Parent', children_loader: ->(_) { [child] })
+      allow(parent).to receive(:leaf_descendants).and_return([])
 
       expect(parent.current_state).to eq(:new)
     end
@@ -233,6 +238,15 @@ RSpec.describe Project do
         name: 'Status',
         children_loader: ->(_) { [] },
         health_updates_loader: ->(_) { [] }
+      )
+
+      expect(project.health).to eq(:not_available)
+    end
+
+    it 'returns :not_available when health_updates_loader is nil' do
+      project = described_class.new(
+        name: 'Status',
+        children_loader: ->(_) { [] }
       )
 
       expect(project.health).to eq(:not_available)
@@ -323,6 +337,35 @@ RSpec.describe Project do
 
       expect(project.health).to eq(:on_track)
     end
+
+    it 'treats health updates with non-date objects as non-future' do
+      non_date_object = Object.new
+      updates = [
+        double('HealthUpdate', date: non_date_object, health: :at_risk)
+      ]
+      project = described_class.new(
+        name: 'Status',
+        children_loader: ->(_) { [] },
+        health_updates_loader: ->(_) { updates },
+        weekly_health_updates_loader: ->(_) { [] }
+      )
+
+      expect(project.health).to eq(:at_risk)
+    end
+
+    it 'returns :not_available when subordinates have unknown health values' do
+      children = [
+        double('Project', health: :unknown_value),
+        double('Project', health: :another_unknown)
+      ]
+      project = described_class.new(
+        name: 'Status',
+        children_loader: ->(_) { children },
+        health_updates_loader: ->(_) { [] }
+      )
+
+      expect(project.health).to eq(:not_available)
+    end
   end
 
   describe 'health_trend' do
@@ -333,6 +376,21 @@ RSpec.describe Project do
         children_loader: loader,
         health_updates_loader: loader,
         weekly_health_updates_loader: loader
+      )
+
+      current_date = Date.respond_to?(:current) ? Date.current : Date.today
+      trend = project.health_trend
+
+      expect(trend.length).to eq(1)
+      expect(trend[0].date).to eq(current_date)
+      expect(trend[0].health).to eq(:not_available)
+    end
+
+    it 'returns only current health when weekly_health_updates_loader is nil' do
+      project = described_class.new(
+        name: 'Status',
+        children_loader: ->(_) { [] },
+        health_updates_loader: ->(_) { [] }
       )
 
       current_date = Date.respond_to?(:current) ? Date.current : Date.today
@@ -485,6 +543,28 @@ RSpec.describe Project do
       expect(trend[1].date).to eq(current_date)
     end
 
+    it 'returns only current health when all child trend dates are in the future' do
+      current_date = Date.respond_to?(:current) ? Date.current : Date.today
+      future_monday = current_date + 7
+      child_trend = [
+        double('HealthUpdate', date: future_monday, health: :on_track)
+      ]
+      child = double('Project', health_trend: child_trend, health: :on_track)
+
+      project = described_class.new(
+        name: 'Parent',
+        children_loader: ->(_) { [child] },
+        health_updates_loader: ->(_) { [] },
+        weekly_health_updates_loader: ->(_) { [] }
+      )
+
+      trend = project.health_trend
+
+      expect(trend.length).to eq(1)
+      expect(trend[0].date).to eq(current_date)
+      expect(trend[0].health).to eq(:on_track)
+    end
+
     it 'returns :off_track in weekly rollup when all children are off_track' do
       monday = Date.new(2025, 1, 6)
       child1_trend = [double('HealthUpdate', date: monday, health: :off_track)]
@@ -502,6 +582,77 @@ RSpec.describe Project do
       trend = project.health_trend
 
       expect(trend[0].health).to eq(:off_track)
+    end
+
+    it 'handles child missing data for a particular monday in parent trend' do
+      monday1 = Date.new(2025, 1, 6)
+      monday2 = Date.new(2025, 1, 13)
+      child1_trend = [
+        double('HealthUpdate', date: monday1, health: :on_track),
+        double('HealthUpdate', date: monday2, health: :on_track)
+      ]
+      child2_trend = [
+        double('HealthUpdate', date: monday2, health: :off_track)
+      ]
+      child1 = double('Project', health_trend: child1_trend, health: :on_track)
+      child2 = double('Project', health_trend: child2_trend, health: :off_track)
+
+      project = described_class.new(
+        name: 'Parent',
+        children_loader: ->(_) { [child1, child2] },
+        health_updates_loader: ->(_) { [] },
+        weekly_health_updates_loader: ->(_) { [] }
+      )
+
+      trend = project.health_trend
+
+      expect(trend.length).to eq(3)
+      expect(trend[0].date).to eq(monday1)
+      expect(trend[0].health).to eq(:on_track)
+      expect(trend[1].date).to eq(monday2)
+      expect(trend[1].health).to eq(:at_risk)
+    end
+
+    it 'returns :not_available in weekly rollup when children have unknown health values' do
+      monday = Date.new(2025, 1, 6)
+      child_trend = [double('HealthUpdate', date: monday, health: :unknown_value)]
+      child = double('Project', health_trend: child_trend, health: :not_available)
+
+      project = described_class.new(
+        name: 'Parent',
+        children_loader: ->(_) { [child] },
+        health_updates_loader: ->(_) { [] },
+        weekly_health_updates_loader: ->(_) { [] }
+      )
+
+      trend = project.health_trend
+
+      expect(trend[0].health).to eq(:not_available)
+    end
+
+  end
+
+  describe 'health_updates_for_tooltip' do
+    it 'returns nil when project has children' do
+      child = described_class.new(name: 'Child', children_loader: ->(_) { [] })
+      project = described_class.new(
+        name: 'Parent',
+        children_loader: ->(_) { [child] },
+        health_updates_loader: ->(_) { [] }
+      )
+
+      expect(project.health_updates_for_tooltip).to be_nil
+    end
+
+    it 'returns health updates when project has no children' do
+      updates = [double('HealthUpdate', date: Date.new(2025, 1, 1), health: :on_track)]
+      project = described_class.new(
+        name: 'Leaf',
+        children_loader: ->(_) { [] },
+        health_updates_loader: ->(_) { updates }
+      )
+
+      expect(project.health_updates_for_tooltip).to eq(updates)
     end
   end
 

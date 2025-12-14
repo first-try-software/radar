@@ -45,6 +45,46 @@ RSpec.describe HealthUpdateRepository do
       expect(updates.map(&:date)).to eq(updates.map(&:date).sort)
     end
 
+    it 'adjusts most_recent_monday when today is Monday' do
+      project = ProjectRecord.create!(name: 'MondayTest', description: '', point_of_contact: '')
+      repository = described_class.new
+
+      # Find next Monday from today
+      today = Date.current
+      days_until_monday = (1 - today.wday) % 7
+      days_until_monday = 7 if days_until_monday == 0
+      next_monday = today + days_until_monday
+
+      # Use travel_to for time manipulation instead of stubbing Date.current
+      travel_to(next_monday) do
+        updates = repository.weekly_for_project(project.id)
+
+        expect(updates.length).to eq(6)
+        # Most recent Monday should be last week, not today
+        expect(updates.last.date).to eq(next_monday - 7)
+      end
+    end
+
+    it 'returns empty when last_six_mondays returns empty' do
+      project = ProjectRecord.create!(name: 'EmptyMondays', description: '', point_of_contact: '')
+      repository = described_class.new
+
+      allow(repository).to receive(:last_six_mondays).and_return([])
+
+      updates = repository.weekly_for_project(project.id)
+
+      expect(updates).to eq([])
+    end
+
+    it 'returns nil from latest_update_after_monday when last_monday is nil' do
+      project = ProjectRecord.create!(name: 'NilMonday', description: '', point_of_contact: '')
+      repository = described_class.new
+
+      result = repository.send(:latest_update_after_monday, [], nil)
+
+      expect(result).to be_nil
+    end
+
     it 'returns :not_available for Mondays with no prior updates' do
       project = ProjectRecord.create!(name: 'Gamma', description: '', point_of_contact: '')
       repository = described_class.new
