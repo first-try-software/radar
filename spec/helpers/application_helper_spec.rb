@@ -202,4 +202,100 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(html).not_to include('health-indicator-wrapper')
     end
   end
+
+  describe '#initiative_health_indicator' do
+    it 'loads domain initiative health for InitiativeRecord' do
+      record = instance_double('InitiativeRecord', id: '123')
+      domain_initiative = instance_double('Initiative', health: :off_track)
+      result = instance_double('Result', success?: true, value: domain_initiative, errors: [])
+      actions = Rails.application.config.x.initiative_actions
+      allow(actions.find_initiative).to receive(:perform).with(id: '123').and_return(result)
+
+      html = helper.initiative_health_indicator(record)
+
+      expect(html).to include('project-health--off_track')
+    end
+
+    it 'uses the domain initiative directly when it responds to health' do
+      initiative = instance_double('Initiative', health: :on_track)
+
+      html = helper.initiative_health_indicator(initiative)
+
+      expect(html).to include('project-health--on_track')
+      expect(html).to include('On Track')
+    end
+
+    it 'caches domain initiative lookups' do
+      record = instance_double('InitiativeRecord', id: '123')
+      domain_initiative = instance_double('Initiative', health: :at_risk)
+      result = instance_double('Result', success?: true, value: domain_initiative, errors: [])
+      actions = Rails.application.config.x.initiative_actions
+      expect(actions.find_initiative).to receive(:perform).once.with(id: '123').and_return(result)
+
+      2.times { helper.initiative_health_indicator(record) }
+    end
+
+    it 'returns :not_available when find_initiative fails' do
+      record = instance_double('InitiativeRecord', id: '456')
+      result = instance_double('Result', success?: false, value: nil, errors: ['initiative not found'])
+      actions = Rails.application.config.x.initiative_actions
+      allow(actions.find_initiative).to receive(:perform).with(id: '456').and_return(result)
+
+      html = helper.initiative_health_indicator(record)
+
+      expect(html).to include('project-health--not_available')
+    end
+
+    it 'shows tooltip with related projects when with_tooltip is true' do
+      project = instance_double('Project', name: 'Feature A', health: :on_track)
+      initiative = instance_double('Initiative', health: :on_track, related_projects: [project])
+
+      html = helper.initiative_health_indicator(initiative, with_tooltip: true)
+
+      expect(html).to include('health-indicator-wrapper')
+      expect(html).to include('health-rollup-tooltip')
+      expect(html).to include('Feature A')
+    end
+
+    it 'returns plain indicator when related_projects is empty' do
+      initiative = instance_double('Initiative', health: :on_track, related_projects: [])
+
+      html = helper.initiative_health_indicator(initiative, with_tooltip: true)
+
+      expect(html).not_to include('health-indicator-wrapper')
+      expect(html).to include('project-health--on_track')
+    end
+
+    it 'returns plain indicator when related_projects does not respond to any?' do
+      non_enumerable_projects = Object.new
+      initiative = instance_double('Initiative', health: :on_track, related_projects: non_enumerable_projects)
+
+      html = helper.initiative_health_indicator(initiative, with_tooltip: true)
+
+      expect(html).not_to include('health-indicator-wrapper')
+      expect(html).to include('project-health--on_track')
+    end
+
+    it 'returns plain indicator when initiative does not respond to related_projects' do
+      initiative = instance_double('Initiative', health: :on_track)
+      allow(initiative).to receive(:respond_to?).with(:health).and_return(true)
+      allow(initiative).to receive(:respond_to?).with(:related_projects).and_return(false)
+
+      html = helper.initiative_health_indicator(initiative, with_tooltip: true)
+
+      expect(html).not_to include('health-indicator-wrapper')
+      expect(html).to include('project-health--on_track')
+    end
+
+    it 'handles initiative_record without id method' do
+      record = Object.new
+      result = instance_double('Result', success?: false, value: nil, errors: ['initiative not found'])
+      actions = Rails.application.config.x.initiative_actions
+      allow(actions.find_initiative).to receive(:perform).with(id: nil).and_return(result)
+
+      html = helper.initiative_health_indicator(record)
+
+      expect(html).to include('project-health--not_available')
+    end
+  end
 end

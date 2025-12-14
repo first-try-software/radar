@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_13_120000) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_14_034321) do
   create_table "health_updates", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.date "date", null: false
@@ -20,6 +20,28 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_13_120000) do
     t.datetime "updated_at", null: false
     t.index ["project_id", "date"], name: "index_health_updates_on_project_id_and_date"
     t.index ["project_id"], name: "index_health_updates_on_project_id"
+  end
+
+  create_table "initiatives", force: :cascade do |t|
+    t.boolean "archived", default: false, null: false
+    t.datetime "created_at", null: false
+    t.text "description", default: "", null: false
+    t.string "name", null: false
+    t.string "point_of_contact", default: "", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_initiatives_on_name", unique: true
+  end
+
+  create_table "initiatives_projects", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "initiative_id", null: false
+    t.integer "order", null: false
+    t.integer "project_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["initiative_id", "order"], name: "index_initiatives_projects_on_initiative_id_and_order", unique: true
+    t.index ["initiative_id", "project_id"], name: "index_initiatives_projects_on_initiative_id_and_project_id", unique: true
+    t.index ["initiative_id"], name: "index_initiatives_projects_on_initiative_id"
+    t.index ["project_id"], name: "index_initiatives_projects_on_project_id", unique: true
   end
 
   create_table "projects", force: :cascade do |t|
@@ -81,6 +103,8 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_13_120000) do
   end
 
   add_foreign_key "health_updates", "projects"
+  add_foreign_key "initiatives_projects", "initiatives"
+  add_foreign_key "initiatives_projects", "projects"
   add_foreign_key "projects_projects", "projects", column: "child_id"
   add_foreign_key "projects_projects", "projects", column: "parent_id"
   add_foreign_key "teams_projects", "projects"

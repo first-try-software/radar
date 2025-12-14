@@ -1,4 +1,27 @@
 module ApplicationHelper
+  def initiative_health_indicator(initiative_like, with_tooltip: false)
+    health_value = initiative_health_value(initiative_like)
+    label = project_health_label(health_value)
+
+    indicator = content_tag(
+      :span,
+      '',
+      class: "project-health project-health--#{health_value}",
+      aria: { label: label }
+    )
+
+    if with_tooltip
+      if initiative_like.respond_to?(:related_projects)
+        related = initiative_like.related_projects
+        if related.respond_to?(:any?) && related.any?
+          return health_indicator_with_related_projects_tooltip(indicator, health_value, related)
+        end
+      end
+    end
+
+    indicator
+  end
+
   def project_health_indicator(project_like, with_tooltip: false)
     health_value = project_health_value(project_like)
     label = project_health_label(health_value)
@@ -156,6 +179,60 @@ module ApplicationHelper
                     ''.html_safe
                   end
       safe_join([date_line, health_line, desc_line])
+    end
+  end
+
+  def initiative_health_value(initiative_like)
+    if initiative_like.respond_to?(:health)
+      initiative_like.health
+    else
+      domain_initiative_for(initiative_like)&.health || :not_available
+    end
+  end
+
+  def domain_initiative_for(initiative_record)
+    cache_key = initiative_record.respond_to?(:id) ? initiative_record.id.to_s : nil
+    @_domain_initiative_cache ||= {}
+
+    if cache_key && @_domain_initiative_cache.key?(cache_key)
+      return @_domain_initiative_cache[cache_key]
+    end
+
+    result = Rails.application.config.x.initiative_actions.find_initiative.perform(id: cache_key)
+    initiative = result.success? ? result.value : nil
+
+    @_domain_initiative_cache[cache_key] = initiative if cache_key
+    initiative
+  end
+
+  def health_indicator_with_related_projects_tooltip(indicator, rollup_health, related_projects)
+    content_tag(:div, class: 'health-indicator-wrapper') do
+      tooltip = related_projects_health_tooltip(rollup_health, related_projects)
+      safe_join([indicator, tooltip])
+    end
+  end
+
+  def related_projects_health_tooltip(rollup_health, related_projects)
+    content_tag(:div, class: 'health-trend-tooltip health-rollup-tooltip') do
+      header = content_tag(:div, project_health_label(rollup_health), class: 'health-trend-tooltip__health')
+      projects_list = content_tag(:div, class: 'health-rollup-tooltip__children') do
+        safe_join(
+          related_projects.map do |proj|
+            proj_health = project_health_value(proj)
+            content_tag(:div, class: 'health-rollup-tooltip__child') do
+              proj_indicator = content_tag(
+                :span,
+                '',
+                class: "project-health project-health--#{proj_health} project-health--tiny",
+                aria: { label: project_health_label(proj_health) }
+              )
+              proj_name = content_tag(:span, proj.name, class: 'health-rollup-tooltip__child-name')
+              safe_join([proj_indicator, proj_name])
+            end
+          end
+        )
+      end
+      safe_join([header, projects_list])
     end
   end
 end

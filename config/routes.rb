@@ -9,4 +9,11 @@ Rails.application.routes.draw do
       post :health_updates, to: 'projects#create_health_update'
     end
   end
+
+  resources :initiatives, only: [:index, :show, :create, :update] do
+    member do
+      patch :archive
+      post :related_projects, to: 'initiatives#create_related_project'
+    end
+  end
 end

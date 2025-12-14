@@ -1,0 +1,21 @@
+<li class="list-item project-row">
+  <div class="project-row__health">
+    <%= initiative_health_indicator(initiative) %>
+  </div>
+  <div class="project-row__text">
+    <div class="project-title-row">
+      <%= link_to initiative.name, initiative_path(initiative), class: 'project-name' %>
+    </div>
+    <div class="muted project-description"><%= truncate(initiative.description.to_s, length: 80) %></div>
+    <% if initiative.point_of_contact.present? %>
+      <div class="muted project-poc"><%= initiative.point_of_contact %></div>
+    <% end %>
+  </div>
+  <div class="project-row__badges">
+    <div class="badges">
+      <% if initiative.archived %>
+        <span class="badge archived">archived</span>
+      <% end %>
+    </div>
+  </div>
+</li>

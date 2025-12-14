@@ -120,6 +120,50 @@ RSpec.describe ProjectHealth do
     expect(project_health.health).to eq(:at_risk)
   end
 
+  it 'uses Date.today when Date does not respond to current' do
+    allow(Date).to receive(:respond_to?).and_call_original
+    allow(Date).to receive(:respond_to?).with(:current).and_return(false)
+
+    updates = [
+      double('HealthUpdate', date: Date.today - 1, health: :on_track)
+    ]
+    project_health = described_class.new(
+      health_updates_loader: -> { updates },
+      weekly_health_updates_loader: -> { [] },
+      children_loader: -> { [] }
+    )
+
+    expect(project_health.health).to eq(:on_track)
+  end
+
+  it 'memoizes children loader result across different method calls' do
+    call_count = 0
+    children_loader = -> {
+      call_count += 1
+      [double('Child', name: 'Test', health: :on_track, health_trend: [])]
+    }
+    project_health = described_class.new(
+      health_updates_loader: -> { [] },
+      weekly_health_updates_loader: -> { [] },
+      children_loader: children_loader
+    )
+
+    project_health.health
+    project_health.children_health_for_tooltip
+
+    expect(call_count).to eq(1)
+  end
+
+  it 'handles nil children_loader gracefully' do
+    project_health = described_class.new(
+      health_updates_loader: -> { [] },
+      weekly_health_updates_loader: -> { [] },
+      children_loader: nil
+    )
+
+    expect(project_health.health).to eq(:not_available)
+  end
+
   it 'returns :not_available when children have unknown health values' do
     children = [
       double('Child', health: :unknown_value),

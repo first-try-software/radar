@@ -1,0 +1,126 @@
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li><%= link_to 'Initiatives', initiatives_path %></li>
+    <li aria-current="page"><%= @initiative_record.name %></li>
+  </ol>
+</nav>
+
+<div class="grid">
+  <div class="card">
+    <div class="project-header">
+      <div class="health-toggle-placeholder">
+        <div class="project-header__health">
+          <%= initiative_health_indicator(@initiative || @initiative_record, with_tooltip: true) %>
+        </div>
+      </div>
+      <div class="project-header__text">
+        <div class="editable-field project-name"
+             contenteditable="true"
+             data-field="name"
+             data-update-url="<%= initiative_path(@initiative_record) %>"><%= @initiative_record.name %></div>
+
+        <div class="editable-field project-description<%= ' editable-field--empty' if @initiative_record.description.blank? %>"
+             contenteditable="true"
+             data-field="description"
+             data-hint="What is this initiative about?"
+             data-update-url="<%= initiative_path(@initiative_record) %>"><%= @initiative_record.description.presence || 'What is this initiative about?' %></div>
+
+        <div class="editable-field project-poc<%= ' editable-field--empty' if @initiative_record.point_of_contact.blank? %>"
+             contenteditable="true"
+             data-field="point_of_contact"
+             data-hint="Where can I get more information (person, email, slack channel, etc.)?"
+             data-update-url="<%= initiative_path(@initiative_record) %>"><%= @initiative_record.point_of_contact.presence || 'Where can I get more information (person, email, slack channel, etc.)?' %></div>
+
+        <% if defined?(@errors) && @errors.present? %>
+          <div class="errors">
+            <ul>
+              <% @errors.each do |err| %>
+                <li><%= err %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      </div>
+      <div class="project-header__state">
+        <div class="badges">
+          <% if @initiative_record.archived %>
+            <span class="badge archived">archived</span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="section-title children-title">Related Projects</h3>
+    <ul class="list children-list">
+      <% related_projects = @initiative_record.related_project_relationships.includes(:project).order(:order).map(&:project) %>
+      <%= render partial: 'projects/project_list_item', collection: related_projects, as: :project %>
+      <% if related_projects.empty? %>
+        <li class="list-item"><span class="muted">No related projects yet.</span></li>
+      <% end %>
+      <li class="list-item">
+        <%= form_with model: ProjectRecord.new,
+                      url: related_projects_initiative_path(@initiative_record),
+                      method: :post,
+                      scope: :project,
+                      local: true,
+                      html: { class: 'child-form' } do |form| %>
+          <div class="child-actions">
+            <%= form.text_field :name, required: true, placeholder: 'New project name' %>
+            <%= form.submit 'Add', class: 'btn secondary' %>
+          </div>
+        <% end %>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    document.querySelectorAll('.editable-field').forEach((el) => {
+      const hint = el.dataset.hint;
+      let original = el.innerText;
+      let isShowingHint = el.classList.contains('editable-field--empty');
+
+      el.addEventListener('focus', () => {
+        if (isShowingHint && hint) {
+          el.innerText = '';
+          el.classList.remove('editable-field--empty');
+          isShowingHint = false;
+        }
+      });
+
+      el.addEventListener('blur', () => {
+        const value = el.innerText.trim();
+
+        if (!value && hint) {
+          el.innerText = hint;
+          el.classList.add('editable-field--empty');
+          isShowingHint = true;
+        }
+
+        const saveValue = isShowingHint ? '' : value;
+        const originalValue = original === hint ? '' : original;
+
+        if (saveValue === originalValue) return;
+
+        const field = el.dataset.field;
+        const url = el.dataset.updateUrl;
+        fetch(url, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-Token': token
+          },
+          body: JSON.stringify({ initiative: { [field]: saveValue } })
+        }).then((resp) => {
+          if (resp.ok) { original = isShowingHint ? hint : value; }
+        }).catch((err) => console.error(err));
+      });
+    });
+  });
+</script>

@@ -1,0 +1,30 @@
+<div class="grid">
+  <div class="card root-initiatives-card">
+    <h2 class="section-title">Initiatives</h2>
+    <% if defined?(@errors) && @errors.present? %>
+      <div class="errors">
+        <ul>
+          <% @errors.each do |err| %>
+            <li><%= err %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    <ul class="list">
+      <%= render partial: 'initiatives/initiative_list_item', collection: @initiatives, as: :initiative %>
+      <li class="list-item">
+        <%= form_with model: InitiativeRecord.new,
+                      url: initiatives_path,
+                      method: :post,
+                      scope: :initiative,
+                      local: true,
+                      html: { class: 'child-form' } do |form| %>
+          <div class="child-actions">
+            <%= form.text_field :name, required: true, placeholder: 'New initiative name' %>
+            <%= form.submit 'Add', class: 'btn secondary' %>
+          </div>
+        <% end %>
+      </li>
+    </ul>
+  </div>
+</div>
