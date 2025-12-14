@@ -20,12 +20,24 @@ class ProjectActionsFactory
     ArchiveProject.new(project_repository: project_repository)
   end
 
+  def unarchive_project
+    UnarchiveProject.new(project_repository: project_repository)
+  end
+
   def find_project
     @find_project ||= FindProject.new(project_repository: project_repository)
   end
 
   def create_subordinate_project
     CreateSubordinateProject.new(project_repository: project_repository)
+  end
+
+  def unlink_subordinate_project
+    UnlinkSubordinateProject.new(project_repository: project_repository)
+  end
+
+  def link_subordinate_project
+    LinkSubordinateProject.new(project_repository: project_repository)
   end
 
   def record_project_health_update

@@ -56,6 +56,179 @@ RSpec.describe ApplicationHelper, type: :helper do
     end
   end
 
+  describe '#project_state_for' do
+    it 'returns current_state directly when given a domain Project' do
+      domain_project = instance_double('Project', current_state: :in_progress)
+      allow(domain_project).to receive(:is_a?).with(Project).and_return(true)
+
+      result = helper.project_state_for(domain_project)
+
+      expect(result).to eq(:in_progress)
+    end
+
+    it 'gets derived state from domain project when given a record' do
+      record = instance_double('ProjectRecord', id: '123', current_state: 'new')
+      domain_project = instance_double('Project', current_state: :blocked)
+      result_double = instance_double('Result', success?: true, value: domain_project, errors: [])
+      actions = Rails.application.config.x.project_actions
+      allow(actions.find_project).to receive(:perform).with(id: '123').and_return(result_double)
+
+      result = helper.project_state_for(record)
+
+      expect(result).to eq(:blocked)
+    end
+
+    it 'falls back to record state when domain project lookup fails' do
+      record = instance_double('ProjectRecord', id: '789', current_state: 'todo')
+      result_double = instance_double('Result', success?: false, value: nil, errors: ['not found'])
+      actions = Rails.application.config.x.project_actions
+      allow(actions.find_project).to receive(:perform).with(id: '789').and_return(result_double)
+
+      result = helper.project_state_for(record)
+
+      expect(result).to eq(:todo)
+    end
+
+    it 'returns current_state when object does not respond to id' do
+      object = double('SomeObject', current_state: :done)
+
+      result = helper.project_state_for(object)
+
+      expect(result).to eq(:done)
+    end
+  end
+
+  describe '#project_state_label' do
+    it 'returns humanized state label' do
+      record = instance_double('ProjectRecord', id: '123', current_state: 'in_progress')
+      domain_project = instance_double('Project', current_state: :in_progress)
+      result_double = instance_double('Result', success?: true, value: domain_project, errors: [])
+      actions = Rails.application.config.x.project_actions
+      allow(actions.find_project).to receive(:perform).with(id: '123').and_return(result_double)
+
+      result = helper.project_state_label(record)
+
+      expect(result).to eq('In Progress')
+    end
+  end
+
+  describe '#project_sort_data' do
+    it 'returns sort data when given a domain Project' do
+      domain_project = double(
+        'Project',
+        current_state: :blocked,
+        health: :off_track,
+        name: 'TestProject',
+        created_at: Time.new(2025, 1, 1)
+      )
+      allow(domain_project).to receive(:is_a?).with(Project).and_return(true)
+      allow(domain_project).to receive(:respond_to?).with(:health_updates_for_tooltip).and_return(false)
+      allow(domain_project).to receive(:respond_to?).with(:name).and_return(true)
+
+      result = helper.project_sort_data(domain_project)
+
+      expect(result[:name]).to eq('testproject')
+      expect(result[:state_score]).to eq(1) # blocked
+      expect(result[:health_score]).to eq(3) # off_track
+    end
+
+    it 'looks up domain project when given a record with id' do
+      record = instance_double('ProjectRecord', id: '123', current_state: 'new', name: 'RecordProject', created_at: Time.new(2025, 1, 1))
+      domain_project = double(
+        'Project',
+        current_state: :in_progress,
+        health: :at_risk
+      )
+      allow(domain_project).to receive(:respond_to?).with(:health_updates_for_tooltip).and_return(false)
+      result_double = instance_double('Result', success?: true, value: domain_project, errors: [])
+      actions = Rails.application.config.x.project_actions
+      allow(actions.find_project).to receive(:perform).with(id: '123').and_return(result_double)
+
+      result = helper.project_sort_data(record)
+
+      expect(result[:state_score]).to eq(2) # in_progress from domain
+      expect(result[:health_score]).to eq(2) # at_risk from domain
+    end
+
+    it 'falls back to record state when domain lookup fails' do
+      record = instance_double('ProjectRecord', id: '456', current_state: 'todo', name: 'FallbackProject', created_at: Time.new(2025, 1, 1))
+      result_double = instance_double('Result', success?: false, value: nil, errors: ['not found'])
+      actions = Rails.application.config.x.project_actions
+      allow(actions.find_project).to receive(:perform).with(id: '456').and_return(result_double)
+
+      result = helper.project_sort_data(record)
+
+      expect(result[:state_score]).to eq(4) # todo from record
+      expect(result[:health_score]).to eq(99) # not_available fallback
+    end
+
+    it 'uses health_updates_for_tooltip when available' do
+      latest_update = instance_double('HealthUpdate', date: Date.new(2025, 3, 15))
+      domain_project = double(
+        'Project',
+        current_state: :on_hold,
+        health: :on_track,
+        name: 'HealthProject',
+        health_updates_for_tooltip: [latest_update],
+        created_at: Time.new(2025, 1, 1)
+      )
+      allow(domain_project).to receive(:is_a?).with(Project).and_return(true)
+      allow(domain_project).to receive(:respond_to?).with(:health_updates_for_tooltip).and_return(true)
+      allow(domain_project).to receive(:respond_to?).with(:name).and_return(true)
+
+      result = helper.project_sort_data(domain_project)
+
+      expect(result[:updated_at]).to eq('2025-03-15')
+    end
+
+    it 'falls back to created_at when health_updates_for_tooltip is empty' do
+      domain_project = double(
+        'Project',
+        current_state: :done,
+        health: :on_track,
+        name: 'EmptyUpdates',
+        health_updates_for_tooltip: [],
+        created_at: Time.new(2025, 2, 20)
+      )
+      allow(domain_project).to receive(:is_a?).with(Project).and_return(true)
+      allow(domain_project).to receive(:respond_to?).with(:health_updates_for_tooltip).and_return(true)
+      allow(domain_project).to receive(:respond_to?).with(:name).and_return(true)
+
+      result = helper.project_sort_data(domain_project)
+
+      expect(result[:updated_at]).to include('2025-02-20')
+    end
+
+    it 'falls back to created_at when health_updates_for_tooltip returns nil' do
+      domain_project = double(
+        'Project',
+        current_state: :todo,
+        health: :at_risk,
+        name: 'NilUpdates',
+        health_updates_for_tooltip: nil,
+        created_at: Time.new(2025, 4, 10)
+      )
+      allow(domain_project).to receive(:is_a?).with(Project).and_return(true)
+      allow(domain_project).to receive(:respond_to?).with(:health_updates_for_tooltip).and_return(true)
+      allow(domain_project).to receive(:respond_to?).with(:name).and_return(true)
+
+      result = helper.project_sort_data(domain_project)
+
+      expect(result[:updated_at]).to include('2025-04-10')
+    end
+
+    it 'handles objects without name method' do
+      object = double('SomeObject', current_state: :new, created_at: Time.new(2025, 1, 1))
+      allow(object).to receive(:is_a?).with(Project).and_return(false)
+      allow(object).to receive(:respond_to?).with(:id).and_return(false)
+      allow(object).to receive(:respond_to?).with(:name).and_return(false)
+
+      result = helper.project_sort_data(object)
+
+      expect(result[:name]).to eq('')
+    end
+  end
+
   describe '#project_health_trend' do
     it 'returns nil when project does not respond to health_trend' do
       project = instance_double('Object')

@@ -12,6 +12,13 @@ class FakeInitiativeRepository
     records[id] = initiative
   end
 
+  def update_state(id:, state:)
+    initiative = records[id]
+    return unless initiative
+
+    records[id] = initiative.with_state(state)
+  end
+
   def save(initiative)
     records[initiative.name] = initiative
   end

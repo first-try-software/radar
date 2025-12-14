@@ -46,7 +46,7 @@ class ProjectHealth
   attr_reader :health_updates_loader, :weekly_health_updates_loader, :children_loader
 
   def children
-    @children ||= Array(children_loader&.call)
+    @children ||= Array(children_loader&.call).reject { |c| c.respond_to?(:archived?) && c.archived? }
   end
 
   def health_updates

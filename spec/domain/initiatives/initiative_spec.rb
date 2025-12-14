@@ -44,6 +44,96 @@ RSpec.describe Initiative do
     expect(initiative).not_to be_archived
   end
 
+  it 'returns its current_state' do
+    initiative = described_class.new(name: 'Modernize Infra', current_state: :in_progress)
+
+    expect(initiative.current_state).to eq(:in_progress)
+  end
+
+  it 'defaults current_state to :new' do
+    initiative = described_class.new(name: 'Modernize Infra')
+
+    expect(initiative.current_state).to eq(:new)
+  end
+
+  it 'converts string state to symbol' do
+    initiative = described_class.new(name: 'Modernize Infra', current_state: 'in_progress')
+
+    expect(initiative.current_state).to eq(:in_progress)
+  end
+
+  it 'is invalid when state is not allowed' do
+    initiative = described_class.new(name: 'Modernize Infra', current_state: :invalid_state)
+
+    expect(initiative.valid?).to be(false)
+    expect(initiative.errors).to include('state must be valid')
+  end
+
+  it 'returns cascades_state? true for cascading states' do
+    initiative = described_class.new(name: 'Modernize Infra')
+
+    expect(initiative.cascades_state?(:on_hold)).to be(true)
+    expect(initiative.cascades_state?(:done)).to be(true)
+    expect(initiative.cascades_state?(:todo)).to be(true)
+  end
+
+  it 'returns cascades_state? false for non-cascading states' do
+    initiative = described_class.new(name: 'Modernize Infra')
+
+    expect(initiative.cascades_state?(:in_progress)).to be(false)
+    expect(initiative.cascades_state?(:blocked)).to be(false)
+    expect(initiative.cascades_state?(:new)).to be(false)
+  end
+
+  it 'creates a copy with new state using with_state' do
+    initiative = described_class.new(name: 'Modernize Infra', current_state: :new)
+
+    updated = initiative.with_state(:in_progress)
+
+    expect(updated.current_state).to eq(:in_progress)
+    expect(updated.name).to eq('Modernize Infra')
+    expect(initiative.current_state).to eq(:new)
+  end
+
+  describe '#derived_state' do
+    it 'returns current_state when no related projects' do
+      initiative = described_class.new(name: 'Modernize Infra', current_state: :todo)
+
+      expect(initiative.derived_state).to eq(:todo)
+    end
+
+    it 'returns highest priority state from related projects' do
+      related_projects = [
+        double('Project', current_state: :todo),
+        double('Project', current_state: :blocked),
+        double('Project', current_state: :in_progress)
+      ]
+      initiative = described_class.new(
+        name: 'Modernize Infra',
+        current_state: :todo,
+        related_projects_loader: ->(_initiative) { related_projects }
+      )
+
+      expect(initiative.derived_state).to eq(:blocked)
+    end
+  end
+
+  describe '#projects_in_state' do
+    it 'returns projects matching the given state' do
+      blocked_project = double('Project', current_state: :blocked)
+      active_project = double('Project', current_state: :in_progress)
+      related_projects = [blocked_project, active_project]
+      initiative = described_class.new(
+        name: 'Modernize Infra',
+        related_projects_loader: ->(_initiative) { related_projects }
+      )
+
+      result = initiative.projects_in_state(:blocked)
+
+      expect(result).to eq([blocked_project])
+    end
+  end
+
   it 'is valid when it has a name' do
     initiative = described_class.new(name: 'Modernize Infra')
 

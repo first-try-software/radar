@@ -96,7 +96,7 @@
           </div>
         <% end %>
       </div>
-      <div class="project-header__state">
+      <div class="project-header__state project-header__state--with-archive">
         <% leaf_count = @project ? @project.leaf_descendants.count : 0 %>
         <div class="state-dropdown" data-state-url="<%= state_project_path(@project_record) %>" data-leaf-count="<%= leaf_count %>">
           <button class="state-toggle" type="button">
@@ -112,30 +112,109 @@
             <% end %>
           </div>
         </div>
+        <% if @project_record.archived %>
+          <button type="button"
+                  class="unarchive-btn"
+                  data-unarchive-url="<%= unarchive_project_path(@project_record) %>"
+                  data-project-name="<%= @project_record.name %>"
+                  aria-label="Unarchive <%= @project_record.name %>">Unarchive</button>
+        <% else %>
+          <button type="button"
+                  class="archive-btn"
+                  data-archive-url="<%= archive_project_path(@project_record) %>"
+                  data-project-name="<%= @project_record.name %>"
+                  aria-label="Archive <%= @project_record.name %>">Archive</button>
+        <% end %>
       </div>
     </div>
 
   </div>
 
   <div class="card">
-    <h3 class="section-title children-title">Projects</h3>
-    <ul class="list children-list">
-      <%= render partial: 'projects/project_list_item', collection: @project_record.children, as: :project %>
-      <% if @project_record.children.empty? %>
+    <div class="card-header">
+      <h3 class="section-title children-title">Projects</h3>
+      <% visible_children = @project_record.children.reject(&:archived) %>
+      <% if visible_children.any? %>
+        <div class="sort-controls" data-sort-controls data-sortable-list="children-list">
+          <div class="sort-dropdown" data-sort-dropdown>
+            <button type="button" class="sort-dropdown__trigger" data-sort-trigger>
+              <span class="sort-dropdown__label">Sort: <strong data-sort-label>Alphabet</strong></span>
+              <span class="sort-dropdown__arrow">▼</span>
+            </button>
+            <div class="sort-dropdown__menu" data-sort-menu hidden>
+              <% [['alphabet', 'Alphabet'], ['state', 'State'], ['health', 'Health'], ['updated', 'Updated']].each do |value, label| %>
+                <button type="button"
+                        class="sort-dropdown__option <%= 'active' if value == 'alphabet' %>"
+                        data-sort-value="<%= value %>">
+                  <%= label %>
+                  <% if value == 'alphabet' %><span class="sort-dropdown__check">✓</span><% end %>
+                </button>
+              <% end %>
+            </div>
+          </div>
+          <button type="button"
+                  class="sort-dir-toggle asc"
+                  data-sort-dir-toggle
+                  data-current-dir="asc"
+                  title="Ascending">
+            <span class="sort-dir-toggle__arrow">↑</span>
+          </button>
+        </div>
+      <% end %>
+    </div>
+    <ul class="list children-list" data-sortable-list="children-list">
+      <%= render partial: 'projects/child_project_item', collection: visible_children, as: :project, locals: { parent: @project_record } %>
+      <% if visible_children.empty? %>
         <li class="list-item"><span class="muted">No children yet.</span></li>
       <% end %>
-      <li class="list-item">
-        <%= form_with model: ProjectRecord.new,
-                      url: subordinates_project_path(@project_record),
-                      method: :post,
-                      scope: :project,
-                      local: true,
-                      html: { class: 'child-form' } do |form| %>
+      <% orphan_projects = ProjectRecord.where(archived: false).left_joins(:parent_relationship).where(projects_projects: { id: nil }).where.not(id: @project_record.id).order(:name) %>
+      <li class="list-item list-item--add-child">
+        <form action="<%= subordinates_project_path(@project_record) %>"
+              method="post"
+              class="child-form"
+              data-add-link-form
+              data-add-url="<%= subordinates_project_path(@project_record) %>"
+              data-link-url="<%= link_subordinate_project_path(@project_record) %>">
+          <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+          <input type="hidden" name="project[name]" value="" data-project-name-field />
+          <input type="hidden" name="child_id" value="" data-child-id-field />
           <div class="child-actions">
-          <%= form.text_field :name, required: true, placeholder: 'New project name' %>
-            <%= form.submit 'Add', class: 'btn secondary' %>
+            <div class="project-dropdown" data-project-dropdown>
+              <div class="project-dropdown__input-wrapper">
+                <input type="text"
+                       class="project-dropdown__input"
+                       placeholder="Add or link a project..."
+                       data-project-dropdown-input
+                       autocomplete="off" />
+                <% if orphan_projects.any? %>
+                  <span class="project-dropdown__arrow">▼</span>
+                <% end %>
+              </div>
+              <% if orphan_projects.any? %>
+                <div class="project-dropdown__menu" data-project-dropdown-menu>
+                  <div class="project-dropdown__options" data-project-options>
+                    <% orphan_projects.each do |project| %>
+                      <button type="button"
+                              class="project-dropdown__option"
+                              data-project-id="<%= project.id %>"
+                              data-project-name="<%= project.name %>"
+                              data-project-search-text="<%= project.name.downcase %>">
+                        <span class="project-dropdown__option-name"><%= project.name %></span>
+                        <% if project.description.present? %>
+                          <span class="project-dropdown__option-desc"><%= truncate(project.description, length: 50) %></span>
+                        <% end %>
+                      </button>
+                    <% end %>
+                  </div>
+                  <div class="project-dropdown__no-results" data-no-results hidden>
+                    No matches — press Add to create
+                  </div>
+                </div>
+              <% end %>
+            </div>
+            <button type="submit" class="btn secondary" data-add-link-submit>Add</button>
           </div>
-        <% end %>
+        </form>
       </li>
     </ul>
   </div>
@@ -153,6 +232,38 @@
     <div class="modal__actions">
       <button type="button" class="btn secondary" data-modal-cancel>Cancel</button>
       <button type="button" class="btn" data-modal-confirm>Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" data-archive-modal hidden>
+  <div class="modal">
+    <div class="modal__header">
+      <h3>Archive Project</h3>
+    </div>
+    <div class="modal__body">
+      <p>Archive <strong data-archive-project-name></strong>?</p>
+      <p>Archived projects are hidden from the main list but can still be accessed.</p>
+    </div>
+    <div class="modal__actions">
+      <button type="button" class="btn secondary" data-archive-cancel>Cancel</button>
+      <button type="button" class="btn danger" data-archive-confirm>Archive</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" data-unlink-modal hidden>
+  <div class="modal">
+    <div class="modal__header">
+      <h3>Unlink Project</h3>
+    </div>
+    <div class="modal__body">
+      <p>Remove <strong data-unlink-project-name></strong> from this project?</p>
+      <p>The project itself will not be deleted.</p>
+    </div>
+    <div class="modal__actions">
+      <button type="button" class="btn secondary" data-unlink-cancel>Cancel</button>
+      <button type="button" class="btn danger" data-unlink-confirm>Unlink</button>
     </div>
   </div>
 </div>
@@ -351,5 +462,134 @@
         }
       });
     }
+
+    // Archive button
+    const archiveBtn = document.querySelector('.archive-btn');
+    const archiveModal = document.querySelector('[data-archive-modal]');
+    const archiveProjectName = document.querySelector('[data-archive-project-name]');
+    const archiveConfirmBtn = document.querySelector('[data-archive-confirm]');
+    const archiveCancelBtn = document.querySelector('[data-archive-cancel]');
+
+    if (archiveBtn && archiveModal) {
+      const showArchiveModal = () => {
+        archiveProjectName.textContent = archiveBtn.dataset.projectName;
+        archiveModal.hidden = false;
+        archiveConfirmBtn?.focus();
+      };
+
+      const hideArchiveModal = () => {
+        archiveModal.hidden = true;
+      };
+
+      const performArchive = () => {
+        const url = archiveBtn.dataset.archiveUrl;
+        hideArchiveModal();
+
+        fetch(url, {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/json',
+            'X-CSRF-Token': token
+          }
+        }).then((resp) => {
+          if (resp.ok) {
+            window.location.reload();
+          }
+        }).catch((err) => console.error(err));
+      };
+
+      archiveBtn.addEventListener('click', showArchiveModal);
+      archiveConfirmBtn?.addEventListener('click', performArchive);
+      archiveCancelBtn?.addEventListener('click', hideArchiveModal);
+
+      archiveModal.addEventListener('click', (e) => {
+        if (e.target === archiveModal) hideArchiveModal();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !archiveModal.hidden) {
+          hideArchiveModal();
+        }
+      });
+    }
+
+    // Unarchive button
+    const unarchiveBtn = document.querySelector('.unarchive-btn');
+    if (unarchiveBtn) {
+      unarchiveBtn.addEventListener('click', () => {
+        const url = unarchiveBtn.dataset.unarchiveUrl;
+
+        fetch(url, {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/json',
+            'X-CSRF-Token': token
+          }
+        }).then((resp) => {
+          if (resp.ok) {
+            window.location.reload();
+          }
+        }).catch((err) => console.error(err));
+      });
+    }
+
+    // Unlink modal for child projects
+    const unlinkModal = document.querySelector('[data-unlink-modal]');
+    const unlinkProjectName = document.querySelector('[data-unlink-project-name]');
+    const unlinkConfirmBtn = document.querySelector('[data-unlink-confirm]');
+    const unlinkCancelBtn = document.querySelector('[data-unlink-cancel]');
+    let pendingUnlinkUrl = null;
+
+    const showUnlinkModal = (projectName, url) => {
+      unlinkProjectName.textContent = projectName;
+      pendingUnlinkUrl = url;
+      unlinkModal.hidden = false;
+      unlinkConfirmBtn?.focus();
+    };
+
+    const hideUnlinkModal = () => {
+      unlinkModal.hidden = true;
+      pendingUnlinkUrl = null;
+    };
+
+    const performUnlink = () => {
+      if (!pendingUnlinkUrl) return;
+
+      const url = pendingUnlinkUrl;
+      hideUnlinkModal();
+
+      fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRF-Token': token
+        }
+      }).then((resp) => {
+        if (resp.ok) {
+          window.location.reload();
+        }
+      }).catch((err) => console.error(err));
+    };
+
+    unlinkConfirmBtn?.addEventListener('click', performUnlink);
+    unlinkCancelBtn?.addEventListener('click', hideUnlinkModal);
+
+    unlinkModal?.addEventListener('click', (e) => {
+      if (e.target === unlinkModal) hideUnlinkModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && unlinkModal && !unlinkModal.hidden) {
+        hideUnlinkModal();
+      }
+    });
+
+    document.querySelectorAll('.unlink-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const url = btn.dataset.unlinkUrl;
+        const projectName = btn.dataset.projectName;
+        showUnlinkModal(projectName, url);
+      });
+    });
   });
 </script>

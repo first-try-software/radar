@@ -75,6 +75,23 @@ RSpec.describe InitiativeRepository do
     end
   end
 
+  describe '#update_state' do
+    it 'updates initiative state by id' do
+      record = InitiativeRecord.create!(name: 'Launch 2025', current_state: 'new')
+
+      repository.update_state(id: record.id, state: :in_progress)
+
+      result = repository.find(record.id)
+      expect(result.current_state).to eq(:in_progress)
+    end
+
+    it 'returns nil when initiative not found' do
+      result = repository.update_state(id: 999, state: :in_progress)
+
+      expect(result).to be_nil
+    end
+  end
+
   describe '#exists_with_name?' do
     it 'checks for existing names' do
       InitiativeRecord.create!(name: 'Launch 2025')

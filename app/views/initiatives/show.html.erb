@@ -42,6 +42,28 @@
         <% end %>
       </div>
       <div class="project-header__state">
+        <% allowed_states = SetInitiativeState::SETTABLE_STATES %>
+        <% cascading_states = Initiative::CASCADING_STATES %>
+        <% related_project_count = @initiative_record.related_projects.count %>
+        <div class="state-dropdown"
+             data-state-url="<%= state_initiative_path(@initiative_record) %>"
+             data-initiative-state-dropdown
+             data-related-project-count="<%= related_project_count %>">
+          <button class="state-toggle" type="button">
+            <span class="badge state"><%= @initiative_record.current_state.to_s.tr('_', ' ').titleize %></span>
+          </button>
+          <div class="state-menu">
+            <% if allowed_states.any? %>
+              <% allowed_states.each do |state| %>
+                <button type="button"
+                        data-state="<%= state %>"
+                        data-cascades="<%= cascading_states.include?(state) %>"><%= state.to_s.tr('_', ' ').titleize %></button>
+              <% end %>
+            <% else %>
+              <div class="empty">No further transitions</div>
+            <% end %>
+          </div>
+        </div>
         <div class="badges">
           <% if @initiative_record.archived %>
             <span class="badge archived">archived</span>
@@ -52,31 +74,66 @@
   </div>
 
   <div class="card">
-    <h3 class="section-title children-title">Related Projects</h3>
-    <ul class="list children-list" data-related-projects-list>
-      <% related_projects = @initiative_record.related_project_relationships.includes(:project).order(:order).map(&:project) %>
+    <% related_projects = @initiative_record.related_project_relationships.includes(:project).order(:order).map(&:project).reject(&:archived) %>
+    <div class="card-header">
+      <h3 class="section-title children-title">Related Projects</h3>
+      <% if related_projects.any? %>
+        <div class="sort-controls" data-sort-controls data-sortable-list="related-projects-list">
+          <div class="sort-dropdown" data-sort-dropdown>
+            <button type="button" class="sort-dropdown__trigger" data-sort-trigger>
+              <span class="sort-dropdown__label">Sort: <strong data-sort-label>Alphabet</strong></span>
+              <span class="sort-dropdown__arrow">▼</span>
+            </button>
+            <div class="sort-dropdown__menu" data-sort-menu hidden>
+              <% [['alphabet', 'Alphabet'], ['state', 'State'], ['health', 'Health'], ['updated', 'Updated']].each do |value, label| %>
+                <button type="button"
+                        class="sort-dropdown__option <%= 'active' if value == 'alphabet' %>"
+                        data-sort-value="<%= value %>">
+                  <%= label %>
+                  <% if value == 'alphabet' %><span class="sort-dropdown__check">✓</span><% end %>
+                </button>
+              <% end %>
+            </div>
+          </div>
+          <button type="button"
+                  class="sort-dir-toggle asc"
+                  data-sort-dir-toggle
+                  data-current-dir="asc"
+                  title="Ascending">
+            <span class="sort-dir-toggle__arrow">↑</span>
+          </button>
+        </div>
+      <% end %>
+    </div>
+    <ul class="list children-list" data-sortable-list="related-projects-list" data-related-projects-list>
       <%= render partial: 'initiatives/related_project_item', collection: related_projects, as: :project, locals: { initiative: @initiative_record } %>
       <% if related_projects.empty? %>
         <li class="list-item" data-empty-message><span class="muted">No related projects yet.</span></li>
       <% end %>
-      <% available_projects = ProjectRecord.where.not(id: related_projects.map(&:id)).order(:name) %>
-      <% if available_projects.any? %>
-        <li class="list-item">
-          <%= form_with url: related_projects_initiative_path(@initiative_record),
-                        method: :post,
-                        local: true,
-                        html: { class: 'child-form', data: { project_link_form: true } } do |form| %>
-            <div class="child-actions">
-              <div class="project-dropdown" data-project-dropdown>
-                <%= form.hidden_field :project_id, value: '', data: { project_dropdown_value: true } %>
-                <div class="project-dropdown__input-wrapper">
-                  <input type="text"
-                         class="project-dropdown__input"
-                         placeholder="Select a project..."
-                         data-project-dropdown-input
-                         autocomplete="off" />
+      <% available_projects = ProjectRecord.where(archived: false).where.not(id: related_projects.map(&:id)).order(:name) %>
+      <li class="list-item list-item--add-child">
+        <form action="<%= related_projects_initiative_path(@initiative_record) %>"
+              method="post"
+              class="child-form"
+              data-add-link-form
+              data-add-url="<%= add_related_project_initiative_path(@initiative_record) %>"
+              data-link-url="<%= related_projects_initiative_path(@initiative_record) %>">
+          <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+          <input type="hidden" name="project[name]" value="" data-project-name-field />
+          <input type="hidden" name="project_id" value="" data-child-id-field />
+          <div class="child-actions">
+            <div class="project-dropdown" data-project-dropdown>
+              <div class="project-dropdown__input-wrapper">
+                <input type="text"
+                       class="project-dropdown__input"
+                       placeholder="Add or link a project..."
+                       data-project-dropdown-input
+                       autocomplete="off" />
+                <% if available_projects.any? %>
                   <span class="project-dropdown__arrow">▼</span>
-                </div>
+                <% end %>
+              </div>
+              <% if available_projects.any? %>
                 <div class="project-dropdown__menu" data-project-dropdown-menu>
                   <div class="project-dropdown__options" data-project-options>
                     <% available_projects.each do |project| %>
@@ -93,16 +150,33 @@
                     <% end %>
                   </div>
                   <div class="project-dropdown__no-results" data-no-results hidden>
-                    No matching projects
+                    No matches — press Add to create
                   </div>
                 </div>
-              </div>
-              <%= form.submit 'Link', class: 'btn secondary', data: { project_link_submit: true } %>
+              <% end %>
             </div>
-          <% end %>
-        </li>
-      <% end %>
+            <button type="submit" class="btn secondary" data-add-link-submit disabled>Add</button>
+          </div>
+        </form>
+      </li>
     </ul>
+  </div>
+</div>
+
+<div class="modal-overlay" data-cascade-modal hidden>
+  <div class="modal">
+    <div class="modal__header">
+      <h3>Update State</h3>
+    </div>
+    <div class="modal__body">
+      <p>Set initiative to <strong data-cascade-state-name></strong>?</p>
+      <p>This will also update <strong data-cascade-project-count></strong> related project(s) to the same state.</p>
+    </div>
+    <div class="modal__actions">
+      <button type="button" class="btn secondary" data-cascade-cancel>Cancel</button>
+      <button type="button" class="btn secondary" data-cascade-skip>Initiative Only</button>
+      <button type="button" class="btn primary" data-cascade-confirm>Update All</button>
+    </div>
   </div>
 </div>
 
@@ -312,5 +386,111 @@
         showUnlinkModal(projectName, url);
       });
     });
+
+    // State dropdown with cascade confirmation
+    const stateDropdown = document.querySelector('[data-initiative-state-dropdown]');
+    if (stateDropdown) {
+      const stateUrl = stateDropdown.dataset.stateUrl;
+      const relatedProjectCount = parseInt(stateDropdown.dataset.relatedProjectCount, 10) || 0;
+      const stateToggle = stateDropdown.querySelector('.state-toggle');
+      const stateMenu = stateDropdown.querySelector('.state-menu');
+      const stateButtons = stateDropdown.querySelectorAll('[data-state]');
+
+      // Cascade modal elements
+      const cascadeModal = document.querySelector('[data-cascade-modal]');
+      const cascadeStateName = document.querySelector('[data-cascade-state-name]');
+      const cascadeProjectCount = document.querySelector('[data-cascade-project-count]');
+      const cascadeConfirmBtn = document.querySelector('[data-cascade-confirm]');
+      const cascadeSkipBtn = document.querySelector('[data-cascade-skip]');
+      const cascadeCancelBtn = document.querySelector('[data-cascade-cancel]');
+      let pendingState = null;
+
+      const showCascadeModal = (state, stateName) => {
+        pendingState = state;
+        cascadeStateName.textContent = stateName;
+        cascadeProjectCount.textContent = relatedProjectCount;
+        cascadeModal.hidden = false;
+        cascadeConfirmBtn?.focus();
+      };
+
+      const hideCascadeModal = () => {
+        cascadeModal.hidden = true;
+        pendingState = null;
+      };
+
+      const updateState = (state, cascade) => {
+        const url = new URL(stateUrl, window.location.origin);
+        url.searchParams.set('state', state);
+        if (cascade) {
+          url.searchParams.set('cascade', 'true');
+        }
+
+        fetch(url.toString(), {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/json',
+            'X-CSRF-Token': token
+          }
+        }).then((resp) => {
+          if (resp.ok) {
+            window.location.reload();
+          }
+        }).catch((err) => console.error(err));
+      };
+
+      stateToggle?.addEventListener('click', () => {
+        stateMenu.classList.toggle('open');
+      });
+
+      stateButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const state = btn.dataset.state;
+          const cascades = btn.dataset.cascades === 'true';
+          const stateName = btn.textContent.trim();
+          stateMenu.classList.remove('open');
+
+          if (cascades && relatedProjectCount > 0) {
+            showCascadeModal(state, stateName);
+          } else {
+            updateState(state, false);
+          }
+        });
+      });
+
+      cascadeConfirmBtn?.addEventListener('click', () => {
+        if (pendingState) {
+          hideCascadeModal();
+          updateState(pendingState, true);
+        }
+      });
+
+      cascadeSkipBtn?.addEventListener('click', () => {
+        if (pendingState) {
+          hideCascadeModal();
+          updateState(pendingState, false);
+        }
+      });
+
+      cascadeCancelBtn?.addEventListener('click', hideCascadeModal);
+
+      cascadeModal?.addEventListener('click', (e) => {
+        if (e.target === cascadeModal) hideCascadeModal();
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!stateDropdown.contains(e.target)) {
+          stateMenu.classList.remove('open');
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          stateMenu.classList.remove('open');
+          if (!cascadeModal?.hidden) {
+            hideCascadeModal();
+          }
+        }
+      });
+    }
   });
 </script>

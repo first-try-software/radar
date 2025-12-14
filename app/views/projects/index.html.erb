@@ -1,6 +1,33 @@
 <div class="grid">
   <div class="card root-projects-card">
-    <h2 class="section-title">Projects</h2>
+    <div class="card-header">
+      <h2 class="section-title">Projects</h2>
+      <div class="sort-controls" data-sort-controls>
+        <div class="sort-dropdown" data-sort-dropdown>
+          <button type="button" class="sort-dropdown__trigger" data-sort-trigger>
+            <span class="sort-dropdown__label">Sort: <strong data-sort-label><%= { 'alphabet' => 'Alphabet', 'state' => 'State', 'health' => 'Health', 'updated' => 'Updated' }[@sort_by] %></strong></span>
+            <span class="sort-dropdown__arrow">▼</span>
+          </button>
+          <div class="sort-dropdown__menu" data-sort-menu hidden>
+            <% [['alphabet', 'Alphabet'], ['state', 'State'], ['health', 'Health'], ['updated', 'Updated']].each do |value, label| %>
+              <button type="button"
+                      class="sort-dropdown__option <%= 'active' if @sort_by == value %>"
+                      data-sort-value="<%= value %>">
+                <%= label %>
+                <% if @sort_by == value %><span class="sort-dropdown__check">✓</span><% end %>
+              </button>
+            <% end %>
+          </div>
+        </div>
+        <button type="button"
+                class="sort-dir-toggle <%= @sort_dir %>"
+                data-sort-dir-toggle
+                data-current-dir="<%= @sort_dir %>"
+                title="<%= @sort_dir == 'asc' ? 'Ascending' : 'Descending' %>">
+          <span class="sort-dir-toggle__arrow"><%= @sort_dir == 'asc' ? '↑' : '↓' %></span>
+        </button>
+      </div>
+    </div>
     <% if defined?(@errors) && @errors.present? %>
       <div class="errors">
         <ul>
@@ -20,7 +47,7 @@
                       local: true,
                       html: { class: 'child-form' } do |form| %>
           <div class="child-actions">
-            <%= form.text_field :name, required: true, placeholder: 'New root project name' %>
+            <%= form.text_field :name, required: true, placeholder: 'Add a project' %>
             <%= form.submit 'Add', class: 'btn secondary' %>
           </div>
         <% end %>
@@ -28,3 +55,55 @@
     </ul>
   </div>
 </div>
+
+<script>
+(function() {
+  const sortDropdown = document.querySelector('[data-sort-dropdown]');
+  const sortTrigger = document.querySelector('[data-sort-trigger]');
+  const sortMenu = document.querySelector('[data-sort-menu]');
+  const sortDirToggle = document.querySelector('[data-sort-dir-toggle]');
+
+  const currentUrl = new URL(window.location.href);
+  const currentSort = currentUrl.searchParams.get('sort') || 'alphabet';
+  const currentDir = currentUrl.searchParams.get('dir') || 'asc';
+
+  const navigateWithSort = (sort, dir) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', sort);
+    url.searchParams.set('dir', dir);
+    window.location.href = url.toString();
+  };
+
+  // Sort dropdown
+  sortTrigger?.addEventListener('click', () => {
+    sortMenu.hidden = !sortMenu.hidden;
+  });
+
+  document.querySelectorAll('[data-sort-value]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const newSort = btn.dataset.sortValue;
+      navigateWithSort(newSort, currentDir);
+    });
+  });
+
+  // Direction toggle
+  sortDirToggle?.addEventListener('click', () => {
+    const newDir = currentDir === 'asc' ? 'desc' : 'asc';
+    navigateWithSort(currentSort, newDir);
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener('click', (e) => {
+    if (sortDropdown && !sortDropdown.contains(e.target)) {
+      sortMenu.hidden = true;
+    }
+  });
+
+  // Close on escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sortMenu && !sortMenu.hidden) {
+      sortMenu.hidden = true;
+    }
+  });
+})();
+</script>

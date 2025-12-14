@@ -54,7 +54,7 @@ This project follows these rules:
   * Do not test constructors.
   * Avoid returning nil from a method: Prefer the null object pattern.
   * Favor objects over primitives.
-  * Require 100% test coverage before moving on to the next thing.
+  * Require 100% line and branch test coverage before moving on to the next thing.
   * Require an average method complexity from flog below 10.
   * Confirmation behavior:
     * Skip confirmation for small/single-file changes.

@@ -31,6 +31,13 @@ class InitiativeActionsFactory
     UnlinkRelatedProject.new(initiative_repository: initiative_repository)
   end
 
+  def set_initiative_state
+    SetInitiativeState.new(
+      initiative_repository: initiative_repository,
+      project_repository: project_repository
+    )
+  end
+
   private
 
   attr_reader :initiative_repository, :project_repository

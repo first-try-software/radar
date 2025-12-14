@@ -13,7 +13,7 @@
   </div>
   <div class="project-row__badges">
     <div class="badges">
-      <span class="badge state"><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
+      <span class="badge state"><%= project_state_label(project) %></span>
       <% if project.archived %>
         <span class="badge archived">archived</span>
       <% end %>

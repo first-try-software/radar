@@ -54,6 +54,252 @@
             btn.closest('.flash')?.remove();
           });
         });
+
+        // Client-side list sorting
+        document.querySelectorAll('[data-sort-controls][data-sortable-list]').forEach((controls) => {
+          const listId = controls.dataset.sortableList;
+          const list = document.querySelector(`[data-sortable-list="${listId}"]`);
+          if (!list) return;
+
+          const trigger = controls.querySelector('[data-sort-trigger]');
+          const menu = controls.querySelector('[data-sort-menu]');
+          const label = controls.querySelector('[data-sort-label]');
+          const dirToggle = controls.querySelector('[data-sort-dir-toggle]');
+          const options = controls.querySelectorAll('[data-sort-value]');
+
+          let currentSort = 'alphabet';
+          let currentDir = 'asc';
+
+          const getSortableItems = () => {
+            return Array.from(list.querySelectorAll('.sortable-item'));
+          };
+
+          const sortItems = () => {
+            const items = getSortableItems();
+            if (items.length === 0) return;
+
+            items.sort((a, b) => {
+              let valA, valB;
+
+              switch (currentSort) {
+                case 'alphabet':
+                  valA = a.dataset.sortName || '';
+                  valB = b.dataset.sortName || '';
+                  break;
+                case 'state':
+                  valA = parseInt(a.dataset.sortState || '99', 10);
+                  valB = parseInt(b.dataset.sortState || '99', 10);
+                  break;
+                case 'health':
+                  valA = parseInt(a.dataset.sortHealth || '99', 10);
+                  valB = parseInt(b.dataset.sortHealth || '99', 10);
+                  break;
+                case 'updated':
+                  valA = a.dataset.sortUpdated || '';
+                  valB = b.dataset.sortUpdated || '';
+                  break;
+                default:
+                  valA = a.dataset.sortName || '';
+                  valB = b.dataset.sortName || '';
+              }
+
+              let cmp;
+              if (typeof valA === 'number' && typeof valB === 'number') {
+                cmp = valA - valB;
+              } else {
+                cmp = String(valA).localeCompare(String(valB));
+              }
+
+              // For updated, reverse so newest first is 'asc' (most intuitive)
+              if (currentSort === 'updated') {
+                cmp = -cmp;
+              }
+
+              return currentDir === 'desc' ? -cmp : cmp;
+            });
+
+            // Reorder DOM: insert sorted items before non-sortable items
+            const firstNonSortable = list.querySelector('.list-item:not(.sortable-item)');
+            items.forEach((item) => {
+              if (firstNonSortable) {
+                list.insertBefore(item, firstNonSortable);
+              } else {
+                list.appendChild(item);
+              }
+            });
+          };
+
+          trigger?.addEventListener('click', () => {
+            menu.hidden = !menu.hidden;
+          });
+
+          options.forEach((opt) => {
+            opt.addEventListener('click', () => {
+              currentSort = opt.dataset.sortValue;
+              label.textContent = opt.textContent.trim().replace('✓', '').trim();
+              options.forEach((o) => {
+                o.classList.remove('active');
+                o.querySelector('.sort-dropdown__check')?.remove();
+              });
+              opt.classList.add('active');
+              opt.insertAdjacentHTML('beforeend', '<span class="sort-dropdown__check">✓</span>');
+              menu.hidden = true;
+              sortItems();
+            });
+          });
+
+          dirToggle?.addEventListener('click', () => {
+            currentDir = currentDir === 'asc' ? 'desc' : 'asc';
+            dirToggle.dataset.currentDir = currentDir;
+            dirToggle.classList.toggle('asc', currentDir === 'asc');
+            dirToggle.classList.toggle('desc', currentDir === 'desc');
+            dirToggle.title = currentDir === 'asc' ? 'Ascending' : 'Descending';
+            dirToggle.querySelector('.sort-dir-toggle__arrow').textContent = currentDir === 'asc' ? '↑' : '↓';
+            sortItems();
+          });
+
+          // Close menu on outside click
+          document.addEventListener('click', (e) => {
+            if (!controls.contains(e.target)) {
+              menu.hidden = true;
+            }
+          });
+        });
+
+        // Combined Add/Link dropdown for adding or linking projects
+        const addLinkForm = document.querySelector('[data-add-link-form]');
+        if (addLinkForm) {
+          const projectDropdown = addLinkForm.querySelector('[data-project-dropdown]');
+          const input = projectDropdown?.querySelector('[data-project-dropdown-input]');
+          const menu = projectDropdown?.querySelector('[data-project-dropdown-menu]');
+          const optionsContainer = projectDropdown?.querySelector('[data-project-options]');
+          const noResults = projectDropdown?.querySelector('[data-no-results]');
+          const submitBtn = addLinkForm.querySelector('[data-add-link-submit]');
+          const nameField = addLinkForm.querySelector('[data-project-name-field]');
+          const childIdField = addLinkForm.querySelector('[data-child-id-field]');
+          const addUrl = addLinkForm.dataset.addUrl;
+          const linkUrl = addLinkForm.dataset.linkUrl;
+
+          let selectedProjectId = null;
+          let selectedProjectName = '';
+
+          const setAddMode = (name) => {
+            selectedProjectId = null;
+            selectedProjectName = '';
+            nameField.value = name;
+            childIdField.value = '';
+            addLinkForm.action = addUrl;
+            submitBtn.textContent = 'Add';
+            submitBtn.disabled = !name.trim();
+            input?.classList.remove('project-dropdown__input--selected');
+          };
+
+          const setLinkMode = (id, name) => {
+            selectedProjectId = id;
+            selectedProjectName = name;
+            nameField.value = '';
+            childIdField.value = id;
+            addLinkForm.action = linkUrl;
+            submitBtn.textContent = 'Link';
+            submitBtn.disabled = false;
+            input?.classList.add('project-dropdown__input--selected');
+          };
+
+          const closeMenu = () => {
+            menu?.classList.remove('open');
+            filterOptions('');
+          };
+
+          const openMenu = () => {
+            menu?.classList.add('open');
+          };
+
+          const checkForExactMatch = (query) => {
+            const lowerQuery = query.toLowerCase().trim();
+            if (!lowerQuery) {
+              setAddMode('');
+              return;
+            }
+
+            let exactMatch = null;
+            optionsContainer?.querySelectorAll('.project-dropdown__option').forEach((option) => {
+              const projectName = option.dataset.projectName || '';
+              if (projectName.toLowerCase() === lowerQuery) {
+                exactMatch = option;
+              }
+            });
+
+            if (exactMatch) {
+              setLinkMode(exactMatch.dataset.projectId, exactMatch.dataset.projectName);
+            } else {
+              setAddMode(query.trim());
+            }
+          };
+
+          const filterOptions = (query) => {
+            const lowerQuery = query.toLowerCase();
+            let visibleCount = 0;
+
+            optionsContainer?.querySelectorAll('.project-dropdown__option').forEach((option) => {
+              const searchText = option.dataset.projectSearchText || '';
+              const matches = lowerQuery === '' || searchText.includes(lowerQuery);
+              option.style.display = matches ? '' : 'none';
+              if (matches) visibleCount++;
+            });
+
+            if (noResults) {
+              noResults.hidden = visibleCount > 0 || !lowerQuery;
+            }
+          };
+
+          input?.addEventListener('focus', () => {
+            if (menu) openMenu();
+          });
+
+          input?.addEventListener('input', (e) => {
+            const value = e.target.value;
+            if (menu && !menu.classList.contains('open')) {
+              openMenu();
+            }
+            filterOptions(value);
+            checkForExactMatch(value);
+          });
+
+          input?.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+              closeMenu();
+              input?.blur();
+            }
+          });
+
+          optionsContainer?.querySelectorAll('.project-dropdown__option').forEach((optionBtn) => {
+            optionBtn.addEventListener('click', () => {
+              const projectId = optionBtn.dataset.projectId;
+              const projectName = optionBtn.dataset.projectName;
+
+              setLinkMode(projectId, projectName);
+              input.value = projectName;
+              closeMenu();
+            });
+          });
+
+          document.addEventListener('click', (e) => {
+            if (projectDropdown && !projectDropdown.contains(e.target)) {
+              closeMenu();
+            }
+          });
+
+          addLinkForm.addEventListener('submit', (e) => {
+            const inputValue = input?.value?.trim() || '';
+            if (!inputValue) {
+              e.preventDefault();
+              input?.focus();
+              return;
+            }
+            // Final check before submit
+            checkForExactMatch(inputValue);
+          });
+        }
       });
     </script>
   </body>

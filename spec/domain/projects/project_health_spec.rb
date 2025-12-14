@@ -136,6 +136,23 @@ RSpec.describe ProjectHealth do
     expect(project_health.health).to eq(:on_track)
   end
 
+  it 'uses Date.current when Date responds to current' do
+    allow(Date).to receive(:respond_to?).and_call_original
+    allow(Date).to receive(:respond_to?).with(:current).and_return(true)
+    allow(Date).to receive(:current).and_return(Date.today)
+
+    updates = [
+      double('HealthUpdate', date: Date.today - 1, health: :at_risk)
+    ]
+    project_health = described_class.new(
+      health_updates_loader: -> { updates },
+      weekly_health_updates_loader: -> { [] },
+      children_loader: -> { [] }
+    )
+
+    expect(project_health.health).to eq(:at_risk)
+  end
+
   it 'memoizes children loader result across different method calls' do
     call_count = 0
     children_loader = -> {
@@ -162,6 +179,24 @@ RSpec.describe ProjectHealth do
     )
 
     expect(project_health.health).to eq(:not_available)
+  end
+
+  it 'excludes archived children from health rollup' do
+    archived_child = double('ArchivedChild', health: :off_track)
+    allow(archived_child).to receive(:respond_to?).with(:archived?).and_return(true)
+    allow(archived_child).to receive(:archived?).and_return(true)
+
+    active_child = double('ActiveChild', health: :on_track)
+    allow(active_child).to receive(:respond_to?).with(:archived?).and_return(true)
+    allow(active_child).to receive(:archived?).and_return(false)
+
+    project_health = described_class.new(
+      health_updates_loader: -> { [] },
+      weekly_health_updates_loader: -> { [] },
+      children_loader: -> { [archived_child, active_child] }
+    )
+
+    expect(project_health.health).to eq(:on_track)
   end
 
   it 'returns :not_available when children have unknown health values' do

@@ -17,7 +17,8 @@ class InitiativeRepository
       name: initiative.name,
       description: initiative.description,
       point_of_contact: initiative.point_of_contact,
-      archived: initiative.archived?
+      archived: initiative.archived?,
+      current_state: initiative.current_state.to_s
     )
   end
 
@@ -29,8 +30,16 @@ class InitiativeRepository
       name: initiative.name,
       description: initiative.description,
       point_of_contact: initiative.point_of_contact,
-      archived: initiative.archived?
+      archived: initiative.archived?,
+      current_state: initiative.current_state.to_s
     )
+  end
+
+  def update_state(id:, state:)
+    record = InitiativeRecord.find_by(id: id)
+    return unless record
+
+    record.update!(current_state: state.to_s)
   end
 
   def exists_with_name?(name)
@@ -85,6 +94,7 @@ class InitiativeRepository
       description: record.description,
       point_of_contact: record.point_of_contact,
       archived: record.archived,
+      current_state: record.current_state.to_sym,
       related_projects_loader: related_projects_loader_for(record)
     )
   end

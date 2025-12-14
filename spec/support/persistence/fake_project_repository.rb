@@ -25,9 +25,11 @@ class FakeProjectRepository
     records.values.any? { |proj| proj.name == name }
   end
 
-  def link_subordinate(parent_id:, child:, order:)
-    ensure_single_parent!(child: child, parent_id: parent_id)
-    relationships << { parent_id:, child:, child_key: child_key(child), order: }
+  def link_subordinate(parent_id:, child: nil, child_id: nil, order:)
+    actual_child = child || records[child_id]
+    actual_child_id = child_id || child_key(actual_child)
+    ensure_single_parent!(child_id: actual_child_id)
+    relationships << { parent_id:, child: actual_child, child_id: actual_child_id, order: }
   end
 
   def subordinate_relationships_for(parent_id:)
@@ -39,6 +41,18 @@ class FakeProjectRepository
     max ? max + 1 : 0
   end
 
+  def subordinate_exists?(parent_id:, child_id:)
+    relationships.any? { |rel| rel[:parent_id] == parent_id && rel[:child_id] == child_id }
+  end
+
+  def unlink_subordinate(parent_id:, child_id:)
+    relationships.reject! { |rel| rel[:parent_id] == parent_id && rel[:child_id] == child_id }
+  end
+
+  def has_parent?(child_id:)
+    relationships.any? { |rel| rel[:child_id] == child_id }
+  end
+
   private
 
   attr_reader :records, :relationships
@@ -47,9 +61,8 @@ class FakeProjectRepository
     child.respond_to?(:name) ? child.name : child.object_id
   end
 
-  def ensure_single_parent!(child:, parent_id:)
-    key = child_key(child)
-    existing = relationships.find { |rel| rel[:child_key] == key }
+  def ensure_single_parent!(child_id:)
+    existing = relationships.find { |rel| rel[:child_id] == child_id }
     return unless existing
 
     raise StandardError, 'child project already has a parent'

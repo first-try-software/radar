@@ -90,6 +90,59 @@ module ApplicationHelper
     end
   end
 
+  def project_state_for(project_like)
+    # Get the derived state from domain project (handles parent/child rollup)
+    if project_like.is_a?(Project)
+      project_like.current_state
+    elsif project_like.respond_to?(:id)
+      domain_project = domain_project_for(project_like)
+      domain_project&.current_state || project_like.current_state.to_sym
+    else
+      project_like.current_state
+    end
+  end
+
+  def project_state_label(project_like)
+    state = project_state_for(project_like)
+    state.to_s.tr('_', ' ').titleize
+  end
+
+  def project_sort_data(project_like)
+    domain_project = if project_like.is_a?(Project)
+                       project_like
+                     elsif project_like.respond_to?(:id)
+                       domain_project_for(project_like)
+                     end
+
+    state = domain_project&.current_state || project_like.current_state.to_sym
+    health = domain_project&.health || :not_available
+
+    # State scores: blocked=1, in_progress=2, on_hold=3, todo=4, new=5, done=6
+    state_scores = { blocked: 1, in_progress: 2, on_hold: 3, todo: 4, new: 5, done: 6 }
+    state_score = state_scores[state] || 99
+
+    # Health scores: on_track=1, at_risk=2, off_track=3, not_available=99
+    health_scores = { on_track: 1, at_risk: 2, off_track: 3, not_available: 99 }
+    health_score = health_scores[health] || 99
+
+    # Updated date: latest health update or created_at
+    updated_at = if domain_project&.respond_to?(:health_updates_for_tooltip)
+                   latest = domain_project.health_updates_for_tooltip&.last
+                   latest&.date&.to_s || project_like.created_at.to_s
+                 else
+                   project_like.created_at.to_s
+                 end
+
+    name = project_like.respond_to?(:name) ? project_like.name : ''
+
+    {
+      name: name.downcase,
+      state_score: state_score,
+      health_score: health_score,
+      updated_at: updated_at
+    }
+  end
+
   private
 
   def project_health_value(project_like)

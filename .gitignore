@@ -13,13 +13,10 @@
 /tmp/
 /vendor/bundle/
 
-/db/*.sqlite3
-/db/*.sqlite3-journal
-
 *.swp
 *.swo
 *.sqlite3
-*.sqlite3-journal
+*.sqlite3-*
 
 .env
 .env.*
@@ -28,7 +25,6 @@
 .idea/
 .vscode/
 *.iml
-
 
 # Ignore key files for decrypting credentials and more.
 /config/*.key

@@ -54,8 +54,12 @@ class ProjectRepository
     ProjectRecord.exists?(name: name)
   end
 
-  def link_subordinate(parent_id:, child:, order:)
-    child_record = ProjectRecord.find_by!(name: child.name)
+  def link_subordinate(parent_id:, child: nil, child_id: nil, order:)
+    child_record = if child_id
+                     ProjectRecord.find_by!(id: child_id)
+                   else
+                     ProjectRecord.find_by!(name: child.name)
+                   end
     parent_record = ProjectRecord.find_by!(id: parent_id)
 
     ensure_single_parent!(child_record: child_record, parent_record: parent_record)
@@ -65,6 +69,10 @@ class ProjectRepository
       child: child_record,
       order: order
     )
+  end
+
+  def has_parent?(child_id:)
+    ProjectsProjectRecord.exists?(child_id: child_id)
   end
 
   def subordinate_relationships_for(parent_id:)
@@ -84,6 +92,14 @@ class ProjectRepository
   def next_subordinate_order(parent_id:)
     max = ProjectsProjectRecord.where(parent_id: parent_id).maximum(:order)
     max ? max + 1 : 0
+  end
+
+  def subordinate_exists?(parent_id:, child_id:)
+    ProjectsProjectRecord.exists?(parent_id: parent_id, child_id: child_id)
+  end
+
+  def unlink_subordinate(parent_id:, child_id:)
+    ProjectsProjectRecord.where(parent_id: parent_id, child_id: child_id).destroy_all
   end
 
   private

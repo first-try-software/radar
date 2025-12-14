@@ -1,6 +1,12 @@
 class ProjectsController < ApplicationController
+  SORT_OPTIONS = %w[alphabet state health updated].freeze
+  DEFAULT_SORT = 'alphabet'.freeze
+
   def index
-    @projects = root_projects.order(:name)
+    @sort_by = SORT_OPTIONS.include?(params[:sort]) ? params[:sort] : DEFAULT_SORT
+    @sort_dir = params[:dir] == 'desc' ? 'desc' : 'asc'
+
+    @projects = sorted_projects(@sort_by, @sort_dir)
 
     respond_to do |format|
       format.html
@@ -106,6 +112,21 @@ class ProjectsController < ApplicationController
     end
   end
 
+  def unarchive
+    result = project_actions.unarchive_project.perform(id: params[:id])
+
+    respond_to do |format|
+      format.json { render_result(result) }
+      format.html do
+        if result.success?
+          redirect_to(project_path(params[:id]), notice: 'Project unarchived')
+        else
+          render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
+        end
+      end
+    end
+  end
+
   def create_subordinate
     result = project_actions.create_subordinate_project.perform(parent_id: params[:id], **create_params)
 
@@ -125,6 +146,57 @@ class ProjectsController < ApplicationController
             @errors = result.errors
             prepare_health_form(project: @project)
             render :show, status: error_status(result.errors)
+          end
+        end
+      end
+    end
+  end
+
+  def unlink_subordinate
+    result = project_actions.unlink_subordinate_project.perform(
+      parent_id: params[:id],
+      child_id: params[:child_id]
+    )
+
+    respond_to do |format|
+      format.json do
+        if result.success?
+          render json: { success: true }, status: :ok
+        else
+          render json: { errors: result.errors }, status: error_status(result.errors)
+        end
+      end
+      format.html do
+        if result.success?
+          redirect_to(project_path(params[:id]), notice: 'Project unlinked')
+        else
+          render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
+        end
+      end
+    end
+  end
+
+  def link_subordinate
+    result = project_actions.link_subordinate_project.perform(
+      parent_id: params[:id],
+      child_id: params[:child_id]
+    )
+
+    respond_to do |format|
+      format.json { render_result(result, success_status: :created) }
+      format.html do
+        if result.success?
+          redirect_to(project_path(params[:id]), notice: 'Project linked')
+        else
+          if result.errors.include?('parent project not found') || result.errors.include?('child project not found')
+            render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
+          else
+            # Parent exists if we get here (only 'project already has a parent' error reaches this branch)
+            @project_record = ProjectRecord.find(params[:id])
+            @project = project_actions.find_project.perform(id: params[:id]).value
+            @errors = result.errors
+            prepare_health_form(project: @project)
+            render :show, status: :unprocessable_content
           end
         end
       end
@@ -167,7 +239,12 @@ class ProjectsController < ApplicationController
   end
 
   def error_status(errors)
-    errors.include?('project not found') ? :not_found : :unprocessable_content
+    return :not_found if errors.include?('project not found')
+    return :not_found if errors.include?('parent project not found')
+    return :not_found if errors.include?('child project not found')
+    return :not_found if errors.include?('project not linked to parent')
+
+    :unprocessable_content
   end
 
   def project_json(project)
@@ -182,6 +259,92 @@ class ProjectsController < ApplicationController
 
   def root_projects
     ProjectRecord.left_outer_joins(:parent_relationship).where(projects_projects: { parent_id: nil })
+  end
+
+  def sorted_projects(sort_by, direction)
+    dir = direction == 'desc' ? 'DESC' : 'ASC'
+
+    base = root_projects.left_joins(:health_updates).group(:id)
+
+    case sort_by
+    when 'health'
+      sort_by_health(base, direction)
+    when 'state'
+      sort_by_state(base, direction)
+    when 'updated'
+      sort_by_updated(base, direction)
+    else # alphabet
+      base.order(Arel.sql("projects.archived ASC, projects.name #{dir}"))
+    end
+  end
+
+  def sort_by_health(projects, direction)
+    # ASC (best to worst): on_track, at_risk, off_track, not_available
+    # DESC (worst to best): off_track, at_risk, on_track, not_available
+    asc_scores = { on_track: 1, at_risk: 2, off_track: 3 }
+    desc_scores = { off_track: 1, at_risk: 2, on_track: 3 }
+    scores = direction == 'desc' ? desc_scores : asc_scores
+
+    projects_with_health = projects.map do |record|
+      result = project_actions.find_project.perform(id: record.id)
+      health = result.success? ? result.value.health : :not_available
+      score = scores[health] || 999 # not_available always last
+      [record, score]
+    end
+
+    sorted = projects_with_health.sort_by do |record, score|
+      [record.archived ? 1 : 0, score, record.name]
+    end
+
+    sorted.map(&:first)
+  end
+
+  def sort_by_state(projects, direction)
+    # State priority order (most active/urgent first, done last)
+    # ASC: blocked, in_progress, on_hold, todo, new, done
+    # DESC: done, new, todo, on_hold, in_progress, blocked
+    asc_scores = { 'blocked' => 1, 'in_progress' => 2, 'on_hold' => 3, 'todo' => 4, 'new' => 5, 'done' => 6 }
+    desc_scores = { 'done' => 1, 'new' => 2, 'todo' => 3, 'on_hold' => 4, 'in_progress' => 5, 'blocked' => 6 }
+    scores = direction == 'desc' ? desc_scores : asc_scores
+
+    sorted = projects.sort_by do |record|
+      state_score = scores[record.current_state] || 999
+      [record.archived ? 1 : 0, state_score, record.name]
+    end
+
+    sorted
+  end
+
+  def sort_by_updated(projects, direction)
+    # Sort by most recent health update date, with created_at as tiebreaker
+    # Projects without health updates go last regardless of direction
+    projects_with_dates = projects.map do |record|
+      latest_update = record.health_updates.order(date: :desc, created_at: :desc).first
+      [record, latest_update&.date, latest_update&.created_at]
+    end
+
+    sorted = projects_with_dates.sort_by do |record, date, created_at|
+      archived_rank = record.archived ? 1 : 0
+
+      if date.nil?
+        # No health updates - always last
+        date_rank = direction == 'desc' ? [2, nil, nil] : [2, nil, nil]
+      else
+        # Has health updates - sort by date and created_at
+        created_at_int = created_at.to_i
+        if direction == 'desc'
+          # Most recent first: negate the values for descending
+          date_rank = [0, -date.to_time.to_i, -created_at_int]
+        else
+          # Oldest first
+          date_rank = [0, date.to_time.to_i, created_at_int]
+        end
+      end
+
+      [archived_rank, date_rank, record.name]
+    end
+
+    sorted.map(&:first)
   end
 
   def create_params

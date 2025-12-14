@@ -24,13 +24,13 @@ RSpec.describe ProjectsController, type: :request do
 
     it 'only lists projects without a parent' do
       parent = ProjectRecord.create!(name: 'Parent')
-      child = ProjectRecord.create!(name: 'Child')
+      child = ProjectRecord.create!(name: 'ChildProject')
       ProjectsProjectRecord.create!(parent: parent, child: child, order: 0)
 
       get '/projects'
 
       expect(response.body).to include('Parent')
-      expect(response.body).not_to include('Child')
+      expect(response.body).not_to include('ChildProject')
     end
 
     it 'renders the point of contact beneath root project descriptions' do
@@ -49,11 +49,11 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).to include('Projects')
       expect(response.body).not_to include('All Projects')
       expect(response.body).to include('child-actions')
-      expect(response.body).to include('New root project name')
+      expect(response.body).to include('Add a project')
       expect(response.body).to include('Add')
 
       root_index = response.body.index('Rooty')
-      form_index = response.body.index('New root project name')
+      form_index = response.body.index('Add a project')
       expect(root_index).to be < form_index
     end
 
@@ -64,6 +64,196 @@ RSpec.describe ProjectsController, type: :request do
 
       expect(response.body).to include('In Progress')
       expect(response.body).not_to include('in_progress')
+    end
+
+    it 'sorts projects alphabetically by default' do
+      ProjectRecord.create!(name: 'Zeta Project')
+      ProjectRecord.create!(name: 'Alpha Project')
+
+      get '/projects'
+
+      alpha_index = response.body.index('Alpha Project')
+      zeta_index = response.body.index('Zeta Project')
+      expect(alpha_index).to be < zeta_index
+    end
+
+    it 'sorts projects alphabetically descending when requested' do
+      ProjectRecord.create!(name: 'Zeta Project')
+      ProjectRecord.create!(name: 'Alpha Project')
+
+      get '/projects?sort=alphabet&dir=desc'
+
+      alpha_index = response.body.index('Alpha Project')
+      zeta_index = response.body.index('Zeta Project')
+      expect(zeta_index).to be < alpha_index
+    end
+
+    it 'sorts projects by state ascending (active first, done last)' do
+      ProjectRecord.create!(name: 'Done Project', current_state: 'done')
+      ProjectRecord.create!(name: 'Blocked Project', current_state: 'blocked')
+      ProjectRecord.create!(name: 'In Progress Project', current_state: 'in_progress')
+
+      get '/projects?sort=state&dir=asc'
+
+      blocked_index = response.body.index('Blocked Project')
+      in_progress_index = response.body.index('In Progress Project')
+      done_index = response.body.index('Done Project')
+      expect(blocked_index).to be < in_progress_index
+      expect(in_progress_index).to be < done_index
+    end
+
+    it 'sorts projects by state descending (done first, active last)' do
+      ProjectRecord.create!(name: 'Done Project', current_state: 'done')
+      ProjectRecord.create!(name: 'Blocked Project', current_state: 'blocked')
+      ProjectRecord.create!(name: 'In Progress Project', current_state: 'in_progress')
+
+      get '/projects?sort=state&dir=desc'
+
+      blocked_index = response.body.index('Blocked Project')
+      in_progress_index = response.body.index('In Progress Project')
+      done_index = response.body.index('Done Project')
+      expect(done_index).to be < in_progress_index
+      expect(in_progress_index).to be < blocked_index
+    end
+
+    it 'sorts archived projects last when sorting by state' do
+      ProjectRecord.create!(name: 'Active Blocked', current_state: 'blocked')
+      ProjectRecord.create!(name: 'Archived Done', current_state: 'done', archived: true)
+
+      get '/projects?sort=state&dir=asc'
+
+      active_index = response.body.index('Active Blocked')
+      archived_index = response.body.index('Archived Done')
+      expect(active_index).to be < archived_index
+    end
+
+    it 'sorts projects by health ascending (best to worst)' do
+      on_track = ProjectRecord.create!(name: 'On Track Project')
+      off_track = ProjectRecord.create!(name: 'Off Track Project')
+      no_health = ProjectRecord.create!(name: 'No Health Project')
+      HealthUpdateRecord.create!(project: on_track, date: Date.today, health: 'on_track')
+      HealthUpdateRecord.create!(project: off_track, date: Date.today, health: 'off_track')
+
+      get '/projects?sort=health&dir=asc'
+
+      on_track_index = response.body.index('On Track Project')
+      off_track_index = response.body.index('Off Track Project')
+      no_health_index = response.body.index('No Health Project')
+      expect(on_track_index).to be < off_track_index
+      expect(off_track_index).to be < no_health_index
+    end
+
+    it 'sorts projects by health descending (worst to best, no health last)' do
+      on_track = ProjectRecord.create!(name: 'On Track Project')
+      off_track = ProjectRecord.create!(name: 'Off Track Project')
+      no_health = ProjectRecord.create!(name: 'No Health Project')
+      HealthUpdateRecord.create!(project: on_track, date: Date.today, health: 'on_track')
+      HealthUpdateRecord.create!(project: off_track, date: Date.today, health: 'off_track')
+
+      get '/projects?sort=health&dir=desc'
+
+      on_track_index = response.body.index('On Track Project')
+      off_track_index = response.body.index('Off Track Project')
+      no_health_index = response.body.index('No Health Project')
+      expect(off_track_index).to be < on_track_index
+      expect(on_track_index).to be < no_health_index
+    end
+
+    it 'sorts archived projects last when sorting by health' do
+      active_project = ProjectRecord.create!(name: 'Active Project')
+      archived_project = ProjectRecord.create!(name: 'Archived Project', archived: true)
+      HealthUpdateRecord.create!(project: active_project, date: Date.today, health: 'off_track')
+      HealthUpdateRecord.create!(project: archived_project, date: Date.today, health: 'on_track')
+
+      get '/projects?sort=health&dir=asc'
+
+      active_index = response.body.index('Active Project')
+      archived_index = response.body.index('Archived Project')
+      expect(active_index).to be < archived_index
+    end
+
+    it 'treats projects with failed health lookup as not_available when sorting by health' do
+      project = ProjectRecord.create!(name: 'Test Project')
+      find_action = actions.find_project
+
+      allow(actions).to receive(:find_project).and_return(find_action)
+      allow(find_action).to receive(:perform).and_call_original
+      allow(find_action).to receive(:perform).with(id: project.id).and_return(
+        Result.failure(errors: 'project not found')
+      )
+
+      get '/projects?sort=health&dir=asc'
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Test Project')
+    end
+
+    it 'sorts projects by most recent health update descending' do
+      old_update = ProjectRecord.create!(name: 'Old Update Project')
+      new_update = ProjectRecord.create!(name: 'New Update Project')
+      no_update = ProjectRecord.create!(name: 'No Update Project')
+      HealthUpdateRecord.create!(project: old_update, date: Date.today - 7, health: 'on_track')
+      HealthUpdateRecord.create!(project: new_update, date: Date.today, health: 'on_track')
+
+      get '/projects?sort=updated&dir=desc'
+
+      old_index = response.body.index('Old Update Project')
+      new_index = response.body.index('New Update Project')
+      no_update_index = response.body.index('No Update Project')
+      expect(new_index).to be < old_index
+      expect(old_index).to be < no_update_index
+    end
+
+    it 'sorts projects by oldest health update when ascending' do
+      old_update = ProjectRecord.create!(name: 'Old Update Project')
+      new_update = ProjectRecord.create!(name: 'New Update Project')
+      no_update = ProjectRecord.create!(name: 'No Update Project')
+      HealthUpdateRecord.create!(project: old_update, date: Date.today - 7, health: 'on_track')
+      HealthUpdateRecord.create!(project: new_update, date: Date.today, health: 'on_track')
+
+      get '/projects?sort=updated&dir=asc'
+
+      old_index = response.body.index('Old Update Project')
+      new_index = response.body.index('New Update Project')
+      no_update_index = response.body.index('No Update Project')
+      expect(old_index).to be < new_index
+      expect(new_index).to be < no_update_index
+    end
+
+    it 'uses created_at as tiebreaker when health updates have same date' do
+      first_project = ProjectRecord.create!(name: 'First Project')
+      second_project = ProjectRecord.create!(name: 'Second Project')
+      # Same date, different created_at
+      HealthUpdateRecord.create!(project: first_project, date: Date.today, health: 'on_track', created_at: 1.hour.ago)
+      HealthUpdateRecord.create!(project: second_project, date: Date.today, health: 'on_track', created_at: Time.current)
+
+      get '/projects?sort=updated&dir=desc'
+
+      first_index = response.body.index('First Project')
+      second_index = response.body.index('Second Project')
+      expect(second_index).to be < first_index
+    end
+
+    it 'sorts archived projects last when sorting by updated' do
+      active_project = ProjectRecord.create!(name: 'Active Project')
+      archived_project = ProjectRecord.create!(name: 'Archived Project', archived: true)
+      HealthUpdateRecord.create!(project: active_project, date: Date.today - 7, health: 'on_track')
+      HealthUpdateRecord.create!(project: archived_project, date: Date.today, health: 'on_track')
+
+      get '/projects?sort=updated&dir=desc'
+
+      active_index = response.body.index('Active Project')
+      archived_index = response.body.index('Archived Project')
+      expect(active_index).to be < archived_index
+    end
+
+    it 'ignores invalid sort parameters' do
+      ProjectRecord.create!(name: 'Alpha')
+
+      get '/projects?sort=invalid'
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Alpha')
     end
 
     it 'renders the show page' do
@@ -125,7 +315,7 @@ RSpec.describe ProjectsController, type: :request do
         name: 'Child',
         description: 'Child description',
         current_state: 'blocked',
-        archived: true,
+        archived: false,
         point_of_contact: 'Casey'
       )
       ProjectsProjectRecord.create!(parent: parent, child: child, order: 0)
@@ -135,12 +325,24 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).to include(%(class="section-title children-title">Projects))
       expect(response.body).to include('Child description')
       expect(response.body).to include('Blocked')
-      expect(response.body).to include('archived')
       expect(response.body).to include('Casey')
       expect(response.body).to include('project-row')
       expect(response.body).to include('project-row__health')
       expect(response.body).to include('project-row__text')
       expect(response.body).to include('project-row__badges')
+    end
+
+    it 'hides archived child projects' do
+      parent = ProjectRecord.create!(name: 'Parent')
+      archived_child = ProjectRecord.create!(name: 'Archived Child', archived: true)
+      visible_child = ProjectRecord.create!(name: 'Visible Child', archived: false)
+      ProjectsProjectRecord.create!(parent: parent, child: archived_child, order: 0)
+      ProjectsProjectRecord.create!(parent: parent, child: visible_child, order: 1)
+
+      get "/projects/#{parent.id}"
+
+      expect(response.body).to include('Visible Child')
+      expect(response.body).not_to include('Archived Child')
     end
 
     it 'records a health update via HTML and refreshes the health indicator' do
@@ -504,6 +706,39 @@ RSpec.describe ProjectsController, type: :request do
     end
   end
 
+  describe 'PATCH /projects/:id/unarchive' do
+    it 'unarchives a project' do
+      record = ProjectRecord.create!(name: 'Alpha', archived: true)
+
+      patch "/projects/#{record.id}/unarchive", headers: json_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body['archived']).to eq(false)
+    end
+
+    it 'returns 404 when project is missing' do
+      patch "/projects/999/unarchive", headers: json_headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'unarchives via HTML and redirects' do
+      record = ProjectRecord.create!(name: 'Beta', archived: true)
+
+      patch "/projects/#{record.id}/unarchive"
+
+      expect(response).to have_http_status(:found)
+      record.reload
+      expect(record.archived).to be(false)
+    end
+
+    it 'returns 404 for missing project in HTML unarchive' do
+      patch '/projects/999/unarchive'
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
   describe 'POST /projects/:id/subordinates' do
     it 'creates a subordinate project' do
       parent = ProjectRecord.create!(name: 'Parent')
@@ -516,6 +751,125 @@ RSpec.describe ProjectsController, type: :request do
 
     it 'returns 404 when parent not found' do
       post "/projects/999/subordinates", params: { project: { name: 'Child' } }, headers: json_headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe 'DELETE /projects/:id/subordinates/:child_id' do
+    it 'unlinks a child project from a parent' do
+      parent = ProjectRecord.create!(name: 'Parent')
+      child = ProjectRecord.create!(name: 'Child')
+      ProjectsProjectRecord.create!(parent: parent, child: child, order: 0)
+
+      delete "/projects/#{parent.id}/subordinates/#{child.id}", headers: json_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(ProjectsProjectRecord.where(parent: parent, child: child)).to be_empty
+    end
+
+    it 'unlinks via HTML and redirects' do
+      parent = ProjectRecord.create!(name: 'Parent')
+      child = ProjectRecord.create!(name: 'Child')
+      ProjectsProjectRecord.create!(parent: parent, child: child, order: 0)
+
+      delete "/projects/#{parent.id}/subordinates/#{child.id}"
+
+      expect(response).to have_http_status(:found)
+      expect(ProjectsProjectRecord.where(parent: parent, child: child)).to be_empty
+    end
+
+    it 'returns 404 when parent not found' do
+      child = ProjectRecord.create!(name: 'Child')
+
+      delete "/projects/999/subordinates/#{child.id}", headers: json_headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 when child not linked' do
+      parent = ProjectRecord.create!(name: 'Parent')
+      child = ProjectRecord.create!(name: 'Child')
+
+      delete "/projects/#{parent.id}/subordinates/#{child.id}", headers: json_headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 for HTML when child not linked' do
+      parent = ProjectRecord.create!(name: 'Parent')
+      child = ProjectRecord.create!(name: 'Child')
+
+      delete "/projects/#{parent.id}/subordinates/#{child.id}"
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe 'POST /projects/:id/subordinates/link' do
+    it 'links an existing project as a child' do
+      parent = ProjectRecord.create!(name: 'Parent')
+      orphan = ProjectRecord.create!(name: 'Orphan')
+
+      post "/projects/#{parent.id}/subordinates/link", params: { child_id: orphan.id }, headers: json_headers
+
+      expect(response).to have_http_status(:created)
+      expect(ProjectsProjectRecord.where(parent: parent, child: orphan)).to exist
+    end
+
+    it 'links via HTML and redirects' do
+      parent = ProjectRecord.create!(name: 'Parent')
+      orphan = ProjectRecord.create!(name: 'Orphan')
+
+      post "/projects/#{parent.id}/subordinates/link", params: { child_id: orphan.id }
+
+      expect(response).to have_http_status(:found)
+      expect(ProjectsProjectRecord.where(parent: parent, child: orphan)).to exist
+    end
+
+    it 'returns 404 when parent not found' do
+      orphan = ProjectRecord.create!(name: 'Orphan')
+
+      post "/projects/999/subordinates/link", params: { child_id: orphan.id }, headers: json_headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 when child not found' do
+      parent = ProjectRecord.create!(name: 'Parent')
+
+      post "/projects/#{parent.id}/subordinates/link", params: { child_id: 999 }, headers: json_headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns error when child already has a parent' do
+      parent1 = ProjectRecord.create!(name: 'Parent1')
+      parent2 = ProjectRecord.create!(name: 'Parent2')
+      child = ProjectRecord.create!(name: 'Child')
+      ProjectsProjectRecord.create!(parent: parent1, child: child, order: 0)
+
+      post "/projects/#{parent2.id}/subordinates/link", params: { child_id: child.id }, headers: json_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it 'renders error on HTML when child already has a parent' do
+      parent1 = ProjectRecord.create!(name: 'Parent1')
+      parent2 = ProjectRecord.create!(name: 'Parent2')
+      child = ProjectRecord.create!(name: 'Child')
+      ProjectsProjectRecord.create!(parent: parent1, child: child, order: 0)
+
+      post "/projects/#{parent2.id}/subordinates/link", params: { child_id: child.id }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('already has a parent')
+    end
+
+    it 'returns 404 for HTML when parent not found' do
+      orphan = ProjectRecord.create!(name: 'Orphan')
+
+      post "/projects/999/subordinates/link", params: { child_id: orphan.id }
 
       expect(response).to have_http_status(:not_found)
     end
