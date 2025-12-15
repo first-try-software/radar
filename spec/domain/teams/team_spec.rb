@@ -107,24 +107,52 @@ RSpec.describe Team do
   end
 
   describe '#health' do
-    it 'returns a rollup of working owned projects' do
-      owned_projects = [
-        double('Project', current_state: :in_progress, health: :on_track),
-        double('Project', current_state: :blocked, health: :at_risk)
-      ]
-      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { owned_projects })
+    it 'returns a rollup of leaf projects from owned projects' do
+      leaf_project = double('Project', current_state: :in_progress, health: :on_track)
+      owned_project = double('Project', leaf_descendants: [leaf_project])
+      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { [owned_project] })
 
       expect(team.health).to eq(:on_track)
     end
 
-    it 'returns :not_available when no owned projects are in a working state' do
-      owned_projects = [
-        double('Project', current_state: :todo, health: :on_track),
-        double('Project', current_state: :done, health: :off_track)
-      ]
-      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { owned_projects })
+    it 'returns :not_available when no leaf projects are in a working state' do
+      leaf_project = double('Project', current_state: :todo, health: :on_track)
+      owned_project = double('Project', leaf_descendants: [leaf_project])
+      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { [owned_project] })
 
       expect(team.health).to eq(:not_available)
+    end
+
+    it 'includes leaf projects from subordinate teams' do
+      parent_leaf = double('Project', current_state: :in_progress, health: :on_track)
+      parent_project = double('Project', leaf_descendants: [parent_leaf])
+      child_leaf = double('Project', current_state: :blocked, health: :off_track)
+      child_project = double('Project', leaf_descendants: [child_leaf])
+      child_team = described_class.new(name: 'Child', owned_projects_loader: ->(_t) { [child_project] })
+      parent_team = described_class.new(
+        name: 'Parent',
+        owned_projects_loader: ->(_t) { [parent_project] },
+        subordinate_teams_loader: ->(_t) { [child_team] }
+      )
+
+      expect(parent_team.health).to eq(:at_risk)
+    end
+
+    it 'recursively includes leaf projects from nested subordinate teams' do
+      grandchild_leaf = double('Project', current_state: :in_progress, health: :off_track)
+      grandchild_project = double('Project', leaf_descendants: [grandchild_leaf])
+      grandchild_team = described_class.new(name: 'Grandchild', owned_projects_loader: ->(_t) { [grandchild_project] })
+      child_team = described_class.new(name: 'Child', subordinate_teams_loader: ->(_t) { [grandchild_team] })
+      parent_team = described_class.new(name: 'Parent', subordinate_teams_loader: ->(_t) { [child_team] })
+
+      expect(parent_team.health).to eq(:off_track)
+    end
+
+    it 'returns :not_available when there are no owned projects in the hierarchy' do
+      child_team = described_class.new(name: 'Child')
+      parent_team = described_class.new(name: 'Parent', subordinate_teams_loader: ->(_t) { [child_team] })
+
+      expect(parent_team.health).to eq(:not_available)
     end
   end
 end

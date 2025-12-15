@@ -11,6 +11,7 @@ class CreateSubordinateTeam
     @attributes = { name:, mission:, vision:, point_of_contact: }
 
     return parent_not_found_failure unless parent_team
+    return parent_has_projects_failure if parent_has_projects?
     return invalid_team_failure unless team.valid?
     return duplicate_name_failure unless unique_name?
 
@@ -33,6 +34,10 @@ class CreateSubordinateTeam
 
   def unique_name?
     !team_repository.exists_with_name?(team.name)
+  end
+
+  def parent_has_projects?
+    team_repository.has_owned_projects?(team_id: parent_id)
   end
 
   def save_team
@@ -58,6 +63,10 @@ class CreateSubordinateTeam
 
   def duplicate_name_failure
     failure('team name must be unique')
+  end
+
+  def parent_has_projects_failure
+    failure('teams with owned projects cannot have subordinate teams')
   end
 
   def failure(errors)

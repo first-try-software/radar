@@ -47,6 +47,14 @@ class FakeTeamRepository
     max ? max + 1 : 0
   end
 
+  def has_subordinate_teams?(team_id:)
+    subordinate_relationships_for(parent_id: team_id).any?
+  end
+
+  def has_owned_projects?(team_id:)
+    owned_relationships_for(team_id: team_id).any?
+  end
+
   private
 
   attr_reader :records, :owned_relationships, :subordinate_relationships

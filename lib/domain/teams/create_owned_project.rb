@@ -13,6 +13,7 @@ class CreateOwnedProject
     @attrs = ProjectAttributes.new(name:, description:, point_of_contact:)
 
     return team_not_found_failure unless team
+    return team_has_subordinates_failure if team_has_subordinates?
     return invalid_project_failure unless project.valid?
     return duplicate_name_failure unless unique_name?
 
@@ -35,6 +36,10 @@ class CreateOwnedProject
 
   def unique_name?
     !project_repository.exists_with_name?(project.name)
+  end
+
+  def team_has_subordinates?
+    team_repository.has_subordinate_teams?(team_id: team_id)
   end
 
   def save_project
@@ -60,6 +65,10 @@ class CreateOwnedProject
 
   def duplicate_name_failure
     failure('project name must be unique')
+  end
+
+  def team_has_subordinates_failure
+    failure('teams with subordinate teams cannot own projects')
   end
 
   def failure(errors)

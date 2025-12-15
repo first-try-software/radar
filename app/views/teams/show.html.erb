@@ -1,0 +1,265 @@
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li><%= link_to 'Teams', teams_path %></li>
+    <li aria-current="page"><%= @team_record.name %></li>
+  </ol>
+</nav>
+
+<div class="grid">
+  <div class="card">
+    <div class="project-header">
+      <div class="health-toggle-placeholder">
+        <div class="project-header__health">
+          <%= team_health_indicator(@team || @team_record, with_tooltip: true) %>
+        </div>
+      </div>
+      <div class="project-header__text">
+        <div class="editable-field project-name"
+             contenteditable="true"
+             data-field="name"
+             data-update-url="<%= team_path(@team_record) %>"><%= @team_record.name %></div>
+
+        <div class="editable-field project-description<%= ' editable-field--empty' if @team_record.mission.blank? %>"
+             contenteditable="true"
+             data-field="mission"
+             data-hint="What is this team's mission?"
+             data-update-url="<%= team_path(@team_record) %>"><%= @team_record.mission.presence || 'What is this team\'s mission?' %></div>
+
+        <div class="editable-field project-vision<%= ' editable-field--empty' if @team_record.vision.blank? %>"
+             contenteditable="true"
+             data-field="vision"
+             data-hint="What is this team's vision?"
+             data-update-url="<%= team_path(@team_record) %>"><%= @team_record.vision.presence || 'What is this team\'s vision?' %></div>
+
+        <div class="editable-field project-poc<%= ' editable-field--empty' if @team_record.point_of_contact.blank? %>"
+             contenteditable="true"
+             data-field="point_of_contact"
+             data-hint="Where can I get more information (person, email, slack channel, etc.)?"
+             data-update-url="<%= team_path(@team_record) %>"><%= @team_record.point_of_contact.presence || 'Where can I get more information (person, email, slack channel, etc.)?' %></div>
+
+        <% if defined?(@errors) && @errors.present? %>
+          <div class="errors">
+            <ul>
+              <% @errors.each do |err| %>
+                <li><%= err %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      </div>
+      <div class="project-header__state">
+        <div class="badges">
+          <% if @team_record.archived %>
+            <span class="badge archived">archived</span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% subordinate_teams = @team_record.child_relationships.includes(:child).order(:order).map(&:child).reject(&:archived) %>
+  <% owned_projects = @team_record.owned_project_relationships.includes(:project).order(:order).map(&:project).reject(&:archived) %>
+  <% has_subteams = subordinate_teams.any? %>
+  <% has_projects = owned_projects.any? %>
+  <% is_leaf_team = !has_subteams %>
+
+  <% unless has_projects %>
+    <div class="card">
+      <div class="card-header">
+        <h3 class="section-title children-title">Teams</h3>
+        <% if subordinate_teams.any? %>
+          <div class="sort-controls" data-sort-controls data-sortable-list="subordinate-teams-list">
+            <div class="sort-dropdown" data-sort-dropdown>
+              <button type="button" class="sort-dropdown__trigger" data-sort-trigger>
+                <span class="sort-dropdown__label">Sort: <strong data-sort-label>Alphabet</strong></span>
+                <span class="sort-dropdown__arrow">▼</span>
+              </button>
+              <div class="sort-dropdown__menu" data-sort-menu hidden>
+                <% [['alphabet', 'Alphabet'], ['health', 'Health']].each do |value, label| %>
+                  <button type="button"
+                          class="sort-dropdown__option <%= 'active' if value == 'alphabet' %>"
+                          data-sort-value="<%= value %>">
+                    <%= label %>
+                    <% if value == 'alphabet' %><span class="sort-dropdown__check">✓</span><% end %>
+                  </button>
+                <% end %>
+              </div>
+            </div>
+            <button type="button"
+                    class="sort-dir-toggle asc"
+                    data-sort-dir-toggle
+                    data-current-dir="asc"
+                    title="Ascending">
+              <span class="sort-dir-toggle__arrow">↑</span>
+            </button>
+          </div>
+        <% end %>
+      </div>
+      <ul class="list children-list" data-sortable-list="subordinate-teams-list">
+        <%= render partial: 'teams/subordinate_team_item', collection: subordinate_teams, as: :subordinate_team %>
+        <% if subordinate_teams.empty? %>
+          <li class="list-item" data-empty-message><span class="muted">No teams yet.</span></li>
+        <% end %>
+        <li class="list-item list-item--add-child">
+          <form action="<%= subordinate_teams_team_path(@team_record) %>"
+                method="post"
+                class="child-form"
+                data-add-team-form>
+            <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+            <div class="child-actions">
+              <input type="text"
+                     name="team[name]"
+                     placeholder="Add a team..."
+                     required />
+              <button type="submit" class="btn secondary">Add</button>
+            </div>
+          </form>
+        </li>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="card">
+    <% if has_subteams %>
+      <% subordinate_project_ids = subordinate_teams.flat_map { |t| t.owned_project_relationships.pluck(:project_id) } %>
+      <% subordinate_projects = ProjectRecord.where(id: subordinate_project_ids, archived: false).order(:name) %>
+    <% end %>
+    <% display_projects = has_subteams ? subordinate_projects : owned_projects %>
+    <div class="card-header">
+      <h3 class="section-title children-title"><%= has_subteams ? 'Projects' : 'Owned Projects' %></h3>
+      <% if display_projects.any? %>
+        <div class="sort-controls" data-sort-controls data-sortable-list="owned-projects-list">
+          <div class="sort-dropdown" data-sort-dropdown>
+            <button type="button" class="sort-dropdown__trigger" data-sort-trigger>
+              <span class="sort-dropdown__label">Sort: <strong data-sort-label>Alphabet</strong></span>
+              <span class="sort-dropdown__arrow">▼</span>
+            </button>
+            <div class="sort-dropdown__menu" data-sort-menu hidden>
+              <% [['alphabet', 'Alphabet'], ['state', 'State'], ['health', 'Health'], ['updated', 'Updated']].each do |value, label| %>
+                <button type="button"
+                        class="sort-dropdown__option <%= 'active' if value == 'alphabet' %>"
+                        data-sort-value="<%= value %>">
+                  <%= label %>
+                  <% if value == 'alphabet' %><span class="sort-dropdown__check">✓</span><% end %>
+                </button>
+              <% end %>
+            </div>
+          </div>
+          <button type="button"
+                  class="sort-dir-toggle asc"
+                  data-sort-dir-toggle
+                  data-current-dir="asc"
+                  title="Ascending">
+            <span class="sort-dir-toggle__arrow">↑</span>
+          </button>
+        </div>
+      <% end %>
+    </div>
+    <ul class="list children-list" data-sortable-list="owned-projects-list">
+      <%= render partial: 'teams/owned_project_item', collection: display_projects, as: :project %>
+      <% if display_projects.empty? %>
+        <li class="list-item" data-empty-message><span class="muted">No <%= has_subteams ? 'projects' : 'owned projects' %> yet.</span></li>
+      <% end %>
+      <% if is_leaf_team %>
+        <% available_projects = ProjectRecord.where(archived: false).where.not(id: owned_projects.map(&:id)).order(:name) %>
+        <li class="list-item list-item--add-child">
+          <form action="<%= owned_projects_team_path(@team_record) %>"
+                method="post"
+                class="child-form"
+                data-add-link-form
+                data-add-url="<%= add_owned_project_team_path(@team_record) %>"
+                data-link-url="<%= owned_projects_team_path(@team_record) %>">
+            <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+            <input type="hidden" name="project[name]" value="" data-project-name-field />
+            <input type="hidden" name="project_id" value="" data-child-id-field />
+            <div class="child-actions">
+              <div class="project-dropdown" data-project-dropdown>
+                <div class="project-dropdown__input-wrapper">
+                  <input type="text"
+                         class="project-dropdown__input"
+                         placeholder="Add or link a project..."
+                         data-project-dropdown-input
+                         autocomplete="off" />
+                  <% if available_projects.any? %>
+                    <span class="project-dropdown__arrow">▼</span>
+                  <% end %>
+                </div>
+                <% if available_projects.any? %>
+                  <div class="project-dropdown__menu" data-project-dropdown-menu>
+                    <div class="project-dropdown__options" data-project-options>
+                      <% available_projects.each do |project| %>
+                        <button type="button"
+                                class="project-dropdown__option"
+                                data-project-id="<%= project.id %>"
+                                data-project-name="<%= project.name %>"
+                                data-project-search-text="<%= project.name.downcase %>">
+                          <span class="project-dropdown__option-name"><%= project.name %></span>
+                          <% if project.description.present? %>
+                            <span class="project-dropdown__option-desc"><%= truncate(project.description, length: 50) %></span>
+                          <% end %>
+                        </button>
+                      <% end %>
+                    </div>
+                    <div class="project-dropdown__no-results" data-no-results hidden>
+                      No matches — press Add to create
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+              <button type="submit" class="btn secondary" data-add-link-submit disabled>Add</button>
+            </div>
+          </form>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    document.querySelectorAll('.editable-field').forEach((el) => {
+      const hint = el.dataset.hint;
+      let original = el.innerText;
+      let isShowingHint = el.classList.contains('editable-field--empty');
+
+      el.addEventListener('focus', () => {
+        if (isShowingHint && hint) {
+          el.innerText = '';
+          el.classList.remove('editable-field--empty');
+          isShowingHint = false;
+        }
+      });
+
+      el.addEventListener('blur', () => {
+        const value = el.innerText.trim();
+
+        if (!value && hint) {
+          el.innerText = hint;
+          el.classList.add('editable-field--empty');
+          isShowingHint = true;
+        }
+
+        const saveValue = isShowingHint ? '' : value;
+        const originalValue = original === hint ? '' : original;
+
+        if (saveValue === originalValue) return;
+
+        const field = el.dataset.field;
+        const url = el.dataset.updateUrl;
+        fetch(url, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-Token': token
+          },
+          body: JSON.stringify({ team: { [field]: saveValue } })
+        }).then((resp) => {
+          if (resp.ok) { original = isShowingHint ? hint : value; }
+        }).catch((err) => console.error(err));
+      });
+    });
+  });
+</script>

@@ -1,0 +1,161 @@
+require_relative '../../lib/domain/teams/team'
+
+class TeamRepository
+  def initialize(project_repository:)
+    @project_repository = project_repository
+  end
+
+  def find(id)
+    record = TeamRecord.find_by(id: id)
+    return nil unless record
+
+    build_entity(record)
+  end
+
+  def save(team)
+    TeamRecord.create!(
+      name: team.name,
+      mission: team.mission,
+      vision: team.vision,
+      point_of_contact: team.point_of_contact,
+      archived: team.archived?
+    )
+  end
+
+  def update(id:, team:)
+    record = TeamRecord.find_by(id: id)
+    return unless record
+
+    record.update!(
+      name: team.name,
+      mission: team.mission,
+      vision: team.vision,
+      point_of_contact: team.point_of_contact,
+      archived: team.archived?
+    )
+  end
+
+  def exists_with_name?(name)
+    TeamRecord.exists?(name: name)
+  end
+
+  def link_owned_project(team_id:, project:, order:)
+    project_record = ProjectRecord.find_by!(name: project.name)
+    team_record = TeamRecord.find_by!(id: team_id)
+
+    TeamsProjectRecord.create!(
+      team: team_record,
+      project: project_record,
+      order: order
+    )
+  end
+
+  def next_owned_project_order(team_id:)
+    max = TeamsProjectRecord.where(team_id: team_id).maximum(:order)
+    max ? max + 1 : 0
+  end
+
+  def owned_projects_for(team_id:)
+    TeamsProjectRecord
+      .where(team_id: team_id)
+      .order(:order)
+      .includes(:project)
+      .map do |rel|
+        {
+          team_id: rel.team_id.to_s,
+          project: project_repository.find(rel.project_id),
+          order: rel.order
+        }
+      end
+  end
+
+  def link_subordinate_team(parent_id:, child:, order:)
+    child_record = TeamRecord.find_by!(name: child.name)
+    parent_record = TeamRecord.find_by!(id: parent_id)
+
+    TeamsTeamRecord.create!(
+      parent: parent_record,
+      child: child_record,
+      order: order
+    )
+  end
+
+  def next_subordinate_team_order(parent_id:)
+    max = TeamsTeamRecord.where(parent_id: parent_id).maximum(:order)
+    max ? max + 1 : 0
+  end
+
+  def subordinate_teams_for(parent_id:)
+    TeamsTeamRecord
+      .where(parent_id: parent_id)
+      .order(:order)
+      .includes(:child)
+      .map do |rel|
+        {
+          parent_id: rel.parent_id.to_s,
+          team: find(rel.child_id),
+          order: rel.order
+        }
+      end
+  end
+
+  def unlink_owned_project(team_id:, project_id:)
+    TeamsProjectRecord.where(team_id: team_id, project_id: project_id).destroy_all
+  end
+
+  def owned_project_exists?(team_id:, project_id:)
+    TeamsProjectRecord.exists?(team_id: team_id, project_id: project_id)
+  end
+
+  def unlink_subordinate_team(parent_id:, child_id:)
+    TeamsTeamRecord.where(parent_id: parent_id, child_id: child_id).destroy_all
+  end
+
+  def subordinate_team_exists?(parent_id:, child_id:)
+    TeamsTeamRecord.exists?(parent_id: parent_id, child_id: child_id)
+  end
+
+  def has_subordinate_teams?(team_id:)
+    TeamsTeamRecord.exists?(parent_id: team_id)
+  end
+
+  def has_owned_projects?(team_id:)
+    TeamsProjectRecord.exists?(team_id: team_id)
+  end
+
+  private
+
+  attr_reader :project_repository
+
+  def build_entity(record)
+    Team.new(
+      name: record.name,
+      mission: record.mission,
+      vision: record.vision,
+      point_of_contact: record.point_of_contact,
+      archived: record.archived,
+      owned_projects_loader: owned_projects_loader_for(record),
+      subordinate_teams_loader: subordinate_teams_loader_for(record)
+    )
+  end
+
+  def owned_projects_loader_for(record)
+    lambda do |_team|
+      TeamsProjectRecord
+        .where(team_id: record.id)
+        .order(:order)
+        .includes(:project)
+        .map { |rel| project_repository.find(rel.project_id) }
+    end
+  end
+
+  def subordinate_teams_loader_for(record)
+    lambda do |_team|
+      TeamsTeamRecord
+        .where(parent_id: record.id)
+        .order(:order)
+        .includes(:child)
+        .map { |rel| find(rel.child_id) }
+    end
+  end
+end

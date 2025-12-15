@@ -42,7 +42,13 @@ class Team
   end
 
   def health
-    HealthRollup.rollup(owned_projects)
+    HealthRollup.rollup(all_leaf_projects)
+  end
+
+  def all_leaf_projects
+    own_leaves = owned_projects.flat_map(&:leaf_descendants)
+    subordinate_leaves = subordinate_teams.flat_map(&:all_leaf_projects)
+    own_leaves + subordinate_leaves
   end
 
   def subordinate_teams

@@ -4,6 +4,10 @@ Status is a simple web application for tracking project, team, or intiative.
 
 The central concept of the application is a project. Teams and initiatives are concepts layered atop projects to provide reporting structures.
 
+# Prime Directive
+
+**100% line coverage AND 100% branch coverage.** No exceptions. No excuses.
+
 # Development Philosophy
 
 This project follows these rules:

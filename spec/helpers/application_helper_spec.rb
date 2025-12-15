@@ -229,6 +229,39 @@ RSpec.describe ApplicationHelper, type: :helper do
     end
   end
 
+  describe '#team_sort_data' do
+    it 'returns sort data when given a domain Team' do
+      domain_team = instance_double('Team', health: :off_track, name: 'TestTeam')
+
+      result = helper.team_sort_data(domain_team)
+
+      expect(result[:name]).to eq('testteam')
+      expect(result[:health_score]).to eq(3) # off_track
+    end
+
+    it 'returns not_available health score when team health lookup fails' do
+      record = instance_double('TeamRecord', id: '456')
+      result_double = instance_double('Result', success?: false, value: nil, errors: ['not found'])
+      actions = Rails.application.config.x.team_actions
+      allow(actions.find_team).to receive(:perform).with(id: '456').and_return(result_double)
+
+      result = helper.team_sort_data(record)
+
+      expect(result[:health_score]).to eq(99) # not_available fallback
+    end
+
+    it 'handles objects without name method' do
+      object = instance_double('SomeObject', health: :on_track)
+      allow(object).to receive(:respond_to?).with(:health).and_return(true)
+      allow(object).to receive(:respond_to?).with(:name).and_return(false)
+
+      result = helper.team_sort_data(object)
+
+      expect(result[:name]).to eq('')
+      expect(result[:health_score]).to eq(1) # on_track
+    end
+  end
+
   describe '#project_health_trend' do
     it 'returns nil when project does not respond to health_trend' do
       project = instance_double('Object')
@@ -280,6 +313,34 @@ RSpec.describe ApplicationHelper, type: :helper do
       html = helper.project_health_trend(project)
 
       expect(html).to include('Blocked on API')
+    end
+
+    it 'omits description when not present' do
+      update = instance_double('HealthUpdate', date: Date.new(2025, 1, 13), health: :on_track, description: nil)
+      project = instance_double('Project', health_trend: [update])
+
+      html = helper.project_health_trend(project)
+
+      expect(html).not_to include('health-trend-tooltip__desc')
+    end
+
+    it 'omits description when empty string' do
+      update = instance_double('HealthUpdate', date: Date.new(2025, 1, 13), health: :on_track, description: '')
+      project = instance_double('Project', health_trend: [update])
+
+      html = helper.project_health_trend(project)
+
+      expect(html).not_to include('health-trend-tooltip__desc')
+    end
+
+    it 'renders non-interactive trend items when interactive is false' do
+      update = instance_double('HealthUpdate', date: Date.new(2025, 1, 13), health: :on_track, description: nil)
+      project = instance_double('Project', health_trend: [update])
+
+      html = helper.project_health_trend(project, interactive: false)
+
+      expect(html).not_to include('<button')
+      expect(html).to include('health-trend-item')
     end
   end
 
@@ -467,6 +528,102 @@ RSpec.describe ApplicationHelper, type: :helper do
       allow(actions.find_initiative).to receive(:perform).with(id: nil).and_return(result)
 
       html = helper.initiative_health_indicator(record)
+
+      expect(html).to include('project-health--not_available')
+    end
+  end
+
+  describe '#team_health_indicator' do
+    it 'loads domain team health for TeamRecord' do
+      record = instance_double('TeamRecord', id: '123')
+      domain_team = instance_double('Team', health: :off_track)
+      result = instance_double('Result', success?: true, value: domain_team, errors: [])
+      actions = Rails.application.config.x.team_actions
+      allow(actions.find_team).to receive(:perform).with(id: '123').and_return(result)
+
+      html = helper.team_health_indicator(record)
+
+      expect(html).to include('project-health--off_track')
+    end
+
+    it 'uses the domain team directly when it responds to health' do
+      team = instance_double('Team', health: :on_track)
+
+      html = helper.team_health_indicator(team)
+
+      expect(html).to include('project-health--on_track')
+      expect(html).to include('On Track')
+    end
+
+    it 'caches domain team lookups' do
+      record = instance_double('TeamRecord', id: '123')
+      domain_team = instance_double('Team', health: :at_risk)
+      result = instance_double('Result', success?: true, value: domain_team, errors: [])
+      actions = Rails.application.config.x.team_actions
+      expect(actions.find_team).to receive(:perform).once.with(id: '123').and_return(result)
+
+      2.times { helper.team_health_indicator(record) }
+    end
+
+    it 'returns :not_available when find_team fails' do
+      record = instance_double('TeamRecord', id: '456')
+      result = instance_double('Result', success?: false, value: nil, errors: ['team not found'])
+      actions = Rails.application.config.x.team_actions
+      allow(actions.find_team).to receive(:perform).with(id: '456').and_return(result)
+
+      html = helper.team_health_indicator(record)
+
+      expect(html).to include('project-health--not_available')
+    end
+
+    it 'shows tooltip with owned projects when with_tooltip is true' do
+      project = instance_double('Project', name: 'Feature A', health: :on_track)
+      team = instance_double('Team', health: :on_track, owned_projects: [project])
+
+      html = helper.team_health_indicator(team, with_tooltip: true)
+
+      expect(html).to include('health-indicator-wrapper')
+      expect(html).to include('health-rollup-tooltip')
+      expect(html).to include('Feature A')
+    end
+
+    it 'returns plain indicator when owned_projects is empty' do
+      team = instance_double('Team', health: :on_track, owned_projects: [])
+
+      html = helper.team_health_indicator(team, with_tooltip: true)
+
+      expect(html).not_to include('health-indicator-wrapper')
+      expect(html).to include('project-health--on_track')
+    end
+
+    it 'returns plain indicator when owned_projects does not respond to any?' do
+      non_enumerable_projects = Object.new
+      team = instance_double('Team', health: :on_track, owned_projects: non_enumerable_projects)
+
+      html = helper.team_health_indicator(team, with_tooltip: true)
+
+      expect(html).not_to include('health-indicator-wrapper')
+      expect(html).to include('project-health--on_track')
+    end
+
+    it 'returns plain indicator when team does not respond to owned_projects' do
+      team = instance_double('Team', health: :on_track)
+      allow(team).to receive(:respond_to?).with(:health).and_return(true)
+      allow(team).to receive(:respond_to?).with(:owned_projects).and_return(false)
+
+      html = helper.team_health_indicator(team, with_tooltip: true)
+
+      expect(html).not_to include('health-indicator-wrapper')
+      expect(html).to include('project-health--on_track')
+    end
+
+    it 'handles team_record without id method' do
+      record = Object.new
+      result = instance_double('Result', success?: false, value: nil, errors: ['team not found'])
+      actions = Rails.application.config.x.team_actions
+      allow(actions.find_team).to receive(:perform).with(id: nil).and_return(result)
+
+      html = helper.team_health_indicator(record)
 
       expect(html).to include('project-health--not_available')
     end

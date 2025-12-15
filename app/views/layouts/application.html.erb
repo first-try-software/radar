@@ -32,6 +32,7 @@
           <div class="title">Status</div>
         </div>
         <div class="actions">
+          <%= link_to 'Teams', teams_path, class: 'btn secondary' %>
           <%= link_to 'Initiatives', initiatives_path, class: 'btn secondary' %>
           <%= link_to 'Projects', projects_path, class: 'btn secondary' %>
         </div>
@@ -58,7 +59,7 @@
         // Client-side list sorting
         document.querySelectorAll('[data-sort-controls][data-sortable-list]').forEach((controls) => {
           const listId = controls.dataset.sortableList;
-          const list = document.querySelector(`[data-sortable-list="${listId}"]`);
+          const list = [...document.querySelectorAll(`[data-sortable-list="${listId}"]`)].find(el => el !== controls);
           if (!list) return;
 
           const trigger = controls.querySelector('[data-sort-trigger]');
@@ -101,6 +102,13 @@
                 default:
                   valA = a.dataset.sortName || '';
                   valB = b.dataset.sortName || '';
+              }
+
+              // For health sorting, always put not_available (99) at the bottom
+              if (currentSort === 'health') {
+                const notAvailable = 99;
+                if (valA === notAvailable && valB !== notAvailable) return 1;
+                if (valB === notAvailable && valA !== notAvailable) return -1;
               }
 
               let cmp;

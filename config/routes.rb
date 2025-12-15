@@ -13,6 +13,15 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :teams, only: [:index, :show, :create, :update] do
+    member do
+      patch :archive
+      post :owned_projects, to: 'teams#link_owned_project'
+      post 'owned_projects/add', to: 'teams#add_owned_project', as: :add_owned_project
+      post :subordinate_teams, to: 'teams#add_subordinate_team'
+    end
+  end
+
   resources :initiatives, only: [:index, :show, :create, :update] do
     member do
       patch :state, to: 'initiatives#set_state'

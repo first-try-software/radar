@@ -6,24 +6,16 @@ class FindTeam
   end
 
   def perform(id:)
-    @id = id
+    team = team_repository.find(id)
 
     return team_not_found_failure unless team
 
-    success
+    Result.success(value: team)
   end
 
   private
 
-  attr_reader :team_repository, :id
-
-  def team
-    @team ||= team_repository.find(id)
-  end
-
-  def success
-    Result.success(value: team)
-  end
+  attr_reader :team_repository
 
   def team_not_found_failure
     Result.failure(errors: 'team not found')

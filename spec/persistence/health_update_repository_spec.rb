@@ -65,6 +65,21 @@ RSpec.describe HealthUpdateRepository do
       end
     end
 
+    it 'uses this week Monday when today is not Monday' do
+      project = ProjectRecord.create!(name: 'TuesdayTest', description: '', point_of_contact: '')
+      repository = described_class.new
+
+      # Travel to a Tuesday to ensure the else branch is hit
+      tuesday = Date.new(2025, 12, 16) # December 16, 2025 is a Tuesday
+      travel_to(tuesday) do
+        updates = repository.weekly_for_project(project.id)
+
+        expect(updates.length).to eq(6)
+        # Most recent Monday should be this week's Monday (December 15)
+        expect(updates.last.date).to eq(Date.new(2025, 12, 15))
+      end
+    end
+
     it 'returns empty when last_six_mondays returns empty' do
       project = ProjectRecord.create!(name: 'EmptyMondays', description: '', point_of_contact: '')
       repository = described_class.new
