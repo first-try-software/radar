@@ -89,6 +89,44 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).not_to include('filter-banner')
     end
 
+    it 'filters projects by initiative when initiative param is provided' do
+      initiative = InitiativeRecord.create!(name: 'Test Initiative')
+      related_project = ProjectRecord.create!(name: 'Related Project')
+      unrelated_project = ProjectRecord.create!(name: 'Unrelated Project')
+      InitiativesProjectRecord.create!(initiative: initiative, project: related_project, order: 0)
+
+      get '/projects', params: { initiative: initiative.id }
+
+      expect(response.body).to include('Related Project')
+      expect(response.body).not_to include('Unrelated Project')
+      expect(response.body).to include('Showing projects in')
+      expect(response.body).to include('Test Initiative')
+      expect(response.body).to include('Show All')
+    end
+
+    it 'combines initiative and health filters' do
+      initiative = InitiativeRecord.create!(name: 'Test Initiative')
+      on_track = ProjectRecord.create!(name: 'On Track Project')
+      off_track = ProjectRecord.create!(name: 'Off Track Project')
+      HealthUpdateRecord.create!(project: on_track, date: Date.current, health: 'on_track')
+      HealthUpdateRecord.create!(project: off_track, date: Date.current, health: 'off_track')
+      InitiativesProjectRecord.create!(initiative: initiative, project: on_track, order: 0)
+      InitiativesProjectRecord.create!(initiative: initiative, project: off_track, order: 1)
+
+      get '/projects', params: { initiative: initiative.id, health: 'on_track' }
+
+      expect(response.body).to include('On Track Project')
+      expect(response.body).not_to include('Off Track Project')
+    end
+
+    it 'shows all projects when initiative param is invalid' do
+      project = ProjectRecord.create!(name: 'Any Project')
+
+      get '/projects', params: { initiative: 'invalid' }
+
+      expect(response.body).to include('Any Project')
+    end
+
     it 'sorts projects alphabetically by default' do
       ProjectRecord.create!(name: 'Zeta Project')
       ProjectRecord.create!(name: 'Alpha Project')

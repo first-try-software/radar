@@ -7,8 +7,10 @@ class ProjectsController < ApplicationController
     @sort_by = SORT_OPTIONS.include?(params[:sort]) ? params[:sort] : DEFAULT_SORT
     @sort_dir = params[:dir] == 'desc' ? 'desc' : 'asc'
     @health_filter = HEALTH_FILTERS.include?(params[:health]) ? params[:health].to_sym : nil
+    @initiative_filter = find_initiative_filter
 
     @projects = sorted_projects(@sort_by, @sort_dir)
+    @projects = filter_by_initiative(@projects, @initiative_filter) if @initiative_filter
     @projects = filter_by_health(@projects, @health_filter) if @health_filter
 
     respond_to do |format|
@@ -355,6 +357,17 @@ class ProjectsController < ApplicationController
       result = project_actions.find_project.perform(id: record.id)
       result.success? && result.value.health == health_filter
     end
+  end
+
+  def find_initiative_filter
+    return nil unless params[:initiative].present?
+
+    InitiativeRecord.find_by(id: params[:initiative])
+  end
+
+  def filter_by_initiative(projects, initiative)
+    initiative_project_ids = initiative.related_projects.pluck(:id)
+    projects.select { |record| initiative_project_ids.include?(record.id) }
   end
 
   def create_params

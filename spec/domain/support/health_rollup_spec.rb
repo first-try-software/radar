@@ -15,11 +15,13 @@ RSpec.describe HealthRollup do
     expect(described_class.rollup(projects)).to eq(:not_available)
   end
 
-  it 'returns :on_track when average score is positive' do
+  it 'returns :on_track when average score is >= 0.51' do
     projects = [
+      double('Project', current_state: :in_progress, health: :on_track),
       double('Project', current_state: :in_progress, health: :on_track),
       double('Project', current_state: :blocked, health: :at_risk)
     ]
+    # Average = (1 + 1 + 0) / 3 = 0.67
 
     expect(described_class.rollup(projects)).to eq(:on_track)
   end

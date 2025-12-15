@@ -37,7 +37,17 @@ class Initiative
   end
 
   def health
-    HealthRollup.rollup(related_projects)
+    HealthRollup.rollup(leaf_projects)
+  end
+
+  def health_raw_score
+    HealthRollup.raw_score(leaf_projects)
+  end
+
+  def leaf_projects
+    @leaf_projects ||= related_projects.flat_map do |project|
+      project.leaf? ? [project] : project.leaf_descendants
+    end.uniq { |p| p.id || p.name }
   end
 
   def derived_state

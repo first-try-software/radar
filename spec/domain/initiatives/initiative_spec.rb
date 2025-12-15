@@ -174,9 +174,9 @@ RSpec.describe Initiative do
   describe '#health' do
     it 'returns a rollup of related projects in working states' do
       related_projects = [
-        double('Project', current_state: :in_progress, health: :off_track),
-        double('Project', current_state: :blocked, health: :off_track),
-        double('Project', current_state: :todo, health: :on_track)
+        double('Project', current_state: :in_progress, health: :off_track, leaf?: true, id: 1, name: 'P1'),
+        double('Project', current_state: :blocked, health: :off_track, leaf?: true, id: 2, name: 'P2'),
+        double('Project', current_state: :todo, health: :on_track, leaf?: true, id: 3, name: 'P3')
       ]
       initiative = described_class.new(
         name: 'Modernize Infra',
@@ -188,8 +188,8 @@ RSpec.describe Initiative do
 
     it 'returns :not_available when no related projects are in a working state' do
       related_projects = [
-        double('Project', current_state: :todo, health: :on_track),
-        double('Project', current_state: :done, health: :off_track)
+        double('Project', current_state: :todo, health: :on_track, leaf?: true, id: 1, name: 'P1'),
+        double('Project', current_state: :done, health: :off_track, leaf?: true, id: 2, name: 'P2')
       ]
       initiative = described_class.new(
         name: 'Modernize Infra',
@@ -197,6 +197,19 @@ RSpec.describe Initiative do
       )
 
       expect(initiative.health).to eq(:not_available)
+    end
+
+    it 'uses leaf descendants for parent projects' do
+      leaf1 = double('Leaf1', current_state: :in_progress, health: :on_track, leaf?: true, id: 1, name: 'Leaf1')
+      leaf2 = double('Leaf2', current_state: :in_progress, health: :on_track, leaf?: true, id: 2, name: 'Leaf2')
+      parent = double('Parent', leaf?: false, leaf_descendants: [leaf1, leaf2])
+
+      initiative = described_class.new(
+        name: 'Modernize Infra',
+        related_projects_loader: ->(_initiative) { [parent] }
+      )
+
+      expect(initiative.health).to eq(:on_track)
     end
   end
 end

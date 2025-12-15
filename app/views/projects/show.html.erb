@@ -105,7 +105,7 @@
         <% leaf_count = @project ? @project.leaf_descendants.count : 0 %>
         <div class="state-dropdown" data-state-url="<%= state_project_path(@project_record) %>" data-leaf-count="<%= leaf_count %>">
           <button class="state-toggle" type="button">
-            <span class="badge state"><%= (@project || @project_record).current_state.to_s.tr('_', ' ').titleize %></span>
+            <span class="badge state state--<%= (@project || @project_record).current_state.to_s.tr('_', '-') %>"><%= (@project || @project_record).current_state.to_s.tr('_', ' ').upcase %></span>
           </button>
           <div class="state-menu">
             <% if allowed_states.any? %>

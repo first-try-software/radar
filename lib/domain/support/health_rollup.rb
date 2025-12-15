@@ -3,18 +3,23 @@ class HealthRollup
   SCORES = { on_track: 1, at_risk: 0, off_track: -1 }.freeze
 
   def self.rollup(projects)
-    working_projects = Array(projects).select { |project| WORKING_STATES.include?(project.current_state) }
-    scores = working_projects.map { |project| SCORES[project.health] }.compact
-    return :not_available if scores.empty?
+    average = raw_score(projects)
+    return :not_available if average.nil?
 
-    average = scores.sum(0.0) / scores.length
-    case average.round(0)
-    when 1
+    if average >= 0.51
       :on_track
-    when -1
+    elsif average <= -0.49
       :off_track
     else
       :at_risk
     end
+  end
+
+  def self.raw_score(projects)
+    working_projects = Array(projects).select { |project| WORKING_STATES.include?(project.current_state) }
+    scores = working_projects.map { |project| SCORES[project.health] }.compact
+    return nil if scores.empty?
+
+    scores.sum(0.0) / scores.length
   end
 end

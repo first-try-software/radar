@@ -1,10 +1,18 @@
 <div class="grid">
   <div class="card root-projects-card">
-    <% if @health_filter %>
+    <% if @initiative_filter || @health_filter %>
       <div class="filter-banner">
         <span class="filter-banner__label">
-          <span class="project-health project-health--<%= @health_filter %> project-health--tiny"></span>
-          Showing <%= @health_filter.to_s.tr('_', ' ').titleize %> projects
+          <% if @health_filter %>
+            <span class="project-health project-health--<%= @health_filter %> project-health--tiny"></span>
+          <% end %>
+          <% if @initiative_filter && @health_filter %>
+            Showing <%= @health_filter.to_s.tr('_', ' ').titleize %> projects in <%= @initiative_filter.name %>
+          <% elsif @initiative_filter %>
+            Showing projects in <%= @initiative_filter.name %>
+          <% else %>
+            Showing <%= @health_filter.to_s.tr('_', ' ').titleize %> projects
+          <% end %>
         </span>
         <%= link_to 'Show All', projects_path, class: 'filter-banner__clear' %>
       </div>

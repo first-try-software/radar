@@ -23,6 +23,7 @@ class InitiativesController < ApplicationController
         if result.success?
           @initiative = result.value
           @initiative_record = InitiativeRecord.find(params[:id])
+          populate_dashboard_data(@initiative)
           render :show
         else
           render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
@@ -68,8 +69,9 @@ class InitiativesController < ApplicationController
           redirect_to(initiative_path(params[:id]), notice: 'Initiative updated')
         else
           @initiative_record = InitiativeRecord.find(params[:id])
-          @initiative = result.value
+          @initiative = result.value || find_domain_initiative(@initiative_record.id)
           @errors = result.errors
+          populate_dashboard_data(@initiative)
           render :show, status: error_status(result.errors)
         end
       end
@@ -147,6 +149,7 @@ class InitiativesController < ApplicationController
           @initiative_record = InitiativeRecord.find(params[:id])
           @initiative = find_domain_initiative(@initiative_record.id)
           @errors = create_result.errors
+          populate_dashboard_data(@initiative)
           render :show, status: :unprocessable_content
         end
       end
@@ -171,6 +174,7 @@ class InitiativesController < ApplicationController
           @initiative_record = InitiativeRecord.find(params[:id])
           @initiative = find_domain_initiative(@initiative_record.id)
           @errors = link_result.errors
+          populate_dashboard_data(@initiative)
           render :show, status: :unprocessable_content
         end
       end
@@ -321,5 +325,32 @@ class InitiativesController < ApplicationController
 
   def update_params
     params.fetch(:initiative, {}).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
+  end
+
+  def populate_dashboard_data(initiative)
+    return set_empty_dashboard_data unless initiative
+
+    dashboard = InitiativeDashboard.new(
+      initiative: initiative,
+      health_update_repository: Rails.application.config.x.health_update_repository
+    )
+
+    @health_summary = dashboard.health_summary
+    @total_active_projects = dashboard.total_active_projects
+    @attention_required = dashboard.attention_required
+    @on_hold_projects = dashboard.on_hold_projects
+    @never_updated_projects = dashboard.never_updated_projects
+    @stale_projects_14 = dashboard.stale_projects(days: 14)
+    @stale_projects_7 = dashboard.stale_projects_between(min_days: 7, max_days: 14)
+  end
+
+  def set_empty_dashboard_data
+    @health_summary = { on_track: 0, at_risk: 0, off_track: 0 }
+    @total_active_projects = 0
+    @attention_required = []
+    @on_hold_projects = []
+    @never_updated_projects = []
+    @stale_projects_14 = []
+    @stale_projects_7 = []
   end
 end

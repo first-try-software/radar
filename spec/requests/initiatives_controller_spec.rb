@@ -173,15 +173,65 @@ RSpec.describe InitiativesController, type: :request do
       expect(response.body).to include('project-health')
     end
 
-    it 'links related projects to their show pages with initiative ref' do
+    it 'renders health summary cards on the show page' do
       initiative = InitiativeRecord.create!(name: 'Launch 2025')
-      project = ProjectRecord.create!(name: 'Feature A')
+      on_track = ProjectRecord.create!(name: 'On Track', current_state: 'in_progress')
+      at_risk = ProjectRecord.create!(name: 'At Risk', current_state: 'in_progress')
+      HealthUpdateRecord.create!(project: on_track, date: Date.current, health: 'on_track')
+      HealthUpdateRecord.create!(project: at_risk, date: Date.current, health: 'at_risk')
+      InitiativesProjectRecord.create!(initiative: initiative, project: on_track, order: 0)
+      InitiativesProjectRecord.create!(initiative: initiative, project: at_risk, order: 1)
+
+      get "/initiatives/#{initiative.id}"
+
+      expect(response.body).to include('dashboard-stats')
+      expect(response.body).to include('stat-card')
+    end
+
+    it 'renders attention required section on the show page' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      off_track = ProjectRecord.create!(name: 'Off Track Project', current_state: 'in_progress')
+      HealthUpdateRecord.create!(project: off_track, date: Date.current, health: 'off_track')
+      InitiativesProjectRecord.create!(initiative: initiative, project: off_track, order: 0)
+
+      get "/initiatives/#{initiative.id}"
+
+      expect(response.body).to include('Needs Attention')
+      expect(response.body).to include('Off Track Project')
+    end
+
+    it 'renders needs update section on the show page' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      stale_project = ProjectRecord.create!(name: 'Stale Project', current_state: 'in_progress')
+      HealthUpdateRecord.create!(project: stale_project, date: Date.current - 20, health: 'on_track')
+      InitiativesProjectRecord.create!(initiative: initiative, project: stale_project, order: 0)
+
+      get "/initiatives/#{initiative.id}"
+
+      expect(response.body).to include('Needs Update')
+      expect(response.body).to include('Stale Project')
+    end
+
+    it 'renders add/link projects section on the show page' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+
+      get "/initiatives/#{initiative.id}"
+
+      expect(response.body).to include('Add or link a project')
+    end
+
+    it 'links projects in attention sections to their show pages with initiative ref' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      project = ProjectRecord.create!(name: 'Feature A', current_state: 'in_progress')
+      # Create a never-updated project so it shows in the Needs Update section
       InitiativesProjectRecord.create!(initiative: initiative, project: project, order: 0)
 
       get "/initiatives/#{initiative.id}"
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include(%(href="/projects/#{project.id}?ref=initiative%3A#{initiative.id}">Feature A</a>))
+      # Project should appear in Needs Update section with initiative ref
+      expect(response.body).to include(%(href="/projects/#{project.id}?ref=initiative%3A#{initiative.id}"))
+      expect(response.body).to include('Feature A')
     end
 
     it 'creates via HTML and redirects' do
@@ -248,7 +298,7 @@ RSpec.describe InitiativesController, type: :request do
 
       expect(response).to have_http_status(:found)
       follow_redirect!
-      expect(response.body).to include('Feature A')
+      expect(response.body).to include('Project linked')
     end
 
     it 'returns 404 for missing initiative on HTML link project' do
@@ -274,7 +324,7 @@ RSpec.describe InitiativesController, type: :request do
 
       expect(response).to have_http_status(:found)
       follow_redirect!
-      expect(response.body).to include('New Feature')
+      expect(response.body).to include('Project added and linked')
       expect(ProjectRecord.find_by(name: 'New Feature')).to be_present
     end
 

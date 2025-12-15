@@ -17,6 +17,7 @@ Rails.application.config.to_prepare do
   require_dependency Rails.root.join('lib/domain/initiatives/link_related_project')
   require_dependency Rails.root.join('lib/domain/initiatives/unlink_related_project')
   require_dependency Rails.root.join('lib/domain/initiatives/set_initiative_state')
+  require_dependency Rails.root.join('lib/domain/initiatives/initiative_dashboard')
   require_dependency Rails.root.join('lib/domain/teams/create_team')
   require_dependency Rails.root.join('lib/domain/teams/find_team')
   require_dependency Rails.root.join('lib/domain/teams/update_team')
