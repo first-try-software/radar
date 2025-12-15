@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  root 'projects#index'
+  root 'dashboard#index'
 
   resources :projects, only: [:index, :show, :create, :update] do
     member do

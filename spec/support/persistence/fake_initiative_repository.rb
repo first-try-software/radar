@@ -48,6 +48,10 @@ class FakeInitiativeRepository
     relationships.reject! { |rel| rel[:initiative_id] == initiative_id && rel[:project].name == project_id }
   end
 
+  def all_active_roots
+    records.values.reject(&:archived?)
+  end
+
   private
 
   attr_reader :records, :relationships

@@ -184,4 +184,72 @@ RSpec.describe ProjectRepository do
       }.to raise_error(/already has a parent/)
     end
   end
+
+  describe '#all_active_roots' do
+    it 'returns non-archived root projects' do
+      ProjectRecord.create!(name: 'Active Root')
+      ProjectRecord.create!(name: 'Archived', archived: true)
+
+      roots = repository.all_active_roots
+
+      expect(roots.map(&:name)).to eq(['Active Root'])
+    end
+
+    it 'excludes child projects' do
+      parent = ProjectRecord.create!(name: 'Parent')
+      child = build_project('Child')
+      repository.save(child)
+      repository.link_subordinate(parent_id: parent.id, child: child, order: 0)
+
+      roots = repository.all_active_roots
+
+      expect(roots.map(&:name)).to eq(['Parent'])
+    end
+
+    it 'includes project id in returned entities' do
+      record = ProjectRecord.create!(name: 'WithId')
+
+      roots = repository.all_active_roots
+
+      expect(roots.first.id).to eq(record.id.to_s)
+    end
+  end
+
+  describe '#orphan_projects' do
+    it 'returns projects without parent or team' do
+      ProjectRecord.create!(name: 'Orphan')
+
+      orphans = repository.orphan_projects
+
+      expect(orphans.map(&:name)).to eq(['Orphan'])
+    end
+
+    it 'excludes archived projects' do
+      ProjectRecord.create!(name: 'Archived Orphan', archived: true)
+
+      orphans = repository.orphan_projects
+
+      expect(orphans).to be_empty
+    end
+
+    it 'excludes projects with a parent' do
+      parent = ProjectRecord.create!(name: 'Parent')
+      child = ProjectRecord.create!(name: 'Child')
+      ProjectsProjectRecord.create!(parent: parent, child: child, order: 0)
+
+      orphans = repository.orphan_projects
+
+      expect(orphans.map(&:name)).to eq(['Parent'])
+    end
+
+    it 'excludes projects owned by a team' do
+      project = ProjectRecord.create!(name: 'Team Owned')
+      team = TeamRecord.create!(name: 'Team')
+      TeamsProjectRecord.create!(team: team, project: project, order: 0)
+
+      orphans = repository.orphan_projects
+
+      expect(orphans).to be_empty
+    end
+  end
 end

@@ -231,4 +231,32 @@ RSpec.describe TeamRepository do
       expect(TeamsTeamRecord.where(parent: parent, child: child)).to be_empty
     end
   end
+
+  describe '#all_active_roots' do
+    it 'returns all non-archived root teams' do
+      TeamRecord.create!(name: 'Root 1', archived: false)
+      TeamRecord.create!(name: 'Root 2', archived: false)
+      TeamRecord.create!(name: 'Archived', archived: true)
+
+      result = repository.all_active_roots
+
+      expect(result.map(&:name)).to match_array(['Root 1', 'Root 2'])
+    end
+
+    it 'excludes child teams' do
+      parent = TeamRecord.create!(name: 'Parent', archived: false)
+      child = TeamRecord.create!(name: 'Child', archived: false)
+      TeamsTeamRecord.create!(parent: parent, child: child, order: 0)
+
+      result = repository.all_active_roots
+
+      expect(result.map(&:name)).to eq(['Parent'])
+    end
+
+    it 'returns empty array when no teams exist' do
+      result = repository.all_active_roots
+
+      expect(result).to eq([])
+    end
+  end
 end

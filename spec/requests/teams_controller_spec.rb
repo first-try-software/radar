@@ -137,7 +137,7 @@ RSpec.describe TeamsController, type: :request do
       expect(response.body).to include('project-health')
     end
 
-    it 'links owned projects to their show pages' do
+    it 'links owned projects to their show pages with team ref' do
       team = TeamRecord.create!(name: 'Platform Team')
       project = ProjectRecord.create!(name: 'Feature A')
       TeamsProjectRecord.create!(team: team, project: project, order: 0)
@@ -145,7 +145,7 @@ RSpec.describe TeamsController, type: :request do
       get "/teams/#{team.id}"
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include(%(href="/projects/#{project.id}">Feature A</a>))
+      expect(response.body).to include(%(href="/projects/#{project.id}?ref=team%3A#{team.id}">Feature A</a>))
     end
 
     it 'creates via HTML and redirects' do
@@ -232,7 +232,7 @@ RSpec.describe TeamsController, type: :request do
 
       post "/teams/#{team.id}/owned_projects/add", params: { project: { name: '' } }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('name must be present')
     end
 
@@ -243,7 +243,7 @@ RSpec.describe TeamsController, type: :request do
 
       post "/teams/#{team.id}/owned_projects/add", params: { project: { name: '' } }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it 'returns error when project created but linking fails' do
@@ -254,7 +254,7 @@ RSpec.describe TeamsController, type: :request do
       # Team has subordinate teams, so linking will fail
       post "/teams/#{team.id}/owned_projects/add", params: { project: { name: 'New Feature' } }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('teams with subordinate teams cannot own projects')
     end
 
@@ -301,7 +301,7 @@ RSpec.describe TeamsController, type: :request do
 
       post "/teams/#{parent.id}/subordinate_teams", params: { team: { name: '' } }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('name must be present')
     end
 
@@ -312,7 +312,7 @@ RSpec.describe TeamsController, type: :request do
 
       post "/teams/#{parent.id}/subordinate_teams", params: { team: { name: '' } }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 

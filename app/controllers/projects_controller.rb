@@ -1,12 +1,15 @@
 class ProjectsController < ApplicationController
   SORT_OPTIONS = %w[alphabet state health updated].freeze
   DEFAULT_SORT = 'alphabet'.freeze
+  HEALTH_FILTERS = %w[on_track at_risk off_track].freeze
 
   def index
     @sort_by = SORT_OPTIONS.include?(params[:sort]) ? params[:sort] : DEFAULT_SORT
     @sort_dir = params[:dir] == 'desc' ? 'desc' : 'asc'
+    @health_filter = HEALTH_FILTERS.include?(params[:health]) ? params[:health].to_sym : nil
 
     @projects = sorted_projects(@sort_by, @sort_dir)
+    @projects = filter_by_health(@projects, @health_filter) if @health_filter
 
     respond_to do |format|
       format.html
@@ -345,6 +348,13 @@ class ProjectsController < ApplicationController
     end
 
     sorted.map(&:first)
+  end
+
+  def filter_by_health(projects, health_filter)
+    projects.select do |record|
+      result = project_actions.find_project.perform(id: record.id)
+      result.success? && result.value.health == health_filter
+    end
   end
 
   def create_params

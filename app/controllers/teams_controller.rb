@@ -123,12 +123,12 @@ class TeamsController < ApplicationController
     )
     unless create_result.success?
       respond_to do |format|
-        format.json { render json: { errors: create_result.errors }, status: :unprocessable_entity }
+        format.json { render json: { errors: create_result.errors }, status: :unprocessable_content }
         format.html do
           @team_record = TeamRecord.find(params[:id])
           @team = find_domain_team(@team_record.id)
           @errors = create_result.errors
-          render :show, status: :unprocessable_entity
+          render :show, status: :unprocessable_content
         end
       end
       return
@@ -152,7 +152,7 @@ class TeamsController < ApplicationController
           @team_record = TeamRecord.find(params[:id])
           @team = find_domain_team(@team_record.id)
           @errors = link_result.errors
-          render :show, status: :unprocessable_entity
+          render :show, status: :unprocessable_content
         end
       end
     end
@@ -183,7 +183,7 @@ class TeamsController < ApplicationController
           @team_record = TeamRecord.find(params[:id])
           @team = find_domain_team(@team_record.id)
           @errors = result.errors
-          render :show, status: :unprocessable_entity
+          render :show, status: :unprocessable_content
         end
       end
     end

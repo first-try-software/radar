@@ -102,12 +102,35 @@ class ProjectRepository
     ProjectsProjectRecord.where(parent_id: parent_id, child_id: child_id).destroy_all
   end
 
+  def all_active_roots
+    root_ids = ProjectRecord
+               .left_outer_joins(:parent_relationship)
+               .where(projects_projects: { child_id: nil })
+               .where(archived: false)
+               .pluck(:id)
+
+    ProjectRecord.where(id: root_ids).map { |record| build_entity(record) }
+  end
+
+  def orphan_projects
+    # Projects without a parent project and without a team owner
+    owned_project_ids = TeamsProjectRecord.pluck(:project_id)
+
+    ProjectRecord
+      .left_outer_joins(:parent_relationship)
+      .where(projects_projects: { child_id: nil })
+      .where.not(id: owned_project_ids)
+      .where(archived: false)
+      .map { |record| build_entity(record) }
+  end
+
   private
 
   attr_reader :health_update_repository
 
   def build_entity(record)
     attrs = ProjectAttributes.new(
+      id: record.id,
       name: record.name,
       description: record.description,
       point_of_contact: record.point_of_contact,

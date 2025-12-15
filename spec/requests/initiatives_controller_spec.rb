@@ -173,7 +173,7 @@ RSpec.describe InitiativesController, type: :request do
       expect(response.body).to include('project-health')
     end
 
-    it 'links related projects to their show pages' do
+    it 'links related projects to their show pages with initiative ref' do
       initiative = InitiativeRecord.create!(name: 'Launch 2025')
       project = ProjectRecord.create!(name: 'Feature A')
       InitiativesProjectRecord.create!(initiative: initiative, project: project, order: 0)
@@ -181,7 +181,7 @@ RSpec.describe InitiativesController, type: :request do
       get "/initiatives/#{initiative.id}"
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include(%(href="/projects/#{project.id}">Feature A</a>))
+      expect(response.body).to include(%(href="/projects/#{project.id}?ref=initiative%3A#{initiative.id}">Feature A</a>))
     end
 
     it 'creates via HTML and redirects' do

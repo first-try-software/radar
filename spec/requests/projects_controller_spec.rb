@@ -66,6 +66,29 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).not_to include('in_progress')
     end
 
+    it 'filters projects by health when health param is provided' do
+      on_track_project = ProjectRecord.create!(name: 'Good Project', current_state: 'in_progress')
+      HealthUpdateRecord.create!(project: on_track_project, date: Date.current, health: 'on_track')
+      off_track_project = ProjectRecord.create!(name: 'Bad Project', current_state: 'in_progress')
+      HealthUpdateRecord.create!(project: off_track_project, date: Date.current, health: 'off_track')
+
+      get '/projects', params: { health: 'on_track' }
+
+      expect(response.body).to include('Good Project')
+      expect(response.body).not_to include('Bad Project')
+      expect(response.body).to include('Showing On Track projects')
+      expect(response.body).to include('Show All')
+    end
+
+    it 'shows all projects when health param is invalid' do
+      project = ProjectRecord.create!(name: 'Any Project')
+
+      get '/projects', params: { health: 'invalid' }
+
+      expect(response.body).to include('Any Project')
+      expect(response.body).not_to include('filter-banner')
+    end
+
     it 'sorts projects alphabetically by default' do
       ProjectRecord.create!(name: 'Zeta Project')
       ProjectRecord.create!(name: 'Alpha Project')

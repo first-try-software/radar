@@ -55,6 +55,11 @@ class FakeTeamRepository
     owned_relationships_for(team_id: team_id).any?
   end
 
+  def all_active_roots
+    child_ids = subordinate_relationships.map { |rel| rel[:child].name }
+    records.values.reject { |team| team.archived? || child_ids.include?(team.name) }
+  end
+
   private
 
   attr_reader :records, :owned_relationships, :subordinate_relationships

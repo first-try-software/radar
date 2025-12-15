@@ -183,4 +183,22 @@ RSpec.describe InitiativeRepository do
       expect(InitiativesProjectRecord.where(project_id: ProjectRecord.find_by(name: 'Shared Project').id).count).to eq(2)
     end
   end
+
+  describe '#all_active_roots' do
+    it 'returns all non-archived initiatives' do
+      InitiativeRecord.create!(name: 'Active 1', archived: false)
+      InitiativeRecord.create!(name: 'Active 2', archived: false)
+      InitiativeRecord.create!(name: 'Archived', archived: true)
+
+      result = repository.all_active_roots
+
+      expect(result.map(&:name)).to match_array(['Active 1', 'Active 2'])
+    end
+
+    it 'returns empty array when no initiatives exist' do
+      result = repository.all_active_roots
+
+      expect(result).to eq([])
+    end
+  end
 end

@@ -144,4 +144,42 @@ RSpec.describe HealthUpdateRepository do
       expect(updates.last.description).to eq('Current week')
     end
   end
+
+  describe '#all' do
+    it 'returns all health updates ordered by date descending' do
+      project = ProjectRecord.create!(name: 'AllUpdates', description: '', point_of_contact: '')
+      HealthUpdateRecord.create!(project: project, date: Date.new(2025, 1, 1), health: 'on_track')
+      HealthUpdateRecord.create!(project: project, date: Date.new(2025, 1, 10), health: 'off_track')
+      repository = described_class.new
+
+      updates = repository.all
+
+      expect(updates.length).to eq(2)
+      expect(updates.first.date).to eq(Date.new(2025, 1, 10))
+      expect(updates.last.date).to eq(Date.new(2025, 1, 1))
+    end
+  end
+
+  describe '#latest_for_project' do
+    it 'returns the most recent update for a project' do
+      project = ProjectRecord.create!(name: 'LatestUpdate', description: '', point_of_contact: '')
+      HealthUpdateRecord.create!(project: project, date: Date.new(2025, 1, 1), health: 'on_track')
+      HealthUpdateRecord.create!(project: project, date: Date.new(2025, 1, 10), health: 'off_track')
+      repository = described_class.new
+
+      latest = repository.latest_for_project(project.id)
+
+      expect(latest.date).to eq(Date.new(2025, 1, 10))
+      expect(latest.health).to eq(:off_track)
+    end
+
+    it 'returns nil when no updates exist' do
+      project = ProjectRecord.create!(name: 'NoUpdates', description: '', point_of_contact: '')
+      repository = described_class.new
+
+      latest = repository.latest_for_project(project.id)
+
+      expect(latest).to be_nil
+    end
+  end
 end

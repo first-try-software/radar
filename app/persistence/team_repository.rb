@@ -123,6 +123,11 @@ class TeamRepository
     TeamsProjectRecord.exists?(team_id: team_id)
   end
 
+  def all_active_roots
+    child_ids = TeamsTeamRecord.pluck(:child_id)
+    TeamRecord.where(archived: false).where.not(id: child_ids).map { |record| build_entity(record) }
+  end
+
   private
 
   attr_reader :project_repository

@@ -1,4 +1,5 @@
 ProjectAttributes = Data.define(
+  :id,
   :name,
   :description,
   :point_of_contact,
@@ -7,12 +8,14 @@ ProjectAttributes = Data.define(
 ) do
   def initialize(
     name:,
+    id: nil,
     description: '',
     point_of_contact: '',
     archived: false,
     current_state: :new
   )
     super(
+      id: id&.to_s,
       name: name.to_s,
       description: description.to_s,
       point_of_contact: point_of_contact.to_s,

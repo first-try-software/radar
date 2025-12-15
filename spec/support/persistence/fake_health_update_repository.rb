@@ -8,8 +8,16 @@ class FakeHealthUpdateRepository
     health_update
   end
 
+  def all
+    records.dup
+  end
+
   def all_for_project(project_id)
     records.select { |update| update.project_id == project_id }
+  end
+
+  def latest_for_project(project_id)
+    all_for_project(project_id).max_by(&:date)
   end
 
   private

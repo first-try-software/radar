@@ -1,14 +1,19 @@
 <nav class="breadcrumbs" aria-label="Breadcrumb">
   <ol>
-    <li><%= link_to 'Projects', projects_path %></li>
-    <% ancestors = [] %>
-    <% current = @project_record.parent %>
-    <% while current do %>
-      <% ancestors.unshift(current) %>
-      <% current = current.parent %>
-    <% end %>
-    <% ancestors.each do |ancestor| %>
-      <li><%= link_to ancestor.name, project_path(ancestor) %></li>
+    <% ref_crumb = breadcrumb_from_ref(params[:ref]) %>
+    <% if ref_crumb %>
+      <li><%= link_to ref_crumb[:name], ref_crumb[:path] %></li>
+    <% else %>
+      <li><%= link_to 'Projects', projects_path %></li>
+      <% ancestors = [] %>
+      <% current = @project_record.parent %>
+      <% while current do %>
+        <% ancestors.unshift(current) %>
+        <% current = current.parent %>
+      <% end %>
+      <% ancestors.each do |ancestor| %>
+        <li><%= link_to ancestor.name, project_path(ancestor) %></li>
+      <% end %>
     <% end %>
     <li aria-current="page"><%= @project_record.name %></li>
   </ol>

@@ -1,5 +1,14 @@
 <div class="grid">
   <div class="card root-projects-card">
+    <% if @health_filter %>
+      <div class="filter-banner">
+        <span class="filter-banner__label">
+          <span class="project-health project-health--<%= @health_filter %> project-health--tiny"></span>
+          Showing <%= @health_filter.to_s.tr('_', ' ').titleize %> projects
+        </span>
+        <%= link_to 'Show All', projects_path, class: 'filter-banner__clear' %>
+      </div>
+    <% end %>
     <div class="card-header">
       <h2 class="section-title">Projects</h2>
       <div class="sort-controls" data-sort-controls>

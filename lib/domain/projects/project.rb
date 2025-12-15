@@ -12,6 +12,7 @@ class Project
     @loaders = loaders
   end
 
+  def id = attributes.id
   def name = attributes.name
   def description = attributes.description
   def point_of_contact = attributes.point_of_contact

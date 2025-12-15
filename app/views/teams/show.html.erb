@@ -1,6 +1,21 @@
 <nav class="breadcrumbs" aria-label="Breadcrumb">
   <ol>
-    <li><%= link_to 'Teams', teams_path %></li>
+    <% ref_crumb = breadcrumb_from_ref(params[:ref]) %>
+    <% if ref_crumb %>
+      <li><%= link_to ref_crumb[:name], ref_crumb[:path] %></li>
+      <li><%= link_to 'Teams', teams_path(ref: ref_crumb[:ref_param]) %></li>
+    <% else %>
+      <li><%= link_to 'Teams', teams_path %></li>
+    <% end %>
+    <% ancestors = [] %>
+    <% current = @team_record.parent_relationships.first&.parent %>
+    <% while current do %>
+      <% ancestors.unshift(current) %>
+      <% current = current.parent_relationships.first&.parent %>
+    <% end %>
+    <% ancestors.each do |ancestor| %>
+      <li><%= link_to ancestor.name, team_path(ancestor, ref: params[:ref]) %></li>
+    <% end %>
     <li aria-current="page"><%= @team_record.name %></li>
   </ol>
 </nav>
@@ -96,7 +111,7 @@
         <% end %>
       </div>
       <ul class="list children-list" data-sortable-list="subordinate-teams-list">
-        <%= render partial: 'teams/subordinate_team_item', collection: subordinate_teams, as: :subordinate_team %>
+        <%= render partial: 'teams/subordinate_team_item', collection: subordinate_teams, as: :subordinate_team, locals: { parent_team: @team_record } %>
         <% if subordinate_teams.empty? %>
           <li class="list-item" data-empty-message><span class="muted">No teams yet.</span></li>
         <% end %>
@@ -156,12 +171,13 @@
       <% end %>
     </div>
     <ul class="list children-list" data-sortable-list="owned-projects-list">
-      <%= render partial: 'teams/owned_project_item', collection: display_projects, as: :project %>
+      <%= render partial: 'teams/owned_project_item', collection: display_projects, as: :project, locals: { parent_team: @team_record } %>
       <% if display_projects.empty? %>
         <li class="list-item" data-empty-message><span class="muted">No <%= has_subteams ? 'projects' : 'owned projects' %> yet.</span></li>
       <% end %>
       <% if is_leaf_team %>
-        <% available_projects = ProjectRecord.where(archived: false).where.not(id: owned_projects.map(&:id)).order(:name) %>
+        <% projects_owned_by_any_team = TeamsProjectRecord.pluck(:project_id) %>
+        <% available_projects = ProjectRecord.where(archived: false).where.not(id: projects_owned_by_any_team).order(:name) %>
         <li class="list-item list-item--add-child">
           <form action="<%= owned_projects_team_path(@team_record) %>"
                 method="post"

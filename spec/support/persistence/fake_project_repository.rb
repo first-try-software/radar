@@ -53,6 +53,22 @@ class FakeProjectRepository
     relationships.any? { |rel| rel[:child_id] == child_id }
   end
 
+  def all_active_roots
+    records.values.reject do |project|
+      project.archived? || has_parent?(child_id: child_key(project))
+    end
+  end
+
+  def orphan_projects
+    # In the fake repo, we just return root projects without parents
+    # (team ownership is not tracked in the fake)
+    all_active_roots
+  end
+
+  def link_child(parent_id:, child:, order:)
+    link_subordinate(parent_id: parent_id, child: child, order: order)
+  end
+
   private
 
   attr_reader :records, :relationships

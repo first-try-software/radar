@@ -29,12 +29,21 @@
     <div class="page">
       <div class="header">
         <div>
-          <div class="title">Status</div>
+          <%= link_to 'Status', root_path, class: 'title' %>
         </div>
-        <div class="actions">
-          <%= link_to 'Teams', teams_path, class: 'btn secondary' %>
-          <%= link_to 'Initiatives', initiatives_path, class: 'btn secondary' %>
-          <%= link_to 'Projects', projects_path, class: 'btn secondary' %>
+        <div class="header-links">
+          <a href="<%= teams_path %>" class="header-link">
+            <span class="header-link-icon">👥</span>
+            <span class="header-link-text">Teams</span>
+          </a>
+          <a href="<%= initiatives_path %>" class="header-link">
+            <span class="header-link-icon">🎯</span>
+            <span class="header-link-text">Initiatives</span>
+          </a>
+          <a href="<%= projects_path %>" class="header-link">
+            <span class="header-link-icon">📁</span>
+            <span class="header-link-text">Projects</span>
+          </a>
         </div>
       </div>
 

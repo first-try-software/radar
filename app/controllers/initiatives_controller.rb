@@ -142,12 +142,12 @@ class InitiativesController < ApplicationController
     create_result = project_actions.create_project.perform(name: project_name)
     unless create_result.success?
       respond_to do |format|
-        format.json { render json: { errors: create_result.errors }, status: :unprocessable_entity }
+        format.json { render json: { errors: create_result.errors }, status: :unprocessable_content }
         format.html do
           @initiative_record = InitiativeRecord.find(params[:id])
           @initiative = find_domain_initiative(@initiative_record.id)
           @errors = create_result.errors
-          render :show, status: :unprocessable_entity
+          render :show, status: :unprocessable_content
         end
       end
       return
@@ -171,7 +171,7 @@ class InitiativesController < ApplicationController
           @initiative_record = InitiativeRecord.find(params[:id])
           @initiative = find_domain_initiative(@initiative_record.id)
           @errors = link_result.errors
-          render :show, status: :unprocessable_entity
+          render :show, status: :unprocessable_content
         end
       end
     end

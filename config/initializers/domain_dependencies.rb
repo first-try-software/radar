@@ -24,6 +24,7 @@ Rails.application.config.to_prepare do
   require_dependency Rails.root.join('lib/domain/teams/create_subordinate_team')
   require_dependency Rails.root.join('lib/domain/teams/create_owned_project')
   require_dependency Rails.root.join('lib/domain/teams/link_owned_project')
+  require_dependency Rails.root.join('lib/domain/dashboard/dashboard')
   require_dependency Rails.root.join('app/persistence/project_repository')
   require_dependency Rails.root.join('app/persistence/health_update_repository')
   require_dependency Rails.root.join('app/persistence/initiative_repository')
@@ -53,5 +54,11 @@ Rails.application.config.to_prepare do
   Rails.application.config.x.team_actions = TeamActionsFactory.new(
     team_repository: Rails.application.config.x.team_repository,
     project_repository: Rails.application.config.x.project_repository
+  )
+  Rails.application.config.x.dashboard = Dashboard.new(
+    project_repository: Rails.application.config.x.project_repository,
+    health_update_repository: Rails.application.config.x.health_update_repository,
+    initiative_repository: Rails.application.config.x.initiative_repository,
+    team_repository: Rails.application.config.x.team_repository
   )
 end

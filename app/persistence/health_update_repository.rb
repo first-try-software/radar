@@ -28,6 +28,15 @@ class HealthUpdateRepository
     bucket_by_week(updates)
   end
 
+  def all
+    HealthUpdateRecord.order(date: :desc).map { |record| build_entity(record) }
+  end
+
+  def latest_for_project(project_id)
+    record = HealthUpdateRecord.where(project_id: project_id).order(date: :desc).first
+    record ? build_entity(record) : nil
+  end
+
   private
 
   def bucket_by_week(updates)

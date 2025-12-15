@@ -84,6 +84,10 @@ class InitiativeRepository
     InitiativesProjectRecord.where(initiative_id: initiative_id, project_id: project_id).destroy_all
   end
 
+  def all_active_roots
+    InitiativeRecord.where(archived: false).map { |record| build_entity(record) }
+  end
+
   private
 
   attr_reader :project_repository

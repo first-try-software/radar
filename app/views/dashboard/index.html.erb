@@ -1,0 +1,226 @@
+<div class="dashboard">
+  <!-- Health Summary Stats -->
+  <div class="dashboard-stats">
+    <%= link_to projects_path, class: 'stat-card stat-card--total stat-card--clickable' do %>
+      <div class="stat-value"><%= @total_active_projects %></div>
+      <div class="stat-label">Active Projects</div>
+    <% end %>
+    <%= link_to projects_path(health: 'on_track'), class: 'stat-card stat-card--on-track stat-card--clickable' do %>
+      <div class="stat-value"><%= @health_summary[:on_track] %></div>
+      <div class="stat-label">
+        <span class="project-health project-health--on_track project-health--tiny"></span>
+        On Track
+      </div>
+    <% end %>
+    <%= link_to projects_path(health: 'at_risk'), class: 'stat-card stat-card--at-risk stat-card--clickable' do %>
+      <div class="stat-value"><%= @health_summary[:at_risk] %></div>
+      <div class="stat-label">
+        <span class="project-health project-health--at_risk project-health--tiny"></span>
+        At Risk
+      </div>
+    <% end %>
+    <%= link_to projects_path(health: 'off_track'), class: 'stat-card stat-card--off-track stat-card--clickable' do %>
+      <div class="stat-value"><%= @health_summary[:off_track] %></div>
+      <div class="stat-label">
+        <span class="project-health project-health--off_track project-health--tiny"></span>
+        Off Track
+      </div>
+    <% end %>
+  </div>
+
+  <div class="dashboard-columns">
+    <!-- Attention Required Section (Left Column) -->
+    <div class="card dashboard-card attention-card">
+      <div class="card-header">
+        <h3 class="section-title">Needs Attention</h3>
+      </div>
+      <% if @attention_required.empty? && @attention_required_initiatives.empty? && @attention_required_teams.empty? && @on_hold_projects.empty? %>
+        <div class="congrats-message">
+          <span class="congrats-text">Congratulations! Everything is on track!</span>
+        </div>
+      <% else %>
+        <div class="attention-rows">
+          <% if @attention_required.any? %>
+            <!-- Projects Row -->
+            <div class="attention-row">
+              <h4 class="attention-row-title"><span class="attention-count"><%= @attention_required.size %></span> Projects</h4>
+              <ul class="list attention-list">
+                <% @attention_required.each do |project| %>
+                  <li class="list-item attention-item">
+                    <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-link attention-link">
+                      <%= project_health_indicator(project) %>
+                      <span class="project-name"><%= project.name %></span>
+                      <% if project.current_state == :blocked %>
+                        <span class="state-badge state-badge--blocked">Blocked</span>
+                      <% end %>
+                    </a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <% if @attention_required_initiatives.any? %>
+            <!-- Initiatives Row -->
+            <div class="attention-row">
+              <h4 class="attention-row-title"><span class="attention-count"><%= @attention_required_initiatives.size %></span> Initiatives</h4>
+              <ul class="list attention-list">
+                <% @attention_required_initiatives.each do |initiative| %>
+                  <li class="list-item attention-item">
+                    <a href="<%= initiative_path(InitiativeRecord.find_by(name: initiative.name), ref: 'dashboard') %>" class="project-link attention-link">
+                      <%= initiative_health_indicator(initiative) %>
+                      <span class="project-name"><%= initiative.name %></span>
+                      <% if initiative.current_state == :blocked %>
+                        <span class="state-badge state-badge--blocked">Blocked</span>
+                      <% end %>
+                    </a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <% if @attention_required_teams.any? %>
+            <!-- Teams Row -->
+            <div class="attention-row">
+              <h4 class="attention-row-title"><span class="attention-count"><%= @attention_required_teams.size %></span> Teams</h4>
+              <ul class="list attention-list">
+                <% @attention_required_teams.each do |team| %>
+                  <li class="list-item attention-item">
+                    <a href="<%= team_path(TeamRecord.find_by(name: team.name), ref: 'dashboard') %>" class="project-link attention-link">
+                      <%= team_health_indicator(team) %>
+                      <span class="project-name"><%= team.name %></span>
+                    </a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <% if @on_hold_projects.any? %>
+            <!-- On Hold Row -->
+            <div class="attention-row">
+              <h4 class="attention-row-title"><span class="attention-count"><%= @on_hold_projects.size %></span> On Hold</h4>
+              <ul class="list attention-list">
+                <% @on_hold_projects.each do |project| %>
+                  <li class="list-item attention-item">
+                    <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-link attention-link">
+                      <%= project_health_indicator(project) %>
+                      <span class="project-name"><%= project.name %></span>
+                    </a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+      </div>
+    </div>
+
+    <!-- Stale Projects Section (Right Column) -->
+    <div class="card dashboard-card stale-card">
+      <div class="card-header">
+        <h3 class="section-title">Needs Update</h3>
+      </div>
+      <% if @never_updated_projects.empty? && @stale_projects_14.empty? && @stale_projects_7.empty? %>
+        <div class="congrats-message">
+          <span class="congrats-text">Congratulations! Everything is up to date!</span>
+        </div>
+      <% else %>
+        <div class="attention-rows">
+          <% if @never_updated_projects.any? %>
+            <!-- Never Updated Row -->
+            <div class="attention-row">
+              <h4 class="attention-row-title"><span class="attention-count"><%= @never_updated_projects.size %></span> NEVER UPDATED</h4>
+              <ul class="list attention-list">
+                <% @never_updated_projects.each do |project| %>
+                  <li class="list-item attention-item">
+                    <a href="<%= project_path(ProjectRecord.find_by(name: project.name)) %>" class="project-link attention-link">
+                      <%= project_health_indicator(project) %>
+                      <span class="project-name"><%= project.name %></span>
+                    </a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <% if @stale_projects_14.any? %>
+            <!-- 14+ Days Row -->
+            <div class="attention-row">
+              <h4 class="attention-row-title"><span class="attention-count"><%= @stale_projects_14.size %></span> NOT UPDATED IN 14+ DAYS</h4>
+              <ul class="list attention-list">
+                <% @stale_projects_14.each do |project| %>
+                  <li class="list-item attention-item">
+                    <a href="<%= project_path(ProjectRecord.find_by(name: project.name)) %>" class="project-link attention-link">
+                      <%= project_health_indicator(project) %>
+                      <span class="project-name"><%= project.name %></span>
+                    </a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <% if @stale_projects_7.any? %>
+            <!-- 7+ Days Row -->
+            <div class="attention-row">
+              <h4 class="attention-row-title"><span class="attention-count"><%= @stale_projects_7.size %></span> NOT UPDATED IN 7+ DAYS</h4>
+              <ul class="list attention-list">
+                <% @stale_projects_7.each do |project| %>
+                  <li class="list-item attention-item">
+                    <a href="<%= project_path(ProjectRecord.find_by(name: project.name)) %>" class="project-link attention-link">
+                      <%= project_health_indicator(project) %>
+                      <span class="project-name"><%= project.name %></span>
+                    </a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Needs Owner Section -->
+  <% if @orphan_projects.any? %>
+    <div class="card dashboard-card orphan-card">
+      <div class="card-header">
+        <h3 class="section-title">Needs Owner</h3>
+      </div>
+      <div class="attention-rows">
+        <div class="attention-row">
+          <h4 class="attention-row-title"><span class="attention-count"><%= @orphan_projects.size %></span> NO PARENT OR TEAM</h4>
+          <ul class="list attention-list">
+            <% @orphan_projects.each do |project| %>
+              <li class="list-item attention-item">
+                <a href="<%= project_path(ProjectRecord.find_by(name: project.name)) %>" class="project-link attention-link">
+                  <%= project_health_indicator(project) %>
+                  <span class="project-name"><%= project.name %></span>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Quick Links -->
+  <div class="dashboard-links">
+    <a href="<%= projects_path %>" class="dashboard-link">
+      <span class="dashboard-link-icon">📁</span>
+      <span class="dashboard-link-text">Projects</span>
+    </a>
+    <a href="<%= teams_path %>" class="dashboard-link">
+      <span class="dashboard-link-icon">👥</span>
+      <span class="dashboard-link-text">Teams</span>
+    </a>
+    <a href="<%= initiatives_path %>" class="dashboard-link">
+      <span class="dashboard-link-icon">🎯</span>
+      <span class="dashboard-link-text">Initiatives</span>
+    </a>
+  </div>
+</div>

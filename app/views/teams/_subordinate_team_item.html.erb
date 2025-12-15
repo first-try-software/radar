@@ -7,7 +7,7 @@
   </div>
   <div class="project-row__text">
     <div class="project-title-row">
-      <%= link_to subordinate_team.name, team_path(subordinate_team), class: 'project-name' %>
+      <%= link_to subordinate_team.name, team_path(subordinate_team, ref: "team:#{parent_team.id}"), class: 'project-name' %>
     </div>
     <div class="muted project-description"><%= truncate(subordinate_team.mission.to_s, length: 80) %></div>
     <% if subordinate_team.point_of_contact.present? %>
