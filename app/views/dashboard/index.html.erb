@@ -1,57 +1,253 @@
-<div class="dashboard">
-  <!-- Health Summary Stats -->
-  <div class="dashboard-stats">
-    <%= link_to projects_path, class: 'stat-card stat-card--total stat-card--clickable' do %>
-      <div class="stat-value"><%= @total_active_projects %></div>
-      <div class="stat-label">Active Projects</div>
-    <% end %>
-    <%= link_to projects_path(health: 'on_track'), class: 'stat-card stat-card--on-track stat-card--clickable' do %>
-      <div class="stat-value"><%= @health_summary[:on_track] %></div>
-      <div class="stat-label">
-        <span class="project-health project-health--on_track project-health--tiny"></span>
-        On Track
+<div class="home-hero">
+  <h1 class="home-hero__title">Status</h1>
+  <p class="home-hero__tagline">If you know, you know. If you don't, you come here.</p>
+</div>
+
+<div class="initiative-dashboard-v2">
+  <!-- Metrics Row: Health | Trend | Confidence -->
+  <% system_health = @system_health || :not_available %>
+  <% health_class = system_health.to_s.tr('_', '-') %>
+  <%
+    summary = @health_summary
+    total = summary[:on_track] + summary[:at_risk] + summary[:off_track]
+    raw_score = if total > 0
+      (summary[:on_track] * 1 + summary[:at_risk] * 0 + summary[:off_track] * -1).to_f / total
+    else
+      nil
+    end
+    raw_score_display = raw_score ? raw_score.round(2) : 'N/A'
+  %>
+
+  <div class="metrics-row-v2">
+    <!-- Health Widget -->
+    <%
+      blocked_projects = @attention_required.select { |p| p.current_state == :blocked }
+      off_track_projects = @attention_required.select { |p| p.health == :off_track && p.current_state != :blocked }
+
+      urgent_action = if blocked_projects.any?
+        { type: :blocked, count: blocked_projects.size, text: "#{blocked_projects.size} blocked #{'project'.pluralize(blocked_projects.size)}", tab: 'attention' }
+      elsif off_track_projects.any?
+        { type: :off_track, count: off_track_projects.size, text: "#{off_track_projects.size} off-track #{'project'.pluralize(off_track_projects.size)}", tab: 'attention' }
+      elsif @stale_projects_14.any?
+        { type: :stale, count: @stale_projects_14.size, text: "#{@stale_projects_14.size} stale #{'project'.pluralize(@stale_projects_14.size)}", tab: 'update' }
+      elsif @stale_projects_7.any?
+        { type: :warning, count: @stale_projects_7.size, text: "#{@stale_projects_7.size} stale #{'project'.pluralize(@stale_projects_7.size)}", tab: 'update' }
+      elsif @never_updated_projects.any?
+        { type: :warning, count: @never_updated_projects.size, text: "#{@never_updated_projects.size} #{'project'.pluralize(@never_updated_projects.size)} never updated", tab: 'update' }
+      else
+        nil
+      end
+    %>
+    <div class="metric-widget metric-widget--health metric-widget--<%= health_class %>">
+      <div class="metric-widget__title-row">
+        <span class="metric-widget__title">Current Health</span>
+        <div class="widget-info">
+          <span class="widget-info__icon">i</span>
+          <div class="widget-info__tooltip">
+            <div class="widget-info__methodology">Weighted average of active project health scores. On Track = +1, At Risk = 0, Off Track = −1.</div>
+            <div class="widget-info__range">Range: −1.0 to +1.0</div>
+            <div class="widget-info__score">Score: <%= raw_score_display %></div>
+          </div>
+        </div>
       </div>
+      <div class="metric-widget__content">
+        <span class="metric-widget__dot metric-widget__dot--<%= health_class %>"></span>
+        <div class="metric-widget__text">
+          <div class="metric-widget__label metric-widget__label--<%= health_class %>"><%= system_health.to_s.tr('_', ' ').titleize %></div>
+          <% if urgent_action %>
+            <button type="button" class="metric-widget__urgent metric-widget__urgent--<%= urgent_action[:type] %>" data-open-tab="<%= urgent_action[:tab] %>">
+              <%= urgent_action[:text] %>
+            </button>
     <% end %>
-    <%= link_to projects_path(health: 'at_risk'), class: 'stat-card stat-card--at-risk stat-card--clickable' do %>
-      <div class="stat-value"><%= @health_summary[:at_risk] %></div>
-      <div class="stat-label">
-        <span class="project-health project-health--at_risk project-health--tiny"></span>
-        At Risk
+        </div>
       </div>
-    <% end %>
-    <%= link_to projects_path(health: 'off_track'), class: 'stat-card stat-card--off-track stat-card--clickable' do %>
-      <div class="stat-value"><%= @health_summary[:off_track] %></div>
-      <div class="stat-label">
-        <span class="project-health project-health--off_track project-health--tiny"></span>
-        Off Track
+    </div>
+
+    <!-- Trend Widget -->
+    <% trend_class = @weeks_of_data >= 2 ? "trend-#{@trend_direction}" : 'trend-insufficient' %>
+    <div class="metric-widget metric-widget--trend metric-widget--<%= trend_class %>">
+      <div class="metric-widget__header">
+        <span class="metric-widget__title">6-Week Trend</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="widget-info">
+            <span class="widget-info__icon">i</span>
+            <div class="widget-info__tooltip">
+              <div class="widget-info__methodology">Weekly average health scores over the past 6 weeks. Direction based on change from oldest to newest data point.</div>
+              <div class="widget-info__range">Range: −1.0 to +1.0 per week</div>
+              <div class="widget-info__score">Delta: <%= @trend_delta >= 0 ? '+' : '' %><%= @trend_delta.round(2) %> (<%= @weeks_of_data %> weeks)</div>
+            </div>
+          </div>
+        </div>
       </div>
+      <div class="metric-widget__chart">
+        <% if @weeks_of_data >= 2 %>
+          <svg viewBox="0 0 200 50" preserveAspectRatio="none" class="trend-svg">
+            <defs>
+              <linearGradient id="trend-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <% @trend_data.each_with_index do |point, i| %>
+                  <% offset = (i.to_f / [@trend_data.length - 1, 1].max * 100).round %>
+                  <% color = point[:health] == :on_track ? '#22c55e' : (point[:health] == :off_track ? '#ef4444' : '#f59e0b') %>
+                  <stop offset="<%= offset %>%" stop-color="<%= color %>" />
+                <% end %>
+              </linearGradient>
+            </defs>
+            <%
+              points = @trend_data.each_with_index.map do |point, i|
+                x = (i.to_f / [@trend_data.length - 1, 1].max * 180) + 10
+                y = 45 - ((point[:score] + 1) / 2.0 * 40)
+                [x, y]
+              end
+              points_str = points.map { |p| "#{p[0].round(1)},#{p[1].round(1)}" }.join(' ')
+              first_point = points.first
+              last_point = points.last
+            %>
+            <line class="trend-line-dotted"
+                  x1="<%= first_point[0].round(1) %>" y1="<%= first_point[1].round(1) %>"
+                  x2="<%= last_point[0].round(1) %>" y2="<%= last_point[1].round(1) %>" />
+            <polyline class="trend-line-v2" stroke="url(#trend-gradient)" points="<%= points_str %>" />
+            <% points.each_with_index do |p, i| %>
+              <% health = @trend_data[i][:health] %>
+              <circle cx="<%= p[0].round(1) %>" cy="<%= p[1].round(1) %>" r="4" class="trend-point-v2 trend-point-v2--<%= health %>" />
+            <% end %>
+          </svg>
+        <% elsif @weeks_of_data == 1 %>
+          <div class="metric-widget__no-data">1 week of data</div>
+        <% else %>
+          <div class="metric-widget__no-data">Insufficient data</div>
     <% end %>
+      </div>
   </div>
 
-  <div class="dashboard-columns">
-    <!-- Attention Required Section (Left Column) -->
-    <div class="card dashboard-card attention-card">
-      <div class="card-header">
-        <h3 class="section-title">Needs Attention</h3>
-      </div>
-      <% if @attention_required.empty? && @attention_required_initiatives.empty? && @attention_required_teams.empty? && @on_hold_projects.empty? %>
-        <div class="congrats-message">
-          <span class="congrats-text">Congratulations! Everything is on track!</span>
+    <!-- Confidence Widget -->
+    <%
+      confidence_cta = case @confidence_factors[:biggest_drag]
+      when :variance
+        { text: "Volatile health trend", tab: nil, type: :info }
+      when :staleness
+        days = @confidence_factors.dig(:details, :days_since_update)
+        { text: "Data is #{days}+ days old", tab: 'update', type: :warning }
+      when :coverage
+        count = @confidence_factors.dig(:details, :projects_needing_update) || 0
+        { text: "#{count} #{'project'.pluralize(count)} need updates", tab: 'update', type: :warning }
+      when :insufficient_data
+        { text: "Building history...", tab: nil, type: :info }
+      else
+        nil
+      end
+    %>
+    <div class="metric-widget metric-widget--confidence metric-widget--confidence-<%= @confidence_level %>">
+      <div class="metric-widget__title-row">
+        <span class="metric-widget__title">Confidence</span>
+        <div class="widget-info">
+          <span class="widget-info__icon">i</span>
+          <div class="widget-info__tooltip">
+            <div class="widget-info__methodology">Based on trend consistency, data freshness, and project coverage. Lower variance and recent updates increase confidence.</div>
+            <div class="widget-info__range">Range: 0–100 (High ≥70, Medium ≥40, Low &lt;40)</div>
+            <div class="widget-info__score">Score: <%= @confidence_score %></div>
+          </div>
         </div>
+      </div>
+      <div class="metric-widget__content">
+        <div class="confidence-ring">
+          <svg viewBox="0 0 44 44">
+            <circle class="confidence-ring__bg" cx="22" cy="22" r="18" />
+            <% circumference = 2 * Math::PI * 18 %>
+            <% offset = circumference - (@confidence_score / 100.0 * circumference) %>
+            <circle class="confidence-ring__fill confidence-ring__fill--<%= @confidence_level %>"
+                    cx="22" cy="22" r="18"
+                    stroke-dasharray="<%= circumference.round(1) %>"
+                    stroke-dashoffset="<%= offset.round(1) %>" />
+          </svg>
+        </div>
+        <div class="metric-widget__text">
+          <div class="metric-widget__label confidence-label--<%= @confidence_level %>"><%= @confidence_level.to_s.titleize %></div>
+          <% if confidence_cta && @confidence_level != :high %>
+            <% if confidence_cta[:tab] %>
+              <button type="button" class="metric-widget__urgent metric-widget__urgent--<%= confidence_cta[:type] %>" data-open-tab="<%= confidence_cta[:tab] %>">
+                <%= confidence_cta[:text] %>
+              </button>
+            <% else %>
+              <span class="metric-widget__hint"><%= confidence_cta[:text] %></span>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teams and Initiatives Columns -->
+  <div class="home-columns">
+    <div class="home-column">
+      <h3 class="home-column__title">Teams</h3>
+      <% if @teams.any? %>
+        <ul class="home-column__list">
+          <% @teams.sort_by(&:name).each do |team| %>
+            <li class="home-column__item">
+              <a href="<%= team_path(TeamRecord.find_by(name: team.name)) %>" class="home-column__link">
+                <span class="home-column__health home-column__health--<%= team.health || :not_available %>"><%= team.health == :on_track ? '●' : (team.health == :at_risk ? '▲' : (team.health == :off_track ? '■' : '●')) %></span>
+                <span class="home-column__name"><%= team.name %></span>
+              </a>
+            </li>
+          <% end %>
+        </ul>
       <% else %>
-        <div class="attention-rows">
+        <p class="home-column__empty">No teams</p>
+      <% end %>
+    </div>
+    <div class="home-column">
+      <h3 class="home-column__title">Initiatives</h3>
+      <% if @initiatives.any? %>
+        <ul class="home-column__list">
+          <% @initiatives.sort_by(&:name).each do |initiative| %>
+            <li class="home-column__item">
+              <a href="<%= initiative_path(InitiativeRecord.find_by(name: initiative.name)) %>" class="home-column__link">
+                <span class="home-column__health home-column__health--<%= initiative.health || :not_available %>"><%= initiative.health == :on_track ? '●' : (initiative.health == :at_risk ? '▲' : (initiative.health == :off_track ? '■' : '●')) %></span>
+                <span class="home-column__name"><%= initiative.name %></span>
+              </a>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="home-column__empty">No initiatives</p>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="dashboard-tabs-v2">
+    <button class="dashboard-tab-v2" data-tab="attention">
+      Unhealthy <span class="dashboard-tab-v2__count"><%= @attention_required.size + @on_hold_projects.size %></span>
+    </button>
+    <button class="dashboard-tab-v2" data-tab="update">
+      Stale <span class="dashboard-tab-v2__count"><%= @never_updated_projects.size + @stale_projects_14.size + @stale_projects_7.size %></span>
+    </button>
+    <button class="dashboard-tab-v2" data-tab="projects">
+      Active <span class="dashboard-tab-v2__count"><%= @active_projects.size %></span>
+    </button>
+    <button class="dashboard-tab-v2" data-tab="inactive">
+      Inactive <span class="dashboard-tab-v2__count"><%= @inactive_projects.size %></span>
+    </button>
+    <button class="dashboard-tab-v2" data-tab="manage">
+      Unowned <span class="dashboard-tab-v2__count"><%= @orphan_projects.size %></span>
+    </button>
+  </div>
+
+  <!-- Tab Content: Needs Attention -->
+  <div class="tab-content-v2" data-tab-content="attention">
+    <% if @attention_required.empty? && @on_hold_projects.empty? %>
+      <div class="tab-empty-v2">Everything is on track!</div>
+    <% else %>
           <% if @attention_required.any? %>
-            <!-- Projects Row -->
-            <div class="attention-row">
-              <h4 class="attention-row-title"><span class="attention-count"><%= @attention_required.size %></span> Projects</h4>
-              <ul class="list attention-list">
+        <div class="tab-section-v2">
+          <h4 class="tab-section-v2__title"><%= @attention_required.size %> Unhealthy <%= 'Project'.pluralize(@attention_required.size) %></h4>
+          <ul class="project-list-v2">
                 <% @attention_required.each do |project| %>
-                  <li class="list-item attention-item">
-                    <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-link attention-link">
-                      <%= project_health_indicator(project) %>
-                      <span class="project-name"><%= project.name %></span>
+              <li class="project-item-v2">
+                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
+                  <span class="project-item-v2__name"><%= project.name %></span>
                       <% if project.current_state == :blocked %>
-                        <span class="state-badge state-badge--blocked">Blocked</span>
+                    <span class="project-item-v2__tag project-item-v2__tag--blocked">Blocked</span>
                       <% end %>
                     </a>
                   </li>
@@ -59,167 +255,194 @@
               </ul>
             </div>
           <% end %>
-
-          <% if @attention_required_initiatives.any? %>
-            <!-- Initiatives Row -->
-            <div class="attention-row">
-              <h4 class="attention-row-title"><span class="attention-count"><%= @attention_required_initiatives.size %></span> Initiatives</h4>
-              <ul class="list attention-list">
-                <% @attention_required_initiatives.each do |initiative| %>
-                  <li class="list-item attention-item">
-                    <a href="<%= initiative_path(InitiativeRecord.find_by(name: initiative.name), ref: 'dashboard') %>" class="project-link attention-link">
-                      <%= initiative_health_indicator(initiative) %>
-                      <span class="project-name"><%= initiative.name %></span>
-                      <% if initiative.current_state == :blocked %>
-                        <span class="state-badge state-badge--blocked">Blocked</span>
-                      <% end %>
+      <% if @on_hold_projects.any? %>
+        <div class="tab-section-v2">
+          <h4 class="tab-section-v2__title"><%= @on_hold_projects.size %> On Hold</h4>
+          <ul class="project-list-v2">
+            <% @on_hold_projects.each do |project| %>
+              <li class="project-item-v2">
+                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
+                  <span class="project-item-v2__name"><%= project.name %></span>
                     </a>
                   </li>
                 <% end %>
               </ul>
             </div>
           <% end %>
-
-          <% if @attention_required_teams.any? %>
-            <!-- Teams Row -->
-            <div class="attention-row">
-              <h4 class="attention-row-title"><span class="attention-count"><%= @attention_required_teams.size %></span> Teams</h4>
-              <ul class="list attention-list">
-                <% @attention_required_teams.each do |team| %>
-                  <li class="list-item attention-item">
-                    <a href="<%= team_path(TeamRecord.find_by(name: team.name), ref: 'dashboard') %>" class="project-link attention-link">
-                      <%= team_health_indicator(team) %>
-                      <span class="project-name"><%= team.name %></span>
-                    </a>
-                  </li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-
-          <% if @on_hold_projects.any? %>
-            <!-- On Hold Row -->
-            <div class="attention-row">
-              <h4 class="attention-row-title"><span class="attention-count"><%= @on_hold_projects.size %></span> On Hold</h4>
-              <ul class="list attention-list">
-                <% @on_hold_projects.each do |project| %>
-                  <li class="list-item attention-item">
-                    <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-link attention-link">
-                      <%= project_health_indicator(project) %>
-                      <span class="project-name"><%= project.name %></span>
-                    </a>
-                  </li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
-
-    <!-- Stale Projects Section (Right Column) -->
-    <div class="card dashboard-card stale-card">
-      <div class="card-header">
-        <h3 class="section-title">Needs Update</h3>
-      </div>
-      <% if @never_updated_projects.empty? && @stale_projects_14.empty? && @stale_projects_7.empty? %>
-        <div class="congrats-message">
-          <span class="congrats-text">Congratulations! Everything is up to date!</span>
-        </div>
-      <% else %>
-        <div class="attention-rows">
-          <% if @never_updated_projects.any? %>
-            <!-- Never Updated Row -->
-            <div class="attention-row">
-              <h4 class="attention-row-title"><span class="attention-count"><%= @never_updated_projects.size %></span> NEVER UPDATED</h4>
-              <ul class="list attention-list">
-                <% @never_updated_projects.each do |project| %>
-                  <li class="list-item attention-item">
-                    <a href="<%= project_path(ProjectRecord.find_by(name: project.name)) %>" class="project-link attention-link">
-                      <%= project_health_indicator(project) %>
-                      <span class="project-name"><%= project.name %></span>
-                    </a>
-                  </li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-
-          <% if @stale_projects_14.any? %>
-            <!-- 14+ Days Row -->
-            <div class="attention-row">
-              <h4 class="attention-row-title"><span class="attention-count"><%= @stale_projects_14.size %></span> NOT UPDATED IN 14+ DAYS</h4>
-              <ul class="list attention-list">
-                <% @stale_projects_14.each do |project| %>
-                  <li class="list-item attention-item">
-                    <a href="<%= project_path(ProjectRecord.find_by(name: project.name)) %>" class="project-link attention-link">
-                      <%= project_health_indicator(project) %>
-                      <span class="project-name"><%= project.name %></span>
-                    </a>
-                  </li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-
-          <% if @stale_projects_7.any? %>
-            <!-- 7+ Days Row -->
-            <div class="attention-row">
-              <h4 class="attention-row-title"><span class="attention-count"><%= @stale_projects_7.size %></span> NOT UPDATED IN 7+ DAYS</h4>
-              <ul class="list attention-list">
-                <% @stale_projects_7.each do |project| %>
-                  <li class="list-item attention-item">
-                    <a href="<%= project_path(ProjectRecord.find_by(name: project.name)) %>" class="project-link attention-link">
-                      <%= project_health_indicator(project) %>
-                      <span class="project-name"><%= project.name %></span>
-                    </a>
-                  </li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
+    <% end %>
   </div>
 
-  <!-- Needs Owner Section -->
+  <!-- Tab Content: Needs Update -->
+  <div class="tab-content-v2" data-tab-content="update">
+    <% if @never_updated_projects.empty? && @stale_projects_14.empty? && @stale_projects_7.empty? %>
+      <div class="tab-empty-v2">Everything is up to date!</div>
+    <% else %>
+      <% if @never_updated_projects.any? %>
+        <div class="tab-section-v2">
+          <h4 class="tab-section-v2__title"><%= @never_updated_projects.size %> Never Updated</h4>
+          <ul class="project-list-v2">
+            <% @never_updated_projects.each do |project| %>
+              <li class="project-item-v2">
+                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
+                  <span class="project-item-v2__name"><%= project.name %></span>
+                  <span class="project-item-v2__tag project-item-v2__tag--stale">Stale</span>
+                    </a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+      <% if @stale_projects_14.any? %>
+        <div class="tab-section-v2">
+          <h4 class="tab-section-v2__title"><%= @stale_projects_14.size %> Not Updated in 14+ Days</h4>
+          <ul class="project-list-v2">
+            <% @stale_projects_14.each do |project| %>
+              <li class="project-item-v2">
+                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
+                  <span class="project-item-v2__name"><%= project.name %></span>
+                  <span class="project-item-v2__tag project-item-v2__tag--stale">Stale</span>
+                    </a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+      <% if @stale_projects_7.any? %>
+        <div class="tab-section-v2">
+          <h4 class="tab-section-v2__title"><%= @stale_projects_7.size %> Not Updated in 7+ Days</h4>
+          <ul class="project-list-v2">
+            <% @stale_projects_7.each do |project| %>
+              <li class="project-item-v2">
+                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
+                  <span class="project-item-v2__name"><%= project.name %></span>
+                  <span class="project-item-v2__tag project-item-v2__tag--stale">Stale</span>
+                    </a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+    <% end %>
+  </div>
+
+  <!-- Tab Content: Active Projects -->
+  <div class="tab-content-v2" data-tab-content="projects">
+    <%
+      stale_project_names = (@stale_projects_14 + @stale_projects_7 + @never_updated_projects).map(&:name)
+    %>
+    <% if @active_projects.empty? %>
+      <div class="tab-empty-v2">No active projects</div>
+    <% else %>
+      <div class="tab-section-v2">
+        <h4 class="tab-section-v2__title"><%= @active_projects.size %> Active <%= 'Project'.pluralize(@active_projects.size) %></h4>
+        <ul class="project-list-v2">
+          <% @active_projects.sort_by { |p| [p.health == :on_track ? 2 : (p.health == :at_risk ? 1 : 0), p.name] }.each do |project| %>
+            <li class="project-item-v2">
+              <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
+                <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
+                <span class="project-item-v2__name"><%= project.name %></span>
+                <% if project.current_state == :blocked %>
+                  <span class="project-item-v2__tag project-item-v2__tag--blocked">Blocked</span>
+                <% elsif stale_project_names.include?(project.name) %>
+                  <span class="project-item-v2__tag project-item-v2__tag--stale">Stale</span>
+                <% end %>
+                    </a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+  </div>
+
+  <!-- Tab Content: Inactive Projects -->
+  <div class="tab-content-v2" data-tab-content="inactive">
+    <%
+      state_order = { new: 0, todo: 1, on_hold: 2, done: 3 }
+      sorted_inactive = @inactive_projects.sort_by { |p| [state_order[p.current_state] || 99, p.name] }
+    %>
+    <% if @inactive_projects.empty? %>
+      <div class="tab-empty-v2">No inactive projects</div>
+    <% else %>
+      <div class="tab-section-v2">
+        <h4 class="tab-section-v2__title"><%= @inactive_projects.size %> Inactive <%= 'Project'.pluralize(@inactive_projects.size) %></h4>
+        <ul class="project-list-v2">
+          <% sorted_inactive.each do |project| %>
+            <li class="project-item-v2">
+              <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
+                <span class="project-item-v2__health project-item-v2__health--<%= project.health || :not_available %>"></span>
+                <span class="project-item-v2__name"><%= project.name %></span>
+                <span class="project-item-v2__tag project-item-v2__tag--inactive"><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
+                    </a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+  </div>
+
+  <!-- Tab Content: Unowned -->
+  <div class="tab-content-v2" data-tab-content="manage">
   <% if @orphan_projects.any? %>
-    <div class="card dashboard-card orphan-card">
-      <div class="card-header">
-        <h3 class="section-title">Needs Owner</h3>
-      </div>
-      <div class="attention-rows">
-        <div class="attention-row">
-          <h4 class="attention-row-title"><span class="attention-count"><%= @orphan_projects.size %></span> NO PARENT OR TEAM</h4>
-          <ul class="list attention-list">
+      <div class="manage-section-v2">
+        <h4 class="tab-section-v2__title"><%= @orphan_projects.size %> Unowned <%= 'Project'.pluralize(@orphan_projects.size) %></h4>
+        <ul class="project-list-v2">
             <% @orphan_projects.each do |project| %>
-              <li class="list-item attention-item">
-                <a href="<%= project_path(ProjectRecord.find_by(name: project.name)) %>" class="project-link attention-link">
-                  <%= project_health_indicator(project) %>
-                  <span class="project-name"><%= project.name %></span>
+            <li class="project-item-v2">
+              <a href="<%= project_path(ProjectRecord.find_by(name: project.name)) %>" class="project-item-v2__link">
+                <span class="project-item-v2__health project-item-v2__health--<%= project.health || :not_available %>"></span>
+                <span class="project-item-v2__name"><%= project.name %></span>
                 </a>
               </li>
             <% end %>
           </ul>
-        </div>
-      </div>
     </div>
   <% end %>
-
-  <!-- Quick Links -->
-  <div class="dashboard-links">
-    <a href="<%= projects_path %>" class="dashboard-link">
-      <span class="dashboard-link-icon">📁</span>
-      <span class="dashboard-link-text">Projects</span>
-    </a>
-    <a href="<%= teams_path %>" class="dashboard-link">
-      <span class="dashboard-link-icon">👥</span>
-      <span class="dashboard-link-text">Teams</span>
-    </a>
-    <a href="<%= initiatives_path %>" class="dashboard-link">
-      <span class="dashboard-link-icon">🎯</span>
-      <span class="dashboard-link-text">Initiatives</span>
-    </a>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Tab toggle behavior
+    const tabs = document.querySelectorAll('.dashboard-tab-v2');
+    const tabContents = document.querySelectorAll('.tab-content-v2');
+
+    function openTab(tabName) {
+      const tab = document.querySelector(`.dashboard-tab-v2[data-tab="${tabName}"]`);
+      const content = document.querySelector(`[data-tab-content="${tabName}"]`);
+
+      // Close all tabs
+      tabs.forEach(t => t.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+
+      // Open the requested tab
+      tab?.classList.add('active');
+      content?.classList.add('active');
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        const isActive = tab.classList.contains('active');
+
+        if (isActive) {
+          // Close if already active
+          tabs.forEach(t => t.classList.remove('active'));
+          tabContents.forEach(c => c.classList.remove('active'));
+        } else {
+          openTab(tabName);
+        }
+      });
+    });
+
+    // Urgent action badge click opens tab
+    document.querySelectorAll('[data-open-tab]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        openTab(btn.dataset.openTab);
+      });
+    });
+  });
+</script>

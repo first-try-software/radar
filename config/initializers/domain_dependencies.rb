@@ -30,6 +30,7 @@ Rails.application.config.to_prepare do
   require_dependency Rails.root.join('lib/domain/teams/team_trend_service')
   require_dependency Rails.root.join('lib/domain/teams/team_dashboard')
   require_dependency Rails.root.join('lib/domain/dashboard/dashboard')
+  require_dependency Rails.root.join('lib/domain/dashboard/system_trend_service')
   require_dependency Rails.root.join('app/persistence/project_repository')
   require_dependency Rails.root.join('app/persistence/health_update_repository')
   require_dependency Rails.root.join('app/persistence/initiative_repository')
