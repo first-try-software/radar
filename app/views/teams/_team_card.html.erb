@@ -1,8 +1,8 @@
 <%
-  data = initiative_data[initiative.id] || {}
-  domain_initiative = data[:initiative]
-  initiative_health = data[:health] || :not_available
-  health_class = initiative_health.to_s.tr('_', '-')
+  data = team_data[team.id] || {}
+  domain_team = data[:team]
+  team_health = data[:health] || :not_available
+  health_class = team_health.to_s.tr('_', '-')
   total_active = data[:total_active_projects] || 0
   total_leaf = data[:total_leaf_projects] || 0
   trend_data = data[:trend_data] || []
@@ -12,18 +12,16 @@
   confidence_level = data[:confidence_level] || :low
 
   trend_class = weeks_of_data >= 2 ? "trend-#{trend_direction}" : 'trend-insufficient'
-  gradient_id = "trend-gradient-#{initiative.id}"
+  gradient_id = "trend-gradient-team-#{team.id}"
 %>
 
-<a href="<%= initiative_path(initiative) %>" class="initiative-index-card">
-  <!-- Single Row: Initiative Info + Health + Trend + Confidence -->
-  <div class="initiative-index-card__header-row">
-    <div class="initiative-header-v2">
-      <div class="initiative-name-v2"><%= initiative.name %></div>
-      <div class="initiative-meta-v2">
-        <span class="badge state state--<%= initiative.current_state.to_s.tr('_', '-') %>"><%= initiative.current_state.to_s.tr('_', ' ').upcase %></span>
-        <span class="initiative-project-count"><%= total_active %> active / <%= total_leaf %> projects</span>
-        <% if initiative.archived %>
+<a href="<%= team_path(team) %>" class="team-index-card">
+  <div class="team-index-card__header-row">
+    <div class="team-header-v2">
+      <div class="team-name-v2"><%= team.name %></div>
+      <div class="team-meta-v2">
+        <span class="team-project-count"><%= total_active %> active / <%= total_leaf %> projects</span>
+        <% if team.archived %>
           <span class="badge archived">archived</span>
         <% end %>
       </div>
@@ -37,7 +35,7 @@
       <div class="metric-widget__content">
         <span class="metric-widget__dot metric-widget__dot--<%= health_class %>"></span>
         <div class="metric-widget__text">
-          <div class="metric-widget__label metric-widget__label--<%= health_class %>"><%= initiative_health == :not_available ? 'N/A' : initiative_health.to_s.tr('_', ' ').titleize %></div>
+          <div class="metric-widget__label metric-widget__label--<%= health_class %>"><%= team_health == :not_available ? 'N/A' : team_health.to_s.tr('_', ' ').titleize %></div>
         </div>
       </div>
     </div>

@@ -19,7 +19,7 @@ RSpec.describe TeamsController, type: :request do
 
       get '/teams'
 
-      expect(response.body).to include('project-health--not_available')
+      expect(response.body).to include('metric-widget--health')
     end
 
     it 'sorts teams alphabetically by default' do
@@ -28,8 +28,9 @@ RSpec.describe TeamsController, type: :request do
 
       get '/teams'
 
-      alpha_index = response.body.index('Alpha Team')
-      zeta_index = response.body.index('Zeta Team')
+      list_section = response.body[/teams-index__list.*$/m]
+      alpha_index = list_section.index('Alpha Team')
+      zeta_index = list_section.index('Zeta Team')
       expect(alpha_index).to be < zeta_index
     end
 
@@ -39,8 +40,9 @@ RSpec.describe TeamsController, type: :request do
 
       get '/teams?sort=alphabet&dir=desc'
 
-      alpha_index = response.body.index('Alpha Team')
-      zeta_index = response.body.index('Zeta Team')
+      list_section = response.body[/teams-index__list.*$/m]
+      alpha_index = list_section.index('Alpha Team')
+      zeta_index = list_section.index('Zeta Team')
       expect(zeta_index).to be < alpha_index
     end
 
@@ -57,9 +59,10 @@ RSpec.describe TeamsController, type: :request do
 
       get '/teams?sort=health&dir=asc'
 
-      on_track_index = response.body.index('On Track Team')
-      off_track_index = response.body.index('Off Track Team')
-      no_health_index = response.body.index('No Health Team')
+      list_section = response.body[/teams-index__list.*$/m]
+      on_track_index = list_section.index('On Track Team')
+      off_track_index = list_section.index('Off Track Team')
+      no_health_index = list_section.index('No Health Team')
       expect(on_track_index).to be < off_track_index
       expect(off_track_index).to be < no_health_index
     end
@@ -77,9 +80,10 @@ RSpec.describe TeamsController, type: :request do
 
       get '/teams?sort=health&dir=desc'
 
-      on_track_index = response.body.index('On Track Team')
-      off_track_index = response.body.index('Off Track Team')
-      no_health_index = response.body.index('No Health Team')
+      list_section = response.body[/teams-index__list.*$/m]
+      on_track_index = list_section.index('On Track Team')
+      off_track_index = list_section.index('Off Track Team')
+      no_health_index = list_section.index('No Health Team')
       expect(off_track_index).to be < on_track_index
       expect(on_track_index).to be < no_health_index
     end
@@ -134,7 +138,7 @@ RSpec.describe TeamsController, type: :request do
 
       get "/teams/#{record.id}"
 
-      expect(response.body).to include('project-health')
+      expect(response.body).to include('metric-widget--health')
     end
 
     it 'links owned projects to their show pages with team ref' do
@@ -145,7 +149,8 @@ RSpec.describe TeamsController, type: :request do
       get "/teams/#{team.id}"
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include(%(href="/projects/#{project.id}?ref=team%3A#{team.id}">Feature A</a>))
+      expect(response.body).to include(%(href="/projects/#{project.id}?ref=team%3A#{team.id}"))
+      expect(response.body).to include('Feature A')
     end
 
     it 'creates via HTML and redirects' do

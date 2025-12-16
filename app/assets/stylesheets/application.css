@@ -2325,12 +2325,20 @@ input::placeholder {
 
 .project-index-card__header-row .metric-widget {
   flex: 1;
+  height: 105px;
+  display: flex;
+  flex-direction: column;
 }
 
 .project-index-card .project-name-v2 {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 8px;
+  color: var(--text);
+}
+
+.project-index-card:hover .project-name-v2 {
+  color: var(--text);
 }
 
 .project-index-card .project-meta-v2 {
@@ -2379,10 +2387,18 @@ input::placeholder {
 .initiative-index-card .initiative-name-v2 {
   font-size: 20px;
   margin-bottom: 8px;
+  color: var(--text);
+}
+
+.initiative-index-card:hover .initiative-name-v2 {
+  color: var(--text);
 }
 
 .initiative-index-card__header-row .metric-widget {
   flex: 1;
+  height: 105px;
+  display: flex;
+  flex-direction: column;
 }
 
 .initiative-index-card .metric-widget__label {
@@ -2391,6 +2407,222 @@ input::placeholder {
 
 .initiative-index-card .metric-widget__urgent {
   cursor: default;
+}
+
+/* ==========================================
+   Teams Index Page
+   ========================================== */
+
+.teams-index {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 24px 0;
+}
+
+.teams-index__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.teams-index__title {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.teams-index__list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.teams-index__controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.team-add-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Team Search Dropdown */
+.team-search-dropdown {
+  position: relative;
+}
+
+.team-search-dropdown__input {
+  width: 220px;
+  padding: 8px 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.team-search-dropdown__input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.team-search-dropdown__input::placeholder {
+  color: var(--text-muted);
+}
+
+.team-search-dropdown__menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.team-search-dropdown__options {
+  padding: 4px;
+}
+
+.team-search-dropdown__option {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.team-search-dropdown__option:hover {
+  background: var(--surface);
+}
+
+.team-search-dropdown__create {
+  padding: 8px 12px;
+  border-top: 1px solid var(--card-border);
+  cursor: pointer;
+}
+
+.team-search-dropdown__create:hover {
+  background: var(--surface);
+}
+
+.team-search-dropdown__create-label {
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.team-add-form .btn {
+  transition: border-color 150ms ease, transform 100ms ease;
+}
+
+.team-add-form .btn:hover {
+  border-color: var(--accent);
+  box-shadow: none;
+}
+
+/* Team Index Card */
+.team-index-card {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.team-index-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.team-index-card__header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.team-index-card__header-row .team-header-v2 {
+  flex: 0 0 40%;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.team-index-card .team-name-v2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.team-index-card:hover .team-name-v2 {
+  color: var(--text);
+}
+
+.team-index-card .team-meta-v2 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.team-index-card__header-row .metric-widget {
+  flex: 1;
+  height: 105px;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-index-card .metric-widget__label {
+  font-size: 16px;
+}
+
+/* ==========================================
+   Team Dashboard V2 (Show Page)
+   ========================================== */
+
+.team-dashboard-v2 {
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.team-dashboard-v2 .team-header-v2 {
+  margin-bottom: 24px;
+}
+
+.team-dashboard-v2 .team-name-v2 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.team-dashboard-v2 .team-meta-v2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.team-dashboard-v2 .metric-widget__label {
+  font-size: 20px;
 }
 
 /* ========================================

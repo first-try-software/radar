@@ -10,6 +10,8 @@
   weeks_of_data = data[:weeks_of_data] || 0
   confidence_score = data[:confidence_score] || 0
   confidence_level = data[:confidence_level] || :low
+  # Use domain project's current_state which derives state from children for parent projects
+  display_state = domain_project&.current_state || project.current_state
 
   trend_class = weeks_of_data >= 2 ? "trend-#{trend_direction}" : 'trend-insufficient'
   gradient_id = "trend-gradient-project-#{project.id}"
@@ -20,7 +22,7 @@
     <div class="project-header-v2">
       <div class="project-name-v2"><%= project.name %></div>
       <div class="project-meta-v2">
-        <span class="badge state state--<%= project.current_state.to_s.tr('_', '-') %>"><%= project.current_state.to_s.tr('_', ' ').upcase %></span>
+        <span class="badge state state--<%= display_state.to_s.tr('_', '-') %>"><%= display_state.to_s.tr('_', ' ').upcase %></span>
         <% if total_children > 0 %>
           <span class="project-child-count"><%= active_children %> active / <%= total_children %> projects</span>
         <% end %>
@@ -38,7 +40,7 @@
       <div class="metric-widget__content">
         <span class="metric-widget__dot metric-widget__dot--<%= health_class %>"></span>
         <div class="metric-widget__text">
-          <div class="metric-widget__label metric-widget__label--<%= health_class %>"><%= project_health.to_s.tr('_', ' ').titleize %></div>
+          <div class="metric-widget__label metric-widget__label--<%= health_class %>"><%= project_health == :not_available ? 'N/A' : project_health.to_s.tr('_', ' ').titleize %></div>
         </div>
       </div>
     </div>

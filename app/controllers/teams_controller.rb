@@ -7,6 +7,7 @@ class TeamsController < ApplicationController
     @sort_dir = params[:dir] == 'desc' ? 'desc' : 'asc'
 
     @teams = sorted_teams(@sort_by, @sort_dir)
+    @team_data = build_team_index_data(@teams)
 
     respond_to do |format|
       format.html
@@ -23,6 +24,7 @@ class TeamsController < ApplicationController
         if result.success?
           @team = result.value
           @team_record = TeamRecord.find(params[:id])
+          populate_team_dashboard_data(@team)
           render :show
         else
           render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
@@ -69,7 +71,8 @@ class TeamsController < ApplicationController
           redirect_to(team_path(params[:id]), notice: 'Team updated')
         else
           @team_record = TeamRecord.find(params[:id])
-          @team = result.value
+          @team = find_domain_team(@team_record.id)
+          populate_team_dashboard_data(@team)
           @errors = result.errors
           render :show, status: error_status(result.errors)
         end
@@ -127,6 +130,7 @@ class TeamsController < ApplicationController
         format.html do
           @team_record = TeamRecord.find(params[:id])
           @team = find_domain_team(@team_record.id)
+          populate_team_dashboard_data(@team)
           @errors = create_result.errors
           render :show, status: :unprocessable_content
         end
@@ -151,6 +155,7 @@ class TeamsController < ApplicationController
         else
           @team_record = TeamRecord.find(params[:id])
           @team = find_domain_team(@team_record.id)
+          populate_team_dashboard_data(@team)
           @errors = link_result.errors
           render :show, status: :unprocessable_content
         end
@@ -182,6 +187,7 @@ class TeamsController < ApplicationController
         else
           @team_record = TeamRecord.find(params[:id])
           @team = find_domain_team(@team_record.id)
+          populate_team_dashboard_data(@team)
           @errors = result.errors
           render :show, status: :unprocessable_content
         end
@@ -304,5 +310,88 @@ class TeamsController < ApplicationController
 
   def update_params
     params.fetch(:team, {}).permit(:name, :mission, :vision, :point_of_contact).to_h.symbolize_keys
+  end
+
+  def populate_team_dashboard_data(team)
+    return set_empty_team_dashboard_data unless team
+
+    health_update_repo = Rails.application.config.x.health_update_repository
+
+    dashboard = TeamDashboard.new(
+      team: team,
+      health_update_repository: health_update_repo
+    )
+
+    @health_summary = dashboard.health_summary
+    @total_active_projects = dashboard.total_active_projects
+    @attention_required = dashboard.attention_required
+    @on_hold_projects = dashboard.on_hold_projects
+    @never_updated_projects = dashboard.never_updated_projects
+    @stale_projects_14 = dashboard.stale_projects(days: 14)
+    @stale_projects_7 = dashboard.stale_projects_between(min_days: 7, max_days: 14)
+
+    # Trend data
+    trend_service = TeamTrendService.new(
+      team: team,
+      health_update_repository: health_update_repo
+    )
+    trend_result = trend_service.call
+
+    @trend_data = trend_result[:trend_data]
+    @trend_direction = trend_result[:trend_direction]
+    @trend_delta = trend_result[:trend_delta]
+    @weeks_of_data = trend_result[:weeks_of_data]
+    @confidence_score = trend_result[:confidence_score]
+    @confidence_level = trend_result[:confidence_level]
+  end
+
+  def set_empty_team_dashboard_data
+    @health_summary = { on_track: 0, at_risk: 0, off_track: 0 }
+    @total_active_projects = 0
+    @attention_required = []
+    @on_hold_projects = []
+    @never_updated_projects = []
+    @stale_projects_14 = []
+    @stale_projects_7 = []
+    @trend_data = []
+    @trend_direction = :stable
+    @trend_delta = 0.0
+    @weeks_of_data = 0
+    @confidence_score = 0
+    @confidence_level = :low
+  end
+
+  def build_team_index_data(teams)
+    health_update_repo = Rails.application.config.x.health_update_repository
+    team_repo = Rails.application.config.x.team_repository
+    data = {}
+
+    teams.each do |team_record|
+      domain_team = team_repo.find(team_record.id)
+
+      trend_service = TeamTrendService.new(
+        team: domain_team,
+        health_update_repository: health_update_repo
+      )
+      trend_result = trend_service.call
+
+      all_leaf_projects = domain_team.all_leaf_projects
+      active_projects = all_leaf_projects.reject { |p| p.current_state == :done || p.current_state == :on_hold }
+
+      data[team_record.id] = {
+        team: domain_team,
+        health: domain_team.health,
+        trend_data: trend_result[:trend_data],
+        trend_direction: trend_result[:trend_direction],
+        trend_delta: trend_result[:trend_delta],
+        weeks_of_data: trend_result[:weeks_of_data],
+        confidence_score: trend_result[:confidence_score],
+        confidence_level: trend_result[:confidence_level],
+        total_active_projects: active_projects.size,
+        total_leaf_projects: all_leaf_projects.size
+      }
+    end
+
+    data
   end
 end
