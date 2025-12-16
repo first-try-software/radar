@@ -12,6 +12,7 @@ class ProjectsController < ApplicationController
     @projects = sorted_projects(@sort_by, @sort_dir)
     @projects = filter_by_initiative(@projects, @initiative_filter) if @initiative_filter
     @projects = filter_by_health(@projects, @health_filter) if @health_filter
+    @project_data = build_project_index_data(@projects)
 
     respond_to do |format|
       format.html
@@ -233,6 +234,40 @@ class ProjectsController < ApplicationController
 
   def project_actions
     Rails.application.config.x.project_actions
+  end
+
+  def build_project_index_data(projects)
+    health_update_repo = Rails.application.config.x.health_update_repository
+    project_repo = Rails.application.config.x.project_repository
+    data = {}
+
+    projects.each do |project_record|
+      domain_project = project_repo.find(project_record.id)
+
+      trend_service = ProjectTrendService.new(
+        project: domain_project,
+        health_update_repository: health_update_repo
+      )
+      trend_result = trend_service.call
+
+      children = domain_project.children
+      active_children = children.reject { |c| c.current_state == :done || c.current_state == :on_hold }
+
+      data[project_record.id] = {
+        project: domain_project,
+        health: domain_project.health,
+        total_children: children.size,
+        active_children: active_children.size,
+        trend_data: trend_result[:trend_data],
+        trend_direction: trend_result[:trend_direction],
+        trend_delta: trend_result[:trend_delta],
+        weeks_of_data: trend_result[:weeks_of_data],
+        confidence_score: trend_result[:confidence_score],
+        confidence_level: trend_result[:confidence_level]
+      }
+    end
+
+    data
   end
 
   def render_result(result, success_status: :ok)

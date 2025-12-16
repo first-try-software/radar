@@ -1,24 +1,7 @@
-<div class="grid">
-  <div class="card root-projects-card">
-    <% if @initiative_filter || @health_filter %>
-      <div class="filter-banner">
-        <span class="filter-banner__label">
-          <% if @health_filter %>
-            <span class="project-health project-health--<%= @health_filter %> project-health--tiny"></span>
-          <% end %>
-          <% if @initiative_filter && @health_filter %>
-            Showing <%= @health_filter.to_s.tr('_', ' ').titleize %> projects in <%= @initiative_filter.name %>
-          <% elsif @initiative_filter %>
-            Showing projects in <%= @initiative_filter.name %>
-          <% else %>
-            Showing <%= @health_filter.to_s.tr('_', ' ').titleize %> projects
-          <% end %>
-        </span>
-        <%= link_to 'Show All', projects_path, class: 'filter-banner__clear' %>
-      </div>
-    <% end %>
-    <div class="card-header">
-      <h2 class="section-title">Projects</h2>
+<div class="projects-index">
+  <div class="projects-index__header">
+    <h1 class="projects-index__title">Projects</h1>
+    <div class="projects-index__controls">
       <div class="sort-controls" data-sort-controls>
         <div class="sort-dropdown" data-sort-dropdown>
           <button type="button" class="sort-dropdown__trigger" data-sort-trigger>
@@ -44,32 +27,74 @@
           <span class="sort-dir-toggle__arrow"><%= @sort_dir == 'asc' ? '↑' : '↓' %></span>
         </button>
       </div>
-    </div>
-    <% if defined?(@errors) && @errors.present? %>
-      <div class="errors">
-        <ul>
-          <% @errors.each do |err| %>
-            <li><%= err %></li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
-    <ul class="list">
-      <%= render partial: 'projects/project_list_item', collection: @projects, as: :project %>
-      <li class="list-item">
-        <%= form_with model: ProjectRecord.new,
-                      url: projects_path,
-                      method: :post,
-                      scope: :project,
-                      local: true,
-                      html: { class: 'child-form' } do |form| %>
-          <div class="child-actions">
-            <%= form.text_field :name, required: true, placeholder: 'Add a project' %>
-            <%= form.submit 'Add', class: 'btn secondary' %>
+
+      <% all_projects = ProjectRecord.left_outer_joins(:parent_relationship).where(projects_projects: { parent_id: nil }, archived: false).order(:name) %>
+      <%= form_with model: ProjectRecord.new,
+                    url: projects_path,
+                    method: :post,
+                    scope: :project,
+                    local: true,
+                    html: { class: 'project-add-form', data: { project_search_form: true } } do |form| %>
+        <div class="project-search-dropdown" data-project-search>
+          <input type="text"
+                 name="project[name]"
+                 class="project-search-dropdown__input"
+                 placeholder="Search or add project..."
+                 data-project-search-input
+                 autocomplete="off" />
+          <div class="project-search-dropdown__menu" data-project-search-menu hidden>
+            <div class="project-search-dropdown__options" data-project-options>
+              <% all_projects.each do |proj| %>
+                <a href="<%= project_path(proj) %>"
+                   class="project-search-dropdown__option"
+                   data-project-name="<%= proj.name %>"
+                   data-project-search-text="<%= proj.name.downcase %>">
+                  <%= proj.name %>
+                </a>
+              <% end %>
+            </div>
+            <div class="project-search-dropdown__create" data-create-option hidden>
+              <span class="project-search-dropdown__create-label">Create "<span data-create-name></span>"</span>
+            </div>
           </div>
+        </div>
+        <%= form.submit 'Go', class: 'btn secondary', data: { project_submit: true } %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @initiative_filter || @health_filter %>
+    <div class="filter-banner">
+      <span class="filter-banner__label">
+        <% if @health_filter %>
+          <span class="project-health project-health--<%= @health_filter %> project-health--tiny"></span>
         <% end %>
-      </li>
-    </ul>
+        <% if @initiative_filter && @health_filter %>
+          Showing <%= @health_filter.to_s.tr('_', ' ').titleize %> projects in <%= @initiative_filter.name %>
+        <% elsif @initiative_filter %>
+          Showing projects in <%= @initiative_filter.name %>
+        <% else %>
+          Showing <%= @health_filter.to_s.tr('_', ' ').titleize %> projects
+        <% end %>
+      </span>
+      <%= link_to 'Show All', projects_path, class: 'filter-banner__clear' %>
+    </div>
+  <% end %>
+
+  <% if defined?(@errors) && @errors.present? %>
+    <div class="errors">
+      <ul>
+        <% @errors.each do |err| %>
+          <li><%= err %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="projects-index__list">
+    <% @projects.each do |project| %>
+      <%= render partial: 'projects/project_card', locals: { project: project, project_data: @project_data } %>
+    <% end %>
   </div>
 </div>
 
@@ -109,17 +134,136 @@
     navigateWithSort(currentSort, newDir);
   });
 
-  // Close dropdown on outside click
+  // Close sort dropdown on outside click
   document.addEventListener('click', (e) => {
     if (sortDropdown && !sortDropdown.contains(e.target)) {
       sortMenu.hidden = true;
     }
   });
 
+  // Project search/add functionality
+  const searchContainer = document.querySelector('[data-project-search]');
+  const searchForm = document.querySelector('[data-project-search-form]');
+  const searchInput = document.querySelector('[data-project-search-input]');
+  const searchMenu = document.querySelector('[data-project-search-menu]');
+  const optionsContainer = document.querySelector('[data-project-options]');
+  const createOption = document.querySelector('[data-create-option]');
+  const createNameSpan = document.querySelector('[data-create-name]');
+  const submitBtn = document.querySelector('[data-project-submit]');
+
+  let selectedUrl = null;
+  let exactMatch = null;
+
+  const closeMenu = () => {
+    searchMenu.hidden = true;
+  };
+
+  const openMenu = () => {
+    searchMenu.hidden = false;
+  };
+
+  const filterOptions = (query) => {
+    const lowerQuery = query.toLowerCase().trim();
+    let visibleCount = 0;
+    exactMatch = null;
+
+    optionsContainer?.querySelectorAll('.project-search-dropdown__option').forEach((option) => {
+      const searchText = option.dataset.projectSearchText || '';
+      const name = option.dataset.projectName || '';
+      const matches = lowerQuery === '' || searchText.includes(lowerQuery);
+      option.style.display = matches ? '' : 'none';
+      if (matches) visibleCount++;
+      if (searchText === lowerQuery) {
+        exactMatch = option;
+      }
+    });
+
+    // Show create option if there's input and no exact match
+    if (lowerQuery && !exactMatch) {
+      createOption.hidden = false;
+      createNameSpan.textContent = query.trim();
+    } else {
+      createOption.hidden = true;
+    }
+
+    return visibleCount;
+  };
+
+  searchInput?.addEventListener('focus', () => {
+    filterOptions(searchInput.value);
+    openMenu();
+  });
+
+  searchInput?.addEventListener('input', (e) => {
+    selectedUrl = null;
+    filterOptions(e.target.value);
+    if (!searchMenu.hidden === false) {
+      openMenu();
+    }
+  });
+
+  searchInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeMenu();
+      searchInput.blur();
+    }
+  });
+
+  // Click on existing project navigates to it
+  optionsContainer?.querySelectorAll('.project-search-dropdown__option').forEach((option) => {
+    option.addEventListener('click', (e) => {
+      // Let the link navigate naturally
+    });
+  });
+
+  // Click on create option submits the form
+  createOption?.addEventListener('click', () => {
+    const name = searchInput.value.trim();
+    if (name && confirm(`Create new project "${name}"?`)) {
+      searchForm.submit();
+    }
+  });
+
+  // Form submission
+  searchForm?.addEventListener('submit', (e) => {
+    const query = searchInput.value.trim();
+
+    if (!query) {
+      e.preventDefault();
+      searchInput.focus();
+      return;
+    }
+
+    // Check if there's an exact match - navigate to it instead
+    filterOptions(query);
+    if (exactMatch) {
+      e.preventDefault();
+      window.location.href = exactMatch.href;
+      return;
+    }
+
+    // Otherwise confirm creation
+    if (!confirm(`Create new project "${query}"?`)) {
+      e.preventDefault();
+    }
+  });
+
+  // Close menu on outside click
+  document.addEventListener('click', (e) => {
+    if (searchContainer && !searchContainer.contains(e.target) && e.target !== submitBtn) {
+      closeMenu();
+    }
+  });
+
   // Close on escape
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && sortMenu && !sortMenu.hidden) {
-      sortMenu.hidden = true;
+    if (e.key === 'Escape') {
+      if (sortMenu && !sortMenu.hidden) {
+        sortMenu.hidden = true;
+      }
+      if (searchMenu && !searchMenu.hidden) {
+        closeMenu();
+      }
     }
   });
 })();

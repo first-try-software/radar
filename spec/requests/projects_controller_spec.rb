@@ -29,32 +29,32 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects'
 
-      expect(response.body).to include('Parent')
-      expect(response.body).not_to include('ChildProject')
+      list_section = response.body[/projects-index__list.*$/m]
+      expect(list_section).to include('Parent')
+      expect(list_section).not_to include('ChildProject')
     end
 
-    it 'renders the point of contact beneath root project descriptions' do
-      ProjectRecord.create!(name: 'Alpha', description: 'desc', point_of_contact: 'Alex')
+    it 'renders child project counts when project has children' do
+      parent = ProjectRecord.create!(name: 'Parent Project')
+      child = ProjectRecord.create!(name: 'Child Project', current_state: 'in_progress')
+      ProjectsProjectRecord.create!(parent: parent, child: child, order: 0)
 
       get '/projects'
 
-      expect(response.body).to include('Alex')
+      list_section = response.body[/projects-index__list.*$/m]
+      expect(list_section).to include('1 active / 1 projects')
     end
 
-    it 'renders the new project form inline at the bottom of root projects' do
+    it 'renders the new project form in the header' do
       ProjectRecord.create!(name: 'Rooty')
 
       get '/projects'
 
       expect(response.body).to include('Projects')
       expect(response.body).not_to include('All Projects')
-      expect(response.body).to include('child-actions')
-      expect(response.body).to include('Add a project')
-      expect(response.body).to include('Add')
-
-      root_index = response.body.index('Rooty')
-      form_index = response.body.index('Add a project')
-      expect(root_index).to be < form_index
+      expect(response.body).to include('project-add-form')
+      expect(response.body).to include('Search or add project')
+      expect(response.body).to include('Go')
     end
 
     it 'humanizes state labels for root projects' do
@@ -62,8 +62,8 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects'
 
-      expect(response.body).to include('In Progress')
-      expect(response.body).not_to include('in_progress')
+      list_section = response.body[/projects-index__list.*$/m]
+      expect(list_section).to include('IN PROGRESS')
     end
 
     it 'filters projects by health when health param is provided' do
@@ -74,8 +74,9 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects', params: { health: 'on_track' }
 
-      expect(response.body).to include('Good Project')
-      expect(response.body).not_to include('Bad Project')
+      list_section = response.body[/projects-index__list.*$/m]
+      expect(list_section).to include('Good Project')
+      expect(list_section).not_to include('Bad Project')
       expect(response.body).to include('Showing On Track projects')
       expect(response.body).to include('Show All')
     end
@@ -97,8 +98,9 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects', params: { initiative: initiative.id }
 
-      expect(response.body).to include('Related Project')
-      expect(response.body).not_to include('Unrelated Project')
+      list_section = response.body[/projects-index__list.*$/m]
+      expect(list_section).to include('Related Project')
+      expect(list_section).not_to include('Unrelated Project')
       expect(response.body).to include('Showing projects in')
       expect(response.body).to include('Test Initiative')
       expect(response.body).to include('Show All')
@@ -115,8 +117,9 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects', params: { initiative: initiative.id, health: 'on_track' }
 
-      expect(response.body).to include('On Track Project')
-      expect(response.body).not_to include('Off Track Project')
+      list_section = response.body[/projects-index__list.*$/m]
+      expect(list_section).to include('On Track Project')
+      expect(list_section).not_to include('Off Track Project')
     end
 
     it 'shows all projects when initiative param is invalid' do
@@ -144,8 +147,9 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects?sort=alphabet&dir=desc'
 
-      alpha_index = response.body.index('Alpha Project')
-      zeta_index = response.body.index('Zeta Project')
+      list_section = response.body[/projects-index__list.*$/m]
+      alpha_index = list_section.index('Alpha Project')
+      zeta_index = list_section.index('Zeta Project')
       expect(zeta_index).to be < alpha_index
     end
 
@@ -156,9 +160,10 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects?sort=state&dir=asc'
 
-      blocked_index = response.body.index('Blocked Project')
-      in_progress_index = response.body.index('In Progress Project')
-      done_index = response.body.index('Done Project')
+      list_section = response.body[/projects-index__list.*$/m]
+      blocked_index = list_section.index('Blocked Project')
+      in_progress_index = list_section.index('In Progress Project')
+      done_index = list_section.index('Done Project')
       expect(blocked_index).to be < in_progress_index
       expect(in_progress_index).to be < done_index
     end
@@ -170,9 +175,10 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects?sort=state&dir=desc'
 
-      blocked_index = response.body.index('Blocked Project')
-      in_progress_index = response.body.index('In Progress Project')
-      done_index = response.body.index('Done Project')
+      list_section = response.body[/projects-index__list.*$/m]
+      blocked_index = list_section.index('Blocked Project')
+      in_progress_index = list_section.index('In Progress Project')
+      done_index = list_section.index('Done Project')
       expect(done_index).to be < in_progress_index
       expect(in_progress_index).to be < blocked_index
     end
@@ -183,8 +189,9 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects?sort=state&dir=asc'
 
-      active_index = response.body.index('Active Blocked')
-      archived_index = response.body.index('Archived Done')
+      list_section = response.body[/projects-index__list.*$/m]
+      active_index = list_section.index('Active Blocked')
+      archived_index = list_section.index('Archived Done')
       expect(active_index).to be < archived_index
     end
 
@@ -197,9 +204,10 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects?sort=health&dir=asc'
 
-      on_track_index = response.body.index('On Track Project')
-      off_track_index = response.body.index('Off Track Project')
-      no_health_index = response.body.index('No Health Project')
+      list_section = response.body[/projects-index__list.*$/m]
+      on_track_index = list_section.index('On Track Project')
+      off_track_index = list_section.index('Off Track Project')
+      no_health_index = list_section.index('No Health Project')
       expect(on_track_index).to be < off_track_index
       expect(off_track_index).to be < no_health_index
     end
@@ -213,9 +221,10 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects?sort=health&dir=desc'
 
-      on_track_index = response.body.index('On Track Project')
-      off_track_index = response.body.index('Off Track Project')
-      no_health_index = response.body.index('No Health Project')
+      list_section = response.body[/projects-index__list.*$/m]
+      on_track_index = list_section.index('On Track Project')
+      off_track_index = list_section.index('Off Track Project')
+      no_health_index = list_section.index('No Health Project')
       expect(off_track_index).to be < on_track_index
       expect(on_track_index).to be < no_health_index
     end
@@ -228,8 +237,9 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects?sort=health&dir=asc'
 
-      active_index = response.body.index('Active Project')
-      archived_index = response.body.index('Archived Project')
+      list_section = response.body[/projects-index__list.*$/m]
+      active_index = list_section.index('Active Project')
+      archived_index = list_section.index('Archived Project')
       expect(active_index).to be < archived_index
     end
 
@@ -258,9 +268,10 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects?sort=updated&dir=desc'
 
-      old_index = response.body.index('Old Update Project')
-      new_index = response.body.index('New Update Project')
-      no_update_index = response.body.index('No Update Project')
+      list_section = response.body[/projects-index__list.*$/m]
+      old_index = list_section.index('Old Update Project')
+      new_index = list_section.index('New Update Project')
+      no_update_index = list_section.index('No Update Project')
       expect(new_index).to be < old_index
       expect(old_index).to be < no_update_index
     end
@@ -274,9 +285,10 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects?sort=updated&dir=asc'
 
-      old_index = response.body.index('Old Update Project')
-      new_index = response.body.index('New Update Project')
-      no_update_index = response.body.index('No Update Project')
+      list_section = response.body[/projects-index__list.*$/m]
+      old_index = list_section.index('Old Update Project')
+      new_index = list_section.index('New Update Project')
+      no_update_index = list_section.index('No Update Project')
       expect(old_index).to be < new_index
       expect(new_index).to be < no_update_index
     end
@@ -290,8 +302,9 @@ RSpec.describe ProjectsController, type: :request do
 
       get '/projects?sort=updated&dir=desc'
 
-      first_index = response.body.index('First Project')
-      second_index = response.body.index('Second Project')
+      list_section = response.body[/projects-index__list.*$/m]
+      first_index = list_section.index('First Project')
+      second_index = list_section.index('Second Project')
       expect(second_index).to be < first_index
     end
 
