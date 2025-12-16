@@ -330,9 +330,11 @@ class InitiativesController < ApplicationController
   def populate_dashboard_data(initiative)
     return set_empty_dashboard_data unless initiative
 
+    health_update_repo = Rails.application.config.x.health_update_repository
+
     dashboard = InitiativeDashboard.new(
       initiative: initiative,
-      health_update_repository: Rails.application.config.x.health_update_repository
+      health_update_repository: health_update_repo
     )
 
     @health_summary = dashboard.health_summary
@@ -342,6 +344,21 @@ class InitiativesController < ApplicationController
     @never_updated_projects = dashboard.never_updated_projects
     @stale_projects_14 = dashboard.stale_projects(days: 14)
     @stale_projects_7 = dashboard.stale_projects_between(min_days: 7, max_days: 14)
+
+    # Trend data
+    trend_service = InitiativeTrendService.new(
+      initiative: initiative,
+      health_update_repository: health_update_repo
+    )
+    trend_result = trend_service.call
+
+    @trend_data = trend_result[:trend_data]
+    @trend_direction = trend_result[:trend_direction]
+    @trend_delta = trend_result[:trend_delta]
+    @weeks_of_data = trend_result[:weeks_of_data]
+    @confidence_score = trend_result[:confidence_score]
+    @confidence_level = trend_result[:confidence_level]
+    @confidence_factors = trend_result[:confidence_factors]
   end
 
   def set_empty_dashboard_data
@@ -352,5 +369,12 @@ class InitiativesController < ApplicationController
     @never_updated_projects = []
     @stale_projects_14 = []
     @stale_projects_7 = []
+    @trend_data = []
+    @trend_direction = :stable
+    @trend_delta = 0.0
+    @weeks_of_data = 0
+    @confidence_score = 0
+    @confidence_level = :low
+    @confidence_factors = { biggest_drag: :insufficient_data, details: {} }
   end
 end

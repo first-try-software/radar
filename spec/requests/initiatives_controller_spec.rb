@@ -170,10 +170,10 @@ RSpec.describe InitiativesController, type: :request do
 
       get "/initiatives/#{record.id}"
 
-      expect(response.body).to include('project-health')
+      expect(response.body).to include('metric-widget__dot')
     end
 
-    it 'renders health summary cards on the show page' do
+    it 'renders metrics widgets on the show page' do
       initiative = InitiativeRecord.create!(name: 'Launch 2025')
       on_track = ProjectRecord.create!(name: 'On Track', current_state: 'in_progress')
       at_risk = ProjectRecord.create!(name: 'At Risk', current_state: 'in_progress')
@@ -184,8 +184,8 @@ RSpec.describe InitiativesController, type: :request do
 
       get "/initiatives/#{initiative.id}"
 
-      expect(response.body).to include('dashboard-stats')
-      expect(response.body).to include('stat-card')
+      expect(response.body).to include('metrics-row-v2')
+      expect(response.body).to include('metric-widget')
     end
 
     it 'renders attention required section on the show page' do
