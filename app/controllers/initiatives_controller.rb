@@ -7,6 +7,7 @@ class InitiativesController < ApplicationController
     @sort_dir = params[:dir] == 'desc' ? 'desc' : 'asc'
 
     @initiatives = sorted_initiatives(@sort_by, @sort_dir)
+    @initiative_data = build_initiative_index_data(@initiatives)
 
     respond_to do |format|
       format.html
@@ -376,5 +377,48 @@ class InitiativesController < ApplicationController
     @confidence_score = 0
     @confidence_level = :low
     @confidence_factors = { biggest_drag: :insufficient_data, details: {} }
+  end
+
+  def build_initiative_index_data(initiative_records)
+    health_update_repo = Rails.application.config.x.health_update_repository
+
+    initiative_records.each_with_object({}) do |record, data|
+      result = initiative_actions.find_initiative.perform(id: record.id)
+      next unless result.success?
+
+      initiative = result.value
+
+      dashboard = InitiativeDashboard.new(
+        initiative: initiative,
+        health_update_repository: health_update_repo
+      )
+
+      trend_service = InitiativeTrendService.new(
+        initiative: initiative,
+        health_update_repository: health_update_repo
+      )
+      trend_result = trend_service.call
+
+      data[record.id] = {
+        initiative: initiative,
+        record: record,
+        health: initiative.health,
+        health_raw_score: initiative.health_raw_score,
+        total_active_projects: dashboard.total_active_projects,
+        total_leaf_projects: initiative.leaf_projects.size,
+        attention_required: dashboard.attention_required,
+        on_hold_projects: dashboard.on_hold_projects,
+        stale_projects_14: dashboard.stale_projects(days: 14),
+        stale_projects_7: dashboard.stale_projects_between(min_days: 7, max_days: 14),
+        never_updated_projects: dashboard.never_updated_projects,
+        trend_data: trend_result[:trend_data],
+        trend_direction: trend_result[:trend_direction],
+        trend_delta: trend_result[:trend_delta],
+        weeks_of_data: trend_result[:weeks_of_data],
+        confidence_score: trend_result[:confidence_score],
+        confidence_level: trend_result[:confidence_level],
+        confidence_factors: trend_result[:confidence_factors]
+      }
+    end
   end
 end

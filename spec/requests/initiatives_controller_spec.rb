@@ -19,7 +19,7 @@ RSpec.describe InitiativesController, type: :request do
 
       get '/initiatives'
 
-      expect(response.body).to include('project-health--not_available')
+      expect(response.body).to include('metric-widget__dot--not-available')
     end
 
     it 'sorts initiatives alphabetically by default' do
@@ -28,8 +28,9 @@ RSpec.describe InitiativesController, type: :request do
 
       get '/initiatives'
 
-      alpha_index = response.body.index('Alpha Initiative')
-      zeta_index = response.body.index('Zeta Initiative')
+      list_section = response.body[/initiatives-index__list.*$/m]
+      alpha_index = list_section.index('Alpha Initiative')
+      zeta_index = list_section.index('Zeta Initiative')
       expect(alpha_index).to be < zeta_index
     end
 
@@ -39,8 +40,9 @@ RSpec.describe InitiativesController, type: :request do
 
       get '/initiatives?sort=alphabet&dir=desc'
 
-      alpha_index = response.body.index('Alpha Initiative')
-      zeta_index = response.body.index('Zeta Initiative')
+      list_section = response.body[/initiatives-index__list.*$/m]
+      alpha_index = list_section.index('Alpha Initiative')
+      zeta_index = list_section.index('Zeta Initiative')
       expect(zeta_index).to be < alpha_index
     end
 
@@ -57,9 +59,10 @@ RSpec.describe InitiativesController, type: :request do
 
       get '/initiatives?sort=health&dir=asc'
 
-      on_track_index = response.body.index('On Track Initiative')
-      off_track_index = response.body.index('Off Track Initiative')
-      no_health_index = response.body.index('No Health Initiative')
+      list_section = response.body[/initiatives-index__list.*$/m]
+      on_track_index = list_section.index('On Track Initiative')
+      off_track_index = list_section.index('Off Track Initiative')
+      no_health_index = list_section.index('No Health Initiative')
       expect(on_track_index).to be < off_track_index
       expect(off_track_index).to be < no_health_index
     end
@@ -77,9 +80,10 @@ RSpec.describe InitiativesController, type: :request do
 
       get '/initiatives?sort=health&dir=desc'
 
-      on_track_index = response.body.index('On Track Initiative')
-      off_track_index = response.body.index('Off Track Initiative')
-      no_health_index = response.body.index('No Health Initiative')
+      list_section = response.body[/initiatives-index__list.*$/m]
+      on_track_index = list_section.index('On Track Initiative')
+      off_track_index = list_section.index('Off Track Initiative')
+      no_health_index = list_section.index('No Health Initiative')
       expect(off_track_index).to be < on_track_index
       expect(on_track_index).to be < no_health_index
     end
@@ -90,8 +94,9 @@ RSpec.describe InitiativesController, type: :request do
 
       get '/initiatives?sort=health&dir=asc'
 
-      active_index = response.body.index('Active Initiative')
-      archived_index = response.body.index('Archived Initiative')
+      list_section = response.body[/initiatives-index__list.*$/m]
+      active_index = list_section.index('Active Initiative')
+      archived_index = list_section.index('Archived Initiative')
       expect(active_index).to be < archived_index
     end
 
@@ -102,9 +107,10 @@ RSpec.describe InitiativesController, type: :request do
 
       get '/initiatives?sort=state&dir=asc'
 
-      blocked_index = response.body.index('Blocked Initiative')
-      in_progress_index = response.body.index('In Progress Initiative')
-      done_index = response.body.index('Done Initiative')
+      list_section = response.body[/initiatives-index__list.*$/m]
+      blocked_index = list_section.index('Blocked Initiative')
+      in_progress_index = list_section.index('In Progress Initiative')
+      done_index = list_section.index('Done Initiative')
       expect(blocked_index).to be < in_progress_index
       expect(in_progress_index).to be < done_index
     end
@@ -115,8 +121,9 @@ RSpec.describe InitiativesController, type: :request do
 
       get '/initiatives?sort=state&dir=desc'
 
-      done_index = response.body.index('Done Initiative')
-      blocked_index = response.body.index('Blocked Initiative')
+      list_section = response.body[/initiatives-index__list.*$/m]
+      done_index = list_section.index('Done Initiative')
+      blocked_index = list_section.index('Blocked Initiative')
       expect(done_index).to be < blocked_index
     end
 
@@ -126,8 +133,9 @@ RSpec.describe InitiativesController, type: :request do
 
       get '/initiatives?sort=state&dir=asc'
 
-      active_index = response.body.index('Active Initiative')
-      archived_index = response.body.index('Archived Initiative')
+      list_section = response.body[/initiatives-index__list.*$/m]
+      active_index = list_section.index('Active Initiative')
+      archived_index = list_section.index('Archived Initiative')
       expect(active_index).to be < archived_index
     end
 
