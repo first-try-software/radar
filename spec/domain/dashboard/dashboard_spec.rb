@@ -496,6 +496,24 @@ RSpec.describe Dashboard do
       expect(stale).to be_empty
     end
 
+    it 'excludes new and todo projects even with stale health updates' do
+      project_repo = FakeProjectRepository.new
+      new_project = build_project(name: 'NewProject', state: :new)
+      todo_project = build_project(name: 'TodoProject', state: :todo)
+      project_repo.save(new_project)
+      project_repo.save(todo_project)
+
+      health_repo = FakeHealthUpdateRepository.new
+      health_repo.save(HealthUpdate.new(project_id: new_project.name, date: Date.today - 20, health: :on_track))
+      health_repo.save(HealthUpdate.new(project_id: todo_project.name, date: Date.today - 20, health: :on_track))
+
+      dashboard = described_class.new(project_repository: project_repo, health_update_repository: health_repo)
+
+      stale = dashboard.stale_projects(days: 14)
+
+      expect(stale).to be_empty
+    end
+
     it 'uses project id when available' do
       # Create a project with an explicit id
       health_update = HealthUpdate.new(project_id: 'test-id', date: Date.today, health: :on_track)
@@ -573,6 +591,24 @@ RSpec.describe Dashboard do
       project_repo.save(project)
 
       health_repo = FakeHealthUpdateRepository.new
+      dashboard = described_class.new(project_repository: project_repo, health_update_repository: health_repo)
+
+      stale = dashboard.stale_projects_between(min_days: 7, max_days: 14)
+
+      expect(stale).to be_empty
+    end
+
+    it 'excludes new and todo projects even with stale health updates' do
+      project_repo = FakeProjectRepository.new
+      new_project = build_project(name: 'NewProject', state: :new)
+      todo_project = build_project(name: 'TodoProject', state: :todo)
+      project_repo.save(new_project)
+      project_repo.save(todo_project)
+
+      health_repo = FakeHealthUpdateRepository.new
+      health_repo.save(HealthUpdate.new(project_id: new_project.name, date: Date.today - 10, health: :on_track))
+      health_repo.save(HealthUpdate.new(project_id: todo_project.name, date: Date.today - 10, health: :on_track))
+
       dashboard = described_class.new(project_repository: project_repo, health_update_repository: health_repo)
 
       stale = dashboard.stale_projects_between(min_days: 7, max_days: 14)

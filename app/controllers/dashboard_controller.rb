@@ -150,11 +150,10 @@ class DashboardController < ApplicationController
     health_order = { off_track: 0, at_risk: 1, not_available: 2, on_track: 3 }
 
     entities.sort_by do |entity|
-      health = entity.respond_to?(:health) ? entity.health : :not_available
+      health = entity.health
       health_rank = health_order[health] || 99
-      name = entity.respond_to?(:name) ? entity.name.to_s.downcase : ''
 
-      [health_rank, name]
+      [health_rank, entity.name.to_s.downcase]
     end
   end
 end

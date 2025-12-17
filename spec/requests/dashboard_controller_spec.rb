@@ -96,6 +96,32 @@ RSpec.describe DashboardController, type: :request do
       expect(response.body).to include('At Risk')
     end
 
+    it 'shows on_track system health when most projects are on_track' do
+      # Create 2 on_track projects: score = 2/2 = 1.0 >= 0.51
+      project_a = ProjectRecord.create!(name: 'On Track A', current_state: 'in_progress')
+      HealthUpdateRecord.create!(project: project_a, date: Date.current, health: 'on_track')
+
+      project_b = ProjectRecord.create!(name: 'On Track B', current_state: 'in_progress')
+      HealthUpdateRecord.create!(project: project_b, date: Date.current, health: 'on_track')
+
+      get '/'
+
+      expect(response.body).to include('metric-widget__label--on-track')
+    end
+
+    it 'shows off_track system health when most projects are off_track' do
+      # Create 2 off_track projects: score = -2/2 = -1.0 <= -0.49
+      project_a = ProjectRecord.create!(name: 'Off Track A', current_state: 'in_progress')
+      HealthUpdateRecord.create!(project: project_a, date: Date.current, health: 'off_track')
+
+      project_b = ProjectRecord.create!(name: 'Off Track B', current_state: 'in_progress')
+      HealthUpdateRecord.create!(project: project_b, date: Date.current, health: 'off_track')
+
+      get '/'
+
+      expect(response.body).to include('metric-widget__label--off-track')
+    end
+
     it 'shows teams column with health indicators' do
       team = TeamRecord.create!(name: 'Alpha Team')
       project = ProjectRecord.create!(name: 'Team Project', current_state: 'in_progress')
