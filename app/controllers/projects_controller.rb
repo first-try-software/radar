@@ -11,6 +11,9 @@ class ProjectsController < ApplicationController
           prepare_health_form(project: @project)
           prepare_trend_data(project: @project)
           prepare_global_search_data
+          if @project.leaf?
+            prepare_health_updates
+          end
           render :show
         else
           render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
@@ -341,6 +344,10 @@ class ProjectsController < ApplicationController
     @teams = team_repository.all_active_roots
     @initiatives = initiative_repository.all_active_roots
     @all_projects = project_repository.all_active_roots
+  end
+
+  def prepare_health_updates
+    @health_updates = health_update_repository.all_for_project(params[:id]).sort_by(&:date).reverse
   end
 
   def team_repository

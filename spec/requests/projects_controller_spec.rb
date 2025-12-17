@@ -5,7 +5,7 @@ RSpec.describe ProjectsController, type: :request do
   let(:json_headers) { { 'ACCEPT' => 'application/json' } }
 
   describe 'HTML endpoints' do
-    it 'renders the show page' do
+    it 'renders the show page for a leaf project' do
       record = ProjectRecord.create!(name: 'Alpha')
       HealthUpdateRecord.create!(project: record, date: Date.current, health: 'on_track')
 
@@ -13,6 +13,19 @@ RSpec.describe ProjectsController, type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Alpha')
+    end
+
+    it 'renders the show page for a parent project with children' do
+      parent = ProjectRecord.create!(name: 'Parent Project')
+      child = ProjectRecord.create!(name: 'Child Project')
+      ProjectsProjectRecord.create!(parent: parent, child: child, order: 0)
+      HealthUpdateRecord.create!(project: child, date: Date.current, health: 'on_track')
+
+      get "/projects/#{parent.id}"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Parent Project')
+      expect(response.body).to include('Child Projects')
     end
 
     it 'creates health update via HTML and redirects' do

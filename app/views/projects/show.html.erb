@@ -407,6 +407,75 @@
 </section>
 <% end %>
 
+<!-- Updates Section (only for leaf projects) -->
+<% if @project&.leaf? %>
+<section class="section section--updates">
+  <h3 class="section__title">Updates</h3>
+
+  <div class="updates-list" data-updates-list>
+    <!-- Create Update Form (first row) -->
+    <form class="update-form" data-update-form action="<%= health_updates_project_path(@project_record) %>" method="post">
+      <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+      <div class="update-row update-row--form">
+        <div class="update-row__date">
+          <input type="date" name="health_update[date]" class="update-form__input update-form__input--date" value="<%= Date.current.strftime('%Y-%m-%d') %>" required data-update-date>
+        </div>
+        <div class="update-row__health">
+          <input type="hidden" name="health_update[health]" value="<%= @selected_health %>" data-health-input>
+          <div class="health-dropdown" data-health-dropdown>
+            <button type="button" class="health-dropdown__toggle" data-health-toggle>
+              <span class="health-dropdown__indicator health-dropdown__indicator--<%= @selected_health %>" data-health-indicator></span>
+              <span class="health-dropdown__label" data-health-label><%= @selected_health.to_s.tr('_', ' ').titleize %></span>
+              <span class="health-dropdown__arrow">▾</span>
+            </button>
+            <div class="health-dropdown__menu" data-health-menu>
+              <% @health_options.each do |health_opt| %>
+                <button type="button" class="health-dropdown__option" data-health-value="<%= health_opt %>">
+                  <span class="health-dropdown__indicator health-dropdown__indicator--<%= health_opt %>"></span>
+                  <span><%= health_opt.to_s.tr('_', ' ').titleize %></span>
+                </button>
+              <% end %>
+            </div>
+          </div>
+        </div>
+        <div class="update-row__description">
+          <input type="text" name="health_update[description]" class="update-form__input" placeholder="What's the latest?" data-update-description>
+        </div>
+        <div class="update-row__actions">
+          <button type="submit" class="btn btn--small" data-update-submit>Add Update</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Existing Updates Header -->
+    <div class="updates-header" data-updates-header<%= ' hidden' unless @health_updates&.any? %>>
+      <span class="updates-header__col updates-header__col--date">Date</span>
+      <span class="updates-header__col updates-header__col--health">Health</span>
+      <span class="updates-header__col updates-header__col--description">Description</span>
+    </div>
+
+    <!-- Existing Updates Container -->
+    <div data-updates-container>
+      <% if @health_updates&.any? %>
+        <% @health_updates.each do |update| %>
+          <div class="update-row" data-update-row>
+            <span class="update-row__date"><%= update.date.strftime('%-m/%-d/%-y') %></span>
+            <span class="update-row__health">
+              <span class="health-indicator health-indicator--<%= update.health %>"></span>
+              <span class="health-text"><%= update.health.to_s.tr('_', ' ').titleize %></span>
+            </span>
+            <span class="update-row__description"><%= update.description.presence || '—' %></span>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Empty State -->
+    <div class="updates-empty" data-updates-empty<%= ' hidden' if @health_updates&.any? %>>No updates yet. Add your first update above!</div>
+  </div>
+</section>
+<% end %>
+
 <!-- Edit Modal -->
 <div class="modal-overlay" data-edit-modal hidden>
   <div class="modal">
@@ -732,6 +801,131 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   });
+
+  // Health dropdown
+  const healthDropdown = document.querySelector('[data-health-dropdown]');
+  const healthToggle = document.querySelector('[data-health-toggle]');
+  const healthMenu = document.querySelector('[data-health-menu]');
+  const healthInput = document.querySelector('[data-health-input]');
+  const healthIndicator = document.querySelector('[data-health-indicator]');
+  const healthLabel = document.querySelector('[data-health-label]');
+
+  if (healthDropdown && healthToggle && healthMenu) {
+    healthToggle.addEventListener('click', () => {
+      healthMenu.classList.toggle('open');
+    });
+
+    healthMenu.querySelectorAll('[data-health-value]').forEach((option) => {
+      option.addEventListener('click', () => {
+        const value = option.dataset.healthValue;
+        const label = value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+        healthInput.value = value;
+        healthLabel.textContent = label;
+        healthIndicator.className = `health-dropdown__indicator health-dropdown__indicator--${value}`;
+        healthMenu.classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!healthDropdown.contains(e.target)) {
+        healthMenu.classList.remove('open');
+      }
+    });
+  }
+
+  // Health update form AJAX submission
+  const updateForm = document.querySelector('[data-update-form]');
+  if (updateForm) {
+    updateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(updateForm);
+      const submitBtn = updateForm.querySelector('[data-update-submit]');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Adding...';
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch(updateForm.action, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'X-CSRF-Token': token
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Get form values before reset
+          const dateInput = updateForm.querySelector('[data-update-date]');
+          const dateValue = dateInput.value;
+          const healthValue = healthInput.value;
+          const descInput = updateForm.querySelector('[data-update-description]');
+          const descValue = descInput.value || '—';
+
+          // Format date for display
+          const dateParts = dateValue.split('-');
+          const displayDate = `${parseInt(dateParts[1])}/${parseInt(dateParts[2])}/${dateParts[0].slice(2)}`;
+
+          // Create new update row
+          const newRow = document.createElement('div');
+          newRow.className = 'update-row';
+          newRow.setAttribute('data-update-row', '');
+          const healthLabelText = healthValue.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          newRow.innerHTML = `
+            <span class="update-row__date">${displayDate}</span>
+            <span class="update-row__health">
+              <span class="health-indicator health-indicator--${healthValue}"></span>
+              <span class="health-text">${healthLabelText}</span>
+            </span>
+            <span class="update-row__description">${descValue}</span>
+          `;
+
+          // Show header, hide empty state
+          const header = document.querySelector('[data-updates-header]');
+          const emptyState = document.querySelector('[data-updates-empty]');
+          const container = document.querySelector('[data-updates-container]');
+
+          if (header) header.hidden = false;
+          if (emptyState) emptyState.hidden = true;
+
+          // Prepend new row
+          if (container) {
+            container.insertBefore(newRow, container.firstChild);
+          }
+
+          // Reset description only (keep date and health for convenience)
+          descInput.value = '';
+
+          // Update metrics if health changed
+          if (data.health) {
+            const healthDotMetric = document.querySelector('.metric-widget__dot');
+            const healthLabelMetric = document.querySelector('.metric-widget--health .metric-widget__label');
+            if (healthDotMetric && healthLabelMetric) {
+              const newHealthClass = data.health.replace(/_/g, '-');
+              healthDotMetric.className = `metric-widget__dot metric-widget__dot--${newHealthClass}`;
+              healthLabelMetric.className = `metric-widget__label metric-widget__label--${newHealthClass}`;
+              healthLabelMetric.textContent = data.health.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            }
+          }
+
+          showToast('Update added!', 'success');
+        } else {
+          const errorMsg = data.errors ? data.errors.join(', ') : 'Failed to add update';
+          showToast(errorMsg, 'error');
+        }
+      } catch (error) {
+        console.error(error);
+        showToast('An error occurred. Please try again.', 'error');
+      } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+  }
 
   // Toast notification function
   function showToast(message, type = 'success') {
