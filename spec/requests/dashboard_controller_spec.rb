@@ -35,22 +35,11 @@ RSpec.describe DashboardController, type: :request do
       expect(response.body).to include('Everything is on track!')
     end
 
-    it 'shows on hold projects section' do
-      ProjectRecord.create!(name: 'On Hold Project', current_state: 'on_hold')
-
-      get '/'
-
-      expect(response.body).to include('On Hold')
-      expect(response.body).to include('On Hold Project')
-    end
-
     it 'shows never updated projects section' do
       ProjectRecord.create!(name: 'Never Updated Project', current_state: 'in_progress')
 
       get '/'
 
-      expect(response.body).to include('Stale')
-      expect(response.body).to include('Never Updated')
       expect(response.body).to include('Never Updated Project')
     end
 
@@ -61,7 +50,6 @@ RSpec.describe DashboardController, type: :request do
       get '/'
 
       expect(response.body).to include('Stale')
-      expect(response.body).to include('Not Updated in 14+ Days')
       expect(response.body).to include('Very Stale Project')
     end
 
@@ -72,7 +60,6 @@ RSpec.describe DashboardController, type: :request do
       get '/'
 
       expect(response.body).to include('Stale')
-      expect(response.body).to include('Not Updated in 7+ Days')
       expect(response.body).to include('Somewhat Stale Project')
     end
 
@@ -81,7 +68,6 @@ RSpec.describe DashboardController, type: :request do
 
       get '/'
 
-      expect(response.body).to include('Unowned Project')
       expect(response.body).to include('Orphan Project')
     end
 
@@ -174,6 +160,31 @@ RSpec.describe DashboardController, type: :request do
       expect(response.body).to include('Initiatives')
       expect(response.body).to include('Beta Initiative')
       expect(response.body).to include('project-item-v2__health')
+    end
+
+    it 'shows latest health update date and comment in project lists' do
+      project = ProjectRecord.create!(name: 'Updated Project', current_state: 'in_progress')
+      HealthUpdateRecord.create!(
+        project: project,
+        date: Date.new(2025, 1, 5),
+        health: 'on_track',
+        description: 'Feeling good'
+      )
+
+      get '/'
+
+      expect(response.body).to include('Last update')
+      expect(response.body).to include('1/5/25')
+      expect(response.body).to include('Feeling good')
+      expect(response.body).to include('In Progress')
+    end
+
+    it 'shows placeholders for projects without health updates' do
+      ProjectRecord.create!(name: 'No Update Project', current_state: 'in_progress')
+
+      get '/'
+
+      expect(response.body).to include('—')
     end
   end
 end

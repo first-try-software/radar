@@ -44,6 +44,7 @@ class Project
 
   def health = project_health.health
   def health_trend = project_health.health_trend
+  def latest_health_update = project_health.latest_health_update
   def health_updates_for_tooltip = project_health.health_updates_for_tooltip
   def children_health_for_tooltip = project_health.children_health_for_tooltip
 

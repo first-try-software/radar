@@ -1,0 +1,29 @@
+<% health_override = local_assigns.fetch(:health, nil) %>
+<% ref = local_assigns.fetch(:ref, 'dashboard') %>
+<% latest_update = project.latest_health_update %>
+<% last_update_date = latest_update&.date ? latest_update.date.strftime('%-m/%-d/%-y') : '—' %>
+<% last_update_comment = latest_update&.description.present? ? latest_update.description : '—' %>
+<% project_record = ProjectRecord.find_by(name: project.name) %>
+<% path_params = ref ? { ref: ref } : {} %>
+<% link_href = project_path(project_record, path_params) %>
+<% health_value = health_override || project.health || :not_available %>
+<% state_label = project.current_state.to_s.tr('_', ' ').titleize %>
+<% state_class = "project-item-v2__state project-item-v2__state--#{project.current_state}" %>
+
+<li class="project-item-v2">
+  <a href="<%= link_href %>" class="project-item-v2__link">
+    <div class="project-item-v2__grid">
+      <span class="project-item-v2__col project-item-v2__col--health">
+        <span class="project-item-v2__health project-item-v2__health--<%= health_value %>"></span>
+      </span>
+      <span class="project-item-v2__col project-item-v2__col--name">
+        <span class="project-item-v2__name"><%= project.name %></span>
+      </span>
+      <span class="project-item-v2__col project-item-v2__col--state">
+        <span class="<%= state_class %>"><%= state_label %></span>
+      </span>
+      <span class="project-item-v2__col project-item-v2__col--meta"><%= last_update_date %></span>
+      <span class="project-item-v2__col project-item-v2__col--comment"><%= last_update_comment %></span>
+    </div>
+  </a>
+</li>

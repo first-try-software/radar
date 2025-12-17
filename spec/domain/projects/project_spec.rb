@@ -388,6 +388,32 @@ RSpec.describe Project do
     end
   end
 
+  describe '#latest_health_update' do
+    it 'returns nil when project has no updates' do
+      project = build_project(
+        name: 'Status',
+        children_loader: ->(_) { [] },
+        health_updates_loader: ->(_) { [] }
+      )
+
+      expect(project.latest_health_update).to be_nil
+    end
+
+    it 'returns the most recent non-future update' do
+      current_date = Date.respond_to?(:current) ? Date.current : Date.today
+      past_update = double('HealthUpdate', date: current_date - 1, health: :on_track, description: 'Past')
+      future_update = double('HealthUpdate', date: current_date + 3, health: :off_track, description: 'Future')
+      project = build_project(
+        name: 'Status',
+        children_loader: ->(_) { [] },
+        health_updates_loader: ->(_) { [past_update, future_update] },
+        weekly_health_updates_loader: ->(_) { [] }
+      )
+
+      expect(project.latest_health_update).to eq(past_update)
+    end
+  end
+
   describe 'health_trend' do
     it 'returns only current health when no weekly updates exist for leaf project' do
       loader = ->(_project) { [] }

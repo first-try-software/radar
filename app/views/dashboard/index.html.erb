@@ -317,196 +317,183 @@
     </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="dashboard-tabs-v2">
-    <button class="dashboard-tab-v2" data-tab="attention">
-      Unhealthy <span class="dashboard-tab-v2__count"><%= @attention_required.size + @on_hold_projects.size %></span>
-    </button>
-    <button class="dashboard-tab-v2" data-tab="update">
-      Stale <span class="dashboard-tab-v2__count"><%= @never_updated_projects.size + @stale_projects_14.size + @stale_projects_7.size %></span>
-    </button>
-    <button class="dashboard-tab-v2" data-tab="projects">
-      Active <span class="dashboard-tab-v2__count"><%= @active_projects.size %></span>
-    </button>
-    <button class="dashboard-tab-v2" data-tab="inactive">
-      Inactive <span class="dashboard-tab-v2__count"><%= @inactive_projects.size %></span>
-    </button>
-    <button class="dashboard-tab-v2" data-tab="manage">
-      Unowned <span class="dashboard-tab-v2__count"><%= @orphan_projects.size %></span>
-    </button>
-  </div>
+  <section class="section section--projects">
+    <div class="section__title-row">
+      <h3 class="section__title">Projects</h3>
+      <div class="dashboard-tabs-v2">
+        <button class="dashboard-tab-v2" data-tab="all">
+          All <span class="dashboard-tab-v2__count"><%= @all_projects.size %></span>
+        </button>
+        <button class="dashboard-tab-v2" data-tab="attention">
+          Unhealthy <span class="dashboard-tab-v2__count"><%= @attention_required.size %></span>
+        </button>
+        <button class="dashboard-tab-v2" data-tab="update">
+          Stale <span class="dashboard-tab-v2__count"><%= @never_updated_projects.size + @stale_projects_14.size + @stale_projects_7.size %></span>
+        </button>
+        <button class="dashboard-tab-v2" data-tab="projects">
+          Active <span class="dashboard-tab-v2__count"><%= @active_projects.size %></span>
+        </button>
+        <button class="dashboard-tab-v2" data-tab="inactive">
+          Inactive <span class="dashboard-tab-v2__count"><%= @inactive_projects.size %></span>
+        </button>
+        <button class="dashboard-tab-v2" data-tab="manage">
+          Unowned <span class="dashboard-tab-v2__count"><%= @orphan_projects.size %></span>
+        </button>
+      </div>
+    </div>
 
-  <!-- Tab Content: Needs Attention -->
-  <div class="tab-content-v2" data-tab-content="attention">
-    <% if @attention_required.empty? && @on_hold_projects.empty? %>
-      <div class="tab-empty-v2">Everything is on track!</div>
-    <% else %>
-          <% if @attention_required.any? %>
-        <div class="tab-section-v2">
-          <h4 class="tab-section-v2__title"><%= @attention_required.size %> Unhealthy <%= 'Project'.pluralize(@attention_required.size) %></h4>
-          <ul class="project-list-v2">
-                <% @attention_required.each do |project| %>
-              <li class="project-item-v2">
-                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
-                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
-                  <span class="project-item-v2__name"><%= project.name %></span>
-                      <% if project.current_state == :blocked %>
-                    <span class="project-item-v2__tag project-item-v2__tag--blocked">Blocked</span>
-                      <% end %>
-                    </a>
-                  </li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-      <% if @on_hold_projects.any? %>
-        <div class="tab-section-v2">
-          <h4 class="tab-section-v2__title"><%= @on_hold_projects.size %> On Hold</h4>
-          <ul class="project-list-v2">
-            <% @on_hold_projects.each do |project| %>
-              <li class="project-item-v2">
-                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
-                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
-                  <span class="project-item-v2__name"><%= project.name %></span>
-                    </a>
-                  </li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-    <% end %>
-  </div>
-
-  <!-- Tab Content: Needs Update -->
-  <div class="tab-content-v2" data-tab-content="update">
-    <% if @never_updated_projects.empty? && @stale_projects_14.empty? && @stale_projects_7.empty? %>
-      <div class="tab-empty-v2">Everything is up to date!</div>
-    <% else %>
-      <% if @never_updated_projects.any? %>
-        <div class="tab-section-v2">
-          <h4 class="tab-section-v2__title"><%= @never_updated_projects.size %> Never Updated</h4>
-          <ul class="project-list-v2">
-            <% @never_updated_projects.each do |project| %>
-              <li class="project-item-v2">
-                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
-                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
-                  <span class="project-item-v2__name"><%= project.name %></span>
-                  <span class="project-item-v2__tag project-item-v2__tag--stale">Stale</span>
-                    </a>
-                  </li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-      <% if @stale_projects_14.any? %>
-        <div class="tab-section-v2">
-          <h4 class="tab-section-v2__title"><%= @stale_projects_14.size %> Not Updated in 14+ Days</h4>
-          <ul class="project-list-v2">
-            <% @stale_projects_14.each do |project| %>
-              <li class="project-item-v2">
-                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
-                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
-                  <span class="project-item-v2__name"><%= project.name %></span>
-                  <span class="project-item-v2__tag project-item-v2__tag--stale">Stale</span>
-                    </a>
-                  </li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-      <% if @stale_projects_7.any? %>
-        <div class="tab-section-v2">
-          <h4 class="tab-section-v2__title"><%= @stale_projects_7.size %> Not Updated in 7+ Days</h4>
-          <ul class="project-list-v2">
-            <% @stale_projects_7.each do |project| %>
-              <li class="project-item-v2">
-                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
-                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
-                  <span class="project-item-v2__name"><%= project.name %></span>
-                  <span class="project-item-v2__tag project-item-v2__tag--stale">Stale</span>
-                    </a>
-                  </li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-    <% end %>
-  </div>
-
-  <!-- Tab Content: Active Projects -->
-  <div class="tab-content-v2" data-tab-content="projects">
     <%
       stale_project_names = (@stale_projects_14 + @stale_projects_7 + @never_updated_projects).map(&:name)
-    %>
-    <% if @active_projects.empty? %>
-      <div class="tab-empty-v2">No active projects</div>
-    <% else %>
-      <div class="tab-section-v2">
-        <h4 class="tab-section-v2__title"><%= @active_projects.size %> Active <%= 'Project'.pluralize(@active_projects.size) %></h4>
-        <ul class="project-list-v2">
-          <% @active_projects.sort_by { |p| [p.health == :on_track ? 2 : (p.health == :at_risk ? 1 : 0), p.name] }.each do |project| %>
-            <li class="project-item-v2">
-              <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
-                <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
-                <span class="project-item-v2__name"><%= project.name %></span>
-                <% if project.current_state == :blocked %>
-                  <span class="project-item-v2__tag project-item-v2__tag--blocked">Blocked</span>
-                <% elsif stale_project_names.include?(project.name) %>
-                  <span class="project-item-v2__tag project-item-v2__tag--stale">Stale</span>
-                <% end %>
-                    </a>
-                  </li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-  </div>
-
-  <!-- Tab Content: Inactive Projects -->
-  <div class="tab-content-v2" data-tab-content="inactive">
-    <%
       state_order = { new: 0, todo: 1, on_hold: 2, done: 3 }
       sorted_inactive = @inactive_projects.sort_by { |p| [state_order[p.current_state] || 99, p.name] }
     %>
-    <% if @inactive_projects.empty? %>
-      <div class="tab-empty-v2">No inactive projects</div>
-    <% else %>
-      <div class="tab-section-v2">
-        <h4 class="tab-section-v2__title"><%= @inactive_projects.size %> Inactive <%= 'Project'.pluralize(@inactive_projects.size) %></h4>
-        <ul class="project-list-v2">
-          <% sorted_inactive.each do |project| %>
-            <li class="project-item-v2">
-              <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: 'dashboard') %>" class="project-item-v2__link">
-                <span class="project-item-v2__health project-item-v2__health--<%= project.health || :not_available %>"></span>
-                <span class="project-item-v2__name"><%= project.name %></span>
-                <span class="project-item-v2__tag project-item-v2__tag--inactive"><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
-                    </a>
-                  </li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-  </div>
 
-  <!-- Tab Content: Unowned -->
-  <div class="tab-content-v2" data-tab-content="manage">
-  <% if @orphan_projects.any? %>
-      <div class="manage-section-v2">
-        <h4 class="tab-section-v2__title"><%= @orphan_projects.size %> Unowned <%= 'Project'.pluralize(@orphan_projects.size) %></h4>
+    <!-- Tab Content: All Projects -->
+    <div class="tab-content-v2" data-tab-content="all">
+      <% if @all_projects.empty? %>
+        <div class="tab-empty-v2">No projects</div>
+      <% else %>
         <ul class="project-list-v2">
-            <% @orphan_projects.each do |project| %>
-            <li class="project-item-v2">
-              <a href="<%= project_path(ProjectRecord.find_by(name: project.name)) %>" class="project-item-v2__link">
-                <span class="project-item-v2__health project-item-v2__health--<%= project.health || :not_available %>"></span>
-                <span class="project-item-v2__name"><%= project.name %></span>
-                </a>
-              </li>
+          <%= render 'project_list_header' %>
+          <% @all_projects.sort_by(&:name).each do |project| %>
+            <%= render 'project_list_item',
+                      project: project,
+                      ref: 'dashboard' %>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
+
+    <!-- Tab Content: Needs Attention -->
+    <div class="tab-content-v2" data-tab-content="attention">
+      <% if @attention_required.empty? && @on_hold_projects.empty? %>
+        <div class="tab-empty-v2">Everything is on track!</div>
+      <% else %>
+        <% if @attention_required.any? %>
+          <ul class="project-list-v2">
+            <%= render 'project_list_header' %>
+            <% @attention_required.each do |project| %>
+              <% tag_text = project.current_state == :blocked ? 'Blocked' : nil %>
+              <% tag_modifier = project.current_state == :blocked ? 'blocked' : nil %>
+              <%= render 'project_list_item',
+                        project: project,
+                        tag_text: tag_text,
+                        tag_modifier: tag_modifier,
+                        ref: 'dashboard' %>
             <% end %>
           </ul>
+        <% end %>
+      <% end %>
     </div>
-  <% end %>
-  </div>
-</div>
+
+    <!-- Tab Content: Needs Update -->
+    <div class="tab-content-v2" data-tab-content="update">
+      <% if @never_updated_projects.empty? && @stale_projects_14.empty? && @stale_projects_7.empty? %>
+        <div class="tab-empty-v2">Everything is up to date!</div>
+      <% else %>
+        <% if @never_updated_projects.any? %>
+          <ul class="project-list-v2">
+            <%= render 'project_list_header' %>
+            <% @never_updated_projects.each do |project| %>
+              <%= render 'project_list_item',
+                        project: project,
+                        tag_text: 'Stale',
+                        tag_modifier: 'stale',
+                        ref: 'dashboard' %>
+            <% end %>
+          </ul>
+        <% end %>
+        <% if @stale_projects_14.any? %>
+          <ul class="project-list-v2">
+            <%= render 'project_list_header' %>
+            <% @stale_projects_14.each do |project| %>
+              <%= render 'project_list_item',
+                        project: project,
+                        tag_text: 'Stale',
+                        tag_modifier: 'stale',
+                        ref: 'dashboard' %>
+            <% end %>
+          </ul>
+        <% end %>
+        <% if @stale_projects_7.any? %>
+          <ul class="project-list-v2">
+            <%= render 'project_list_header' %>
+            <% @stale_projects_7.each do |project| %>
+              <%= render 'project_list_item',
+                        project: project,
+                        tag_text: 'Stale',
+                        tag_modifier: 'stale',
+                        ref: 'dashboard' %>
+            <% end %>
+          </ul>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Tab Content: Active Projects -->
+    <div class="tab-content-v2" data-tab-content="projects">
+      <% if @active_projects.empty? %>
+        <div class="tab-empty-v2">No active projects</div>
+      <% else %>
+        <ul class="project-list-v2">
+          <%= render 'project_list_header' %>
+          <% @active_projects.sort_by { |p| [p.health == :on_track ? 2 : (p.health == :at_risk ? 1 : 0), p.name] }.each do |project| %>
+            <% tag_text = nil %>
+            <% tag_modifier = nil %>
+            <% if project.current_state == :blocked %>
+              <% tag_text = 'Blocked' %>
+              <% tag_modifier = 'blocked' %>
+            <% elsif stale_project_names.include?(project.name) %>
+              <% tag_text = 'Stale' %>
+              <% tag_modifier = 'stale' %>
+            <% end %>
+            <%= render 'project_list_item',
+                      project: project,
+                      tag_text: tag_text,
+                      tag_modifier: tag_modifier,
+                      ref: 'dashboard' %>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
+
+    <!-- Tab Content: Inactive Projects -->
+    <div class="tab-content-v2" data-tab-content="inactive">
+      <% if @inactive_projects.empty? %>
+        <div class="tab-empty-v2">No inactive projects</div>
+      <% else %>
+        <ul class="project-list-v2">
+          <%= render 'project_list_header' %>
+          <% sorted_inactive.each do |project| %>
+            <% tag_text = project.current_state.to_s.tr('_', ' ').titleize %>
+            <%= render 'project_list_item',
+                      project: project,
+                      tag_text: tag_text,
+                      tag_modifier: 'inactive',
+                      ref: 'dashboard',
+                      health: project.health || :not_available %>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
+
+    <!-- Tab Content: Unowned -->
+    <div class="tab-content-v2" data-tab-content="manage">
+      <% if @orphan_projects.any? %>
+        <ul class="project-list-v2">
+          <%= render 'project_list_header' %>
+          <% @orphan_projects.each do |project| %>
+            <%= render 'project_list_item',
+                      project: project,
+                      ref: nil,
+                      health: project.health || :not_available %>
+          <% end %>
+        </ul>
+      <% else %>
+        <div class="tab-empty-v2">No unowned projects</div>
+      <% end %>
+    </div>
+  </section>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {

@@ -464,6 +464,31 @@ RSpec.describe ProjectHealth do
     end
   end
 
+  describe 'latest_health_update' do
+    it 'returns nil when there are no updates' do
+      project_health = described_class.new(
+        health_updates_loader: -> { [] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: -> { [] }
+      )
+
+      expect(project_health.latest_health_update).to be_nil
+    end
+
+    it 'returns the most recent non-future update' do
+      current_date = Date.respond_to?(:current) ? Date.current : Date.today
+      past_update = double('HealthUpdate', date: current_date - 1, health: :on_track, description: 'Past')
+      future_update = double('HealthUpdate', date: current_date + 7, health: :off_track, description: 'Future')
+      project_health = described_class.new(
+        health_updates_loader: -> { [past_update, future_update] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: -> { [] }
+      )
+
+      expect(project_health.latest_health_update).to eq(past_update)
+    end
+  end
+
   describe 'health_updates_for_tooltip' do
     it 'returns nil when there are children' do
       child = double('Child')

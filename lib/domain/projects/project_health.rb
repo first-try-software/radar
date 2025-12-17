@@ -27,6 +27,10 @@ class ProjectHealth
     end
   end
 
+  def latest_health_update
+    health_updates.last
+  end
+
   def health_updates_for_tooltip
     return nil if children.any?
 

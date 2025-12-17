@@ -96,6 +96,7 @@ class Dashboard
     cutoff = current_date - days
 
     active_working_projects.select do |project|
+      next false unless [:in_progress, :blocked].include?(project.current_state)
       project_id = project.id || project.name
       latest_update = health_update_repository&.latest_for_project(project_id)
       next false if latest_update.nil?
@@ -109,6 +110,7 @@ class Dashboard
     max_cutoff = current_date - max_days
 
     active_working_projects.select do |project|
+      next false unless [:in_progress, :blocked].include?(project.current_state)
       project_id = project.id || project.name
       latest_update = health_update_repository&.latest_for_project(project_id)
       next false if latest_update.nil?
@@ -119,7 +121,7 @@ class Dashboard
 
   def never_updated_projects
     active_working_projects.select do |project|
-      project.health == :not_available
+      [:in_progress, :blocked].include?(project.current_state) && project.health == :not_available
     end
   end
 
