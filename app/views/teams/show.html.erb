@@ -43,6 +43,8 @@
   <!-- Metrics Row: Health | Trend | Confidence -->
   <% team_health = @team&.health || :not_available %>
   <% health_class = team_health.to_s.tr('_', '-') %>
+  <% raw_score = @team&.health_raw_score %>
+  <% raw_score_display = raw_score ? raw_score.round(2) : 'N/A' %>
 
   <div class="metrics-row-v2">
     <!-- Health Widget -->
@@ -72,6 +74,8 @@
           <span class="widget-info__icon">i</span>
           <div class="widget-info__tooltip">
             <div class="widget-info__methodology">Weighted average of leaf project health scores. On Track = +1, At Risk = 0, Off Track = −1.</div>
+            <div class="widget-info__range">Range: −1.0 to +1.0</div>
+            <div class="widget-info__score">Score: <%= raw_score_display %></div>
           </div>
         </div>
       </div>

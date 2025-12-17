@@ -155,4 +155,22 @@ RSpec.describe Team do
       expect(parent_team.health).to eq(:not_available)
     end
   end
+
+  describe '#health_raw_score' do
+    it 'returns the raw score from HealthRollup' do
+      leaf_project = double('Project', current_state: :in_progress, health: :on_track)
+      owned_project = double('Project', leaf_descendants: [leaf_project])
+      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { [owned_project] })
+
+      expect(team.health_raw_score).to eq(1.0)
+    end
+
+    it 'returns nil when no leaf projects are in a working state' do
+      leaf_project = double('Project', current_state: :todo, health: :on_track)
+      owned_project = double('Project', leaf_descendants: [leaf_project])
+      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { [owned_project] })
+
+      expect(team.health_raw_score).to be_nil
+    end
+  end
 end
