@@ -286,6 +286,127 @@
   </div>
 </div>
 
+<!-- Child Projects Section (only for parent projects) -->
+<% if @project && !@project.leaf? %>
+<%
+  leaf_descendants = @project.leaf_descendants
+  sorted_descendants = leaf_descendants.sort_by { |p| [p.health == :off_track ? 0 : (p.health == :at_risk ? 1 : 2), p.name.downcase] }
+
+  unhealthy = leaf_descendants.select { |p| [:off_track, :at_risk].include?(p.health) }
+  sorted_unhealthy = unhealthy.sort_by { |p| [p.health == :off_track ? 0 : 1, p.name.downcase] }
+
+  stale = leaf_descendants.select do |p|
+    latest = p.latest_health_update
+    latest.nil? || (Date.current - latest.date.to_date).to_i > 7
+  end
+  sorted_stale = stale.sort_by { |p| p.name.downcase }
+
+  active_states = [:new, :in_progress, :blocked]
+  inactive_states = [:completed, :paused, :cancelled]
+
+  active_projects = leaf_descendants.select { |p| active_states.include?(p.current_state) }
+  sorted_active = active_projects.sort_by { |p| [p.health == :off_track ? 0 : (p.health == :at_risk ? 1 : 2), p.name.downcase] }
+
+  inactive_projects = leaf_descendants.select { |p| inactive_states.include?(p.current_state) }
+  sorted_inactive = inactive_projects.sort_by { |p| p.name.downcase }
+%>
+<section class="section section--projects">
+  <div class="section__title-row">
+    <h3 class="section__title">Child Projects</h3>
+    <div class="dashboard-tabs-v2">
+      <button class="dashboard-tab-v2 active" data-child-tab="all">
+        All <span class="dashboard-tab-v2__count"><%= leaf_descendants.size %></span>
+      </button>
+      <button class="dashboard-tab-v2" data-child-tab="unhealthy">
+        Unhealthy <span class="dashboard-tab-v2__count"><%= unhealthy.size %></span>
+      </button>
+      <button class="dashboard-tab-v2" data-child-tab="stale">
+        Stale <span class="dashboard-tab-v2__count"><%= stale.size %></span>
+      </button>
+      <button class="dashboard-tab-v2" data-child-tab="active">
+        Active <span class="dashboard-tab-v2__count"><%= active_projects.size %></span>
+      </button>
+      <button class="dashboard-tab-v2" data-child-tab="inactive">
+        Inactive <span class="dashboard-tab-v2__count"><%= inactive_projects.size %></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Content: All -->
+  <div class="tab-content-v2 active" data-child-tab-content="all">
+    <% if leaf_descendants.empty? %>
+      <div class="tab-empty-v2">No child projects</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_descendants.each do |child_project| %>
+          <%= render 'dashboard/project_list_item', project: child_project, ref: nil %>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+
+  <!-- Tab Content: Unhealthy -->
+  <div class="tab-content-v2" data-child-tab-content="unhealthy">
+    <% if unhealthy.empty? %>
+      <div class="tab-empty-v2">All child projects are healthy!</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_unhealthy.each do |child_project| %>
+          <%= render 'dashboard/project_list_item', project: child_project, ref: nil %>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+
+  <!-- Tab Content: Stale -->
+  <div class="tab-content-v2" data-child-tab-content="stale">
+    <% if stale.empty? %>
+      <div class="tab-empty-v2">All child projects are up to date!</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_stale.each do |child_project| %>
+          <%= render 'dashboard/project_list_item', project: child_project, ref: nil, tag_text: 'Stale', tag_modifier: 'stale' %>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+
+  <!-- Tab Content: Active -->
+  <div class="tab-content-v2" data-child-tab-content="active">
+    <% if active_projects.empty? %>
+      <div class="tab-empty-v2">No active child projects</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_active.each do |child_project| %>
+          <% tag_text = child_project.current_state == :blocked ? 'Blocked' : nil %>
+          <% tag_modifier = child_project.current_state == :blocked ? 'blocked' : nil %>
+          <%= render 'dashboard/project_list_item', project: child_project, ref: nil, tag_text: tag_text, tag_modifier: tag_modifier %>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+
+  <!-- Tab Content: Inactive -->
+  <div class="tab-content-v2" data-child-tab-content="inactive">
+    <% if inactive_projects.empty? %>
+      <div class="tab-empty-v2">No inactive child projects</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_inactive.each do |child_project| %>
+          <% tag_text = child_project.current_state.to_s.tr('_', ' ').titleize %>
+          <%= render 'dashboard/project_list_item', project: child_project, ref: nil, tag_text: tag_text, tag_modifier: 'inactive' %>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+</section>
+<% end %>
+
 <!-- Edit Modal -->
 <div class="modal-overlay" data-edit-modal hidden>
   <div class="modal">
@@ -594,6 +715,23 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   }
+
+  // Child projects tab switching
+  const childTabs = document.querySelectorAll('[data-child-tab]');
+  const childTabContents = document.querySelectorAll('[data-child-tab-content]');
+
+  childTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.dataset.childTab;
+
+      childTabs.forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      childTabContents.forEach((content) => {
+        content.classList.toggle('active', content.dataset.childTabContent === tabName);
+      });
+    });
+  });
 
   // Toast notification function
   function showToast(message, type = 'success') {
