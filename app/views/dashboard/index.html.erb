@@ -184,7 +184,7 @@
           <% @teams.sort_by(&:name).each do |team| %>
             <li class="home-column__item">
               <a href="<%= team_path(TeamRecord.find_by(name: team.name)) %>" class="home-column__link">
-                <span class="home-column__health home-column__health--<%= team.health || :not_available %>"><%= team.health == :on_track ? '●' : (team.health == :at_risk ? '▲' : (team.health == :off_track ? '■' : '●')) %></span>
+                <span class="project-item-v2__health project-item-v2__health--<%= team.health || :not_available %>"></span>
                 <span class="home-column__name"><%= team.name %></span>
               </a>
             </li>
@@ -201,7 +201,7 @@
           <% @initiatives.sort_by(&:name).each do |initiative| %>
             <li class="home-column__item">
               <a href="<%= initiative_path(InitiativeRecord.find_by(name: initiative.name)) %>" class="home-column__link">
-                <span class="home-column__health home-column__health--<%= initiative.health || :not_available %>"><%= initiative.health == :on_track ? '●' : (initiative.health == :at_risk ? '▲' : (initiative.health == :off_track ? '■' : '●')) %></span>
+                <span class="project-item-v2__health project-item-v2__health--<%= initiative.health || :not_available %>"></span>
                 <span class="home-column__name"><%= initiative.name %></span>
               </a>
             </li>
