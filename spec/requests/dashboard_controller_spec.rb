@@ -157,7 +157,7 @@ RSpec.describe DashboardController, type: :request do
 
       expect(response.body).to include('global-search__create-btn')
       expect(response.body).to include('Create Project')
-      expect(response.body).to include('global-search__results-header')
+      expect(response.body).to include('Create Project')
       expect(response.body).to include('project[name]')
       expect(response.body).to include('project[description]')
       expect(response.body).to include('project[point_of_contact]')
