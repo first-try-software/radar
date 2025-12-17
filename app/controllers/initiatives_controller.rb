@@ -275,6 +275,11 @@ class InitiativesController < ApplicationController
     @stale_projects_14 = dashboard.stale_projects(days: 14)
     @stale_projects_7 = dashboard.stale_projects_between(min_days: 7, max_days: 14)
 
+    # Global search data
+    @teams = team_repository.all_active_roots
+    @initiatives = initiative_repository.all_active_roots
+    @all_projects = project_repository.all_active_roots
+
     # Trend data
     trend_service = InitiativeTrendService.new(
       initiative: initiative,
@@ -299,6 +304,9 @@ class InitiativesController < ApplicationController
     @never_updated_projects = []
     @stale_projects_14 = []
     @stale_projects_7 = []
+    @teams = []
+    @initiatives = []
+    @all_projects = []
     @trend_data = []
     @trend_direction = :stable
     @trend_delta = 0.0
@@ -306,6 +314,18 @@ class InitiativesController < ApplicationController
     @confidence_score = 0
     @confidence_level = :low
     @confidence_factors = { biggest_drag: :insufficient_data, details: {} }
+  end
+
+  def team_repository
+    Rails.application.config.x.team_repository
+  end
+
+  def initiative_repository
+    Rails.application.config.x.initiative_repository
+  end
+
+  def project_repository
+    Rails.application.config.x.project_repository
   end
 
 end

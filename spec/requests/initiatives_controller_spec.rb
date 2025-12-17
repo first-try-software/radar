@@ -37,7 +37,7 @@ RSpec.describe InitiativesController, type: :request do
       expect(response.body).to include('metric-widget')
     end
 
-    it 'renders attention required section on the show page' do
+    it 'renders unhealthy tab on the show page' do
       initiative = InitiativeRecord.create!(name: 'Launch 2025')
       off_track = ProjectRecord.create!(name: 'Off Track Project', current_state: 'in_progress')
       HealthUpdateRecord.create!(project: off_track, date: Date.current, health: 'off_track')
@@ -45,11 +45,11 @@ RSpec.describe InitiativesController, type: :request do
 
       get "/initiatives/#{initiative.id}"
 
-      expect(response.body).to include('Needs Attention')
+      expect(response.body).to include('Unhealthy')
       expect(response.body).to include('Off Track Project')
     end
 
-    it 'renders needs update section on the show page' do
+    it 'renders stale tab on the show page' do
       initiative = InitiativeRecord.create!(name: 'Launch 2025')
       stale_project = ProjectRecord.create!(name: 'Stale Project', current_state: 'in_progress')
       HealthUpdateRecord.create!(project: stale_project, date: Date.current - 20, health: 'on_track')
@@ -57,16 +57,16 @@ RSpec.describe InitiativesController, type: :request do
 
       get "/initiatives/#{initiative.id}"
 
-      expect(response.body).to include('Needs Update')
+      expect(response.body).to include('Stale')
       expect(response.body).to include('Stale Project')
     end
 
-    it 'renders add/link projects section on the show page' do
+    it 'renders global search on the show page' do
       initiative = InitiativeRecord.create!(name: 'Launch 2025')
 
       get "/initiatives/#{initiative.id}"
 
-      expect(response.body).to include('Add or link a project')
+      expect(response.body).to include('Find or create what you are looking for...')
     end
 
     it 'links projects in attention sections to their show pages with initiative ref' do
