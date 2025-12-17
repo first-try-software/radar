@@ -44,8 +44,11 @@
         <div class="widget-info">
           <span class="widget-info__icon">i</span>
           <div class="widget-info__tooltip">
-            <div class="widget-info__methodology">Weighted average of active project health scores. On Track = +1, At Risk = 0, Off Track = −1.</div>
+            <div class="widget-info__methodology">Weighted average of active project health scores.</div>
             <div class="widget-info__range">Range: −1.0 to +1.0</div>
+            <div class="widget-info__range">On Track &gt;0.5</div>
+            <div class="widget-info__range">At Risk −0.5 to 0.5</div>
+            <div class="widget-info__range">Off Track ≤−0.5</div>
             <div class="widget-info__score">Score: <%= raw_score_display %></div>
           </div>
         </div>
@@ -74,7 +77,7 @@
             <div class="widget-info__tooltip">
               <div class="widget-info__methodology">Weekly average health scores over the past 6 weeks. Direction based on change from oldest to newest data point.</div>
               <div class="widget-info__range">Range: −1.0 to +1.0 per week</div>
-              <div class="widget-info__score">Delta: <%= @trend_delta >= 0 ? '+' : '' %><%= @trend_delta.round(2) %> (<%= @weeks_of_data %> weeks)</div>
+              <div class="widget-info__score">Trend: <%= @trend_delta >= 0 ? '+' : '' %><%= @trend_delta.round(2) %> (<%= @weeks_of_data %> weeks)</div>
             </div>
           </div>
         </div>
@@ -142,7 +145,10 @@
           <span class="widget-info__icon">i</span>
           <div class="widget-info__tooltip">
             <div class="widget-info__methodology">Based on trend consistency, data freshness, and project coverage. Lower variance and recent updates increase confidence.</div>
-            <div class="widget-info__range">Range: 0–100 (High ≥70, Medium ≥40, Low &lt;40)</div>
+            <div class="widget-info__range">Range: 0–100</div>
+            <div class="widget-info__range">High ≥70</div>
+            <div class="widget-info__range">Medium ≥40</div>
+            <div class="widget-info__range">Low &lt;40</div>
             <div class="widget-info__score">Score: <%= @confidence_score %></div>
           </div>
         </div>

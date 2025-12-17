@@ -66,9 +66,9 @@ class InitiativeTrendService
   end
 
   def score_to_health(score)
-    if score >= 0.51
+    if score > 0.5
       :on_track
-    elsif score <= -0.49
+    elsif score <= -0.5
       :off_track
     else
       :at_risk

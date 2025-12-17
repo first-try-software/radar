@@ -6,9 +6,9 @@ class HealthRollup
     average = raw_score(projects)
     return :not_available if average.nil?
 
-    if average >= 0.51
+    if average > 0.5
       :on_track
-    elsif average <= -0.49
+    elsif average <= -0.5
       :off_track
     else
       :at_risk
