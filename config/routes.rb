@@ -22,7 +22,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :initiatives, only: [:index, :show, :create, :update] do
+  resources :initiatives, only: [:show, :create, :update] do
     member do
       patch :state, to: 'initiatives#set_state'
       patch :archive

@@ -5,165 +5,6 @@ RSpec.describe InitiativesController, type: :request do
   let(:json_headers) { { 'ACCEPT' => 'application/json' } }
 
   describe 'HTML endpoints' do
-    it 'renders the index' do
-      InitiativeRecord.create!(name: 'Launch 2025')
-
-      get '/initiatives'
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Launch 2025')
-    end
-
-    it 'renders a health indicator for initiatives on the index' do
-      InitiativeRecord.create!(name: 'Launch 2025')
-
-      get '/initiatives'
-
-      expect(response.body).to include('metric-widget__dot--not-available')
-    end
-
-    it 'sorts initiatives alphabetically by default' do
-      InitiativeRecord.create!(name: 'Zeta Initiative')
-      InitiativeRecord.create!(name: 'Alpha Initiative')
-
-      get '/initiatives'
-
-      list_section = response.body[/initiatives-index__list.*$/m]
-      alpha_index = list_section.index('Alpha Initiative')
-      zeta_index = list_section.index('Zeta Initiative')
-      expect(alpha_index).to be < zeta_index
-    end
-
-    it 'sorts initiatives alphabetically descending when requested' do
-      InitiativeRecord.create!(name: 'Zeta Initiative')
-      InitiativeRecord.create!(name: 'Alpha Initiative')
-
-      get '/initiatives?sort=alphabet&dir=desc'
-
-      list_section = response.body[/initiatives-index__list.*$/m]
-      alpha_index = list_section.index('Alpha Initiative')
-      zeta_index = list_section.index('Zeta Initiative')
-      expect(zeta_index).to be < alpha_index
-    end
-
-    it 'sorts initiatives by health ascending (best to worst)' do
-      on_track_init = InitiativeRecord.create!(name: 'On Track Initiative')
-      off_track_init = InitiativeRecord.create!(name: 'Off Track Initiative')
-      no_health_init = InitiativeRecord.create!(name: 'No Health Initiative')
-      on_track_proj = ProjectRecord.create!(name: 'On Track Project', current_state: 'in_progress')
-      off_track_proj = ProjectRecord.create!(name: 'Off Track Project', current_state: 'in_progress')
-      InitiativesProjectRecord.create!(initiative: on_track_init, project: on_track_proj, order: 0)
-      InitiativesProjectRecord.create!(initiative: off_track_init, project: off_track_proj, order: 0)
-      HealthUpdateRecord.create!(project: on_track_proj, date: Date.today, health: 'on_track')
-      HealthUpdateRecord.create!(project: off_track_proj, date: Date.today, health: 'off_track')
-
-      get '/initiatives?sort=health&dir=asc'
-
-      list_section = response.body[/initiatives-index__list.*$/m]
-      on_track_index = list_section.index('On Track Initiative')
-      off_track_index = list_section.index('Off Track Initiative')
-      no_health_index = list_section.index('No Health Initiative')
-      expect(on_track_index).to be < off_track_index
-      expect(off_track_index).to be < no_health_index
-    end
-
-    it 'sorts initiatives by health descending (worst to best, no health last)' do
-      on_track_init = InitiativeRecord.create!(name: 'On Track Initiative')
-      off_track_init = InitiativeRecord.create!(name: 'Off Track Initiative')
-      no_health_init = InitiativeRecord.create!(name: 'No Health Initiative')
-      on_track_proj = ProjectRecord.create!(name: 'On Track Project', current_state: 'in_progress')
-      off_track_proj = ProjectRecord.create!(name: 'Off Track Project', current_state: 'in_progress')
-      InitiativesProjectRecord.create!(initiative: on_track_init, project: on_track_proj, order: 0)
-      InitiativesProjectRecord.create!(initiative: off_track_init, project: off_track_proj, order: 0)
-      HealthUpdateRecord.create!(project: on_track_proj, date: Date.today, health: 'on_track')
-      HealthUpdateRecord.create!(project: off_track_proj, date: Date.today, health: 'off_track')
-
-      get '/initiatives?sort=health&dir=desc'
-
-      list_section = response.body[/initiatives-index__list.*$/m]
-      on_track_index = list_section.index('On Track Initiative')
-      off_track_index = list_section.index('Off Track Initiative')
-      no_health_index = list_section.index('No Health Initiative')
-      expect(off_track_index).to be < on_track_index
-      expect(on_track_index).to be < no_health_index
-    end
-
-    it 'sorts archived initiatives last when sorting by health' do
-      active_init = InitiativeRecord.create!(name: 'Active Initiative')
-      archived_init = InitiativeRecord.create!(name: 'Archived Initiative', archived: true)
-
-      get '/initiatives?sort=health&dir=asc'
-
-      list_section = response.body[/initiatives-index__list.*$/m]
-      active_index = list_section.index('Active Initiative')
-      archived_index = list_section.index('Archived Initiative')
-      expect(active_index).to be < archived_index
-    end
-
-    it 'sorts initiatives by state ascending (active first, done last)' do
-      InitiativeRecord.create!(name: 'Done Initiative', current_state: 'done')
-      InitiativeRecord.create!(name: 'Blocked Initiative', current_state: 'blocked')
-      InitiativeRecord.create!(name: 'In Progress Initiative', current_state: 'in_progress')
-
-      get '/initiatives?sort=state&dir=asc'
-
-      list_section = response.body[/initiatives-index__list.*$/m]
-      blocked_index = list_section.index('Blocked Initiative')
-      in_progress_index = list_section.index('In Progress Initiative')
-      done_index = list_section.index('Done Initiative')
-      expect(blocked_index).to be < in_progress_index
-      expect(in_progress_index).to be < done_index
-    end
-
-    it 'sorts initiatives by state descending (done first, active last)' do
-      InitiativeRecord.create!(name: 'Done Initiative', current_state: 'done')
-      InitiativeRecord.create!(name: 'Blocked Initiative', current_state: 'blocked')
-
-      get '/initiatives?sort=state&dir=desc'
-
-      list_section = response.body[/initiatives-index__list.*$/m]
-      done_index = list_section.index('Done Initiative')
-      blocked_index = list_section.index('Blocked Initiative')
-      expect(done_index).to be < blocked_index
-    end
-
-    it 'sorts archived initiatives last when sorting by state' do
-      InitiativeRecord.create!(name: 'Active Initiative', current_state: 'blocked')
-      InitiativeRecord.create!(name: 'Archived Initiative', current_state: 'done', archived: true)
-
-      get '/initiatives?sort=state&dir=asc'
-
-      list_section = response.body[/initiatives-index__list.*$/m]
-      active_index = list_section.index('Active Initiative')
-      archived_index = list_section.index('Archived Initiative')
-      expect(active_index).to be < archived_index
-    end
-
-    it 'ignores invalid sort parameters' do
-      InitiativeRecord.create!(name: 'Test Initiative')
-
-      get '/initiatives?sort=invalid'
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Test Initiative')
-    end
-
-    it 'treats initiatives with failed health lookup as not_available when sorting by health' do
-      initiative = InitiativeRecord.create!(name: 'Test Initiative')
-      find_action = actions.find_initiative
-
-      allow(actions).to receive(:find_initiative).and_return(find_action)
-      allow(find_action).to receive(:perform).and_call_original
-      allow(find_action).to receive(:perform).with(id: initiative.id).and_return(
-        Result.failure(errors: 'initiative not found')
-      )
-
-      get '/initiatives?sort=health&dir=asc'
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Test Initiative')
-    end
-
     it 'renders the show page' do
       record = InitiativeRecord.create!(name: 'Launch 2025')
 
@@ -250,11 +91,11 @@ RSpec.describe InitiativesController, type: :request do
       expect(response.body).to include('Launch 2025')
     end
 
-    it 'renders validation errors on HTML create' do
+    it 'redirects with error on HTML create failure' do
       post '/initiatives', params: { initiative: { name: '' } }
 
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include('name must be present')
+      expect(response).to have_http_status(:found)
+      expect(response).to redirect_to(root_path)
     end
 
     it 'updates via HTML and redirects' do
@@ -391,17 +232,6 @@ RSpec.describe InitiativesController, type: :request do
       post "/initiatives/#{initiative.id}/related_projects/add", params: { project: { name: 'Another Project' } }
 
       expect(response).to have_http_status(:unprocessable_content)
-    end
-  end
-
-  describe 'GET /initiatives.json' do
-    it 'lists initiatives as JSON' do
-      InitiativeRecord.create!(name: 'Launch 2025')
-
-      get '/initiatives.json'
-
-      expect(response).to have_http_status(:ok)
-      expect(response.parsed_body.map { |i| i['name'] }).to include('Launch 2025')
     end
   end
 

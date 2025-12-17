@@ -1,20 +1,4 @@
 class InitiativesController < ApplicationController
-  SORT_OPTIONS = %w[alphabet state health].freeze
-  DEFAULT_SORT = 'alphabet'.freeze
-
-  def index
-    @sort_by = SORT_OPTIONS.include?(params[:sort]) ? params[:sort] : DEFAULT_SORT
-    @sort_dir = params[:dir] == 'desc' ? 'desc' : 'asc'
-
-    @initiatives = sorted_initiatives(@sort_by, @sort_dir)
-    @initiative_data = build_initiative_index_data(@initiatives)
-
-    respond_to do |format|
-      format.html
-      format.json { render json: @initiatives.map { |init| initiative_json(init) }, status: :ok }
-    end
-  end
-
   def show
     result = initiative_actions.find_initiative.perform(id: params[:id])
 
@@ -43,11 +27,7 @@ class InitiativesController < ApplicationController
           record = InitiativeRecord.find_by(name: result.value.name)
           redirect_to(initiative_path(record), notice: 'Initiative created')
         else
-          @sort_by = DEFAULT_SORT
-          @sort_dir = 'asc'
-          @initiatives = sorted_initiatives(@sort_by, @sort_dir)
-          @errors = result.errors
-          render :index, status: :unprocessable_content
+          redirect_to(root_path, alert: result.errors.join(', '))
         end
       end
     end
@@ -265,57 +245,6 @@ class InitiativesController < ApplicationController
     }
   end
 
-  def sorted_initiatives(sort_by, direction)
-    base = InitiativeRecord.all
-
-    case sort_by
-    when 'health'
-      sort_by_health(base, direction)
-    when 'state'
-      sort_by_state(base, direction)
-    else # alphabet
-      dir = direction == 'desc' ? 'DESC' : 'ASC'
-      base.order(Arel.sql("initiatives.archived ASC, initiatives.name #{dir}"))
-    end
-  end
-
-  def sort_by_health(initiatives, direction)
-    # ASC (best to worst): on_track, at_risk, off_track, not_available
-    # DESC (worst to best): off_track, at_risk, on_track, not_available
-    asc_scores = { on_track: 1, at_risk: 2, off_track: 3 }
-    desc_scores = { off_track: 1, at_risk: 2, on_track: 3 }
-    scores = direction == 'desc' ? desc_scores : asc_scores
-
-    initiatives_with_health = initiatives.map do |record|
-      result = initiative_actions.find_initiative.perform(id: record.id)
-      health = result.success? ? result.value.health : :not_available
-      score = scores[health] || 999 # not_available always last
-      [record, score]
-    end
-
-    sorted = initiatives_with_health.sort_by do |record, score|
-      [record.archived ? 1 : 0, score, record.name]
-    end
-
-    sorted.map(&:first)
-  end
-
-  def sort_by_state(initiatives, direction)
-    # State priority order (most active/urgent first, done last)
-    # ASC: blocked, in_progress, on_hold, todo, new, done
-    # DESC: done, new, todo, on_hold, in_progress, blocked
-    asc_scores = { 'blocked' => 1, 'in_progress' => 2, 'on_hold' => 3, 'todo' => 4, 'new' => 5, 'done' => 6 }
-    desc_scores = { 'done' => 1, 'new' => 2, 'todo' => 3, 'on_hold' => 4, 'in_progress' => 5, 'blocked' => 6 }
-    scores = direction == 'desc' ? desc_scores : asc_scores
-
-    sorted = initiatives.sort_by do |record|
-      state_score = scores[record.current_state] || 999
-      [record.archived ? 1 : 0, state_score, record.name]
-    end
-
-    sorted
-  end
-
   def create_params
     permitted = params.fetch(:initiative, {}).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
     permitted[:name] ||= ''
@@ -379,46 +308,4 @@ class InitiativesController < ApplicationController
     @confidence_factors = { biggest_drag: :insufficient_data, details: {} }
   end
 
-  def build_initiative_index_data(initiative_records)
-    health_update_repo = Rails.application.config.x.health_update_repository
-
-    initiative_records.each_with_object({}) do |record, data|
-      result = initiative_actions.find_initiative.perform(id: record.id)
-      next unless result.success?
-
-      initiative = result.value
-
-      dashboard = InitiativeDashboard.new(
-        initiative: initiative,
-        health_update_repository: health_update_repo
-      )
-
-      trend_service = InitiativeTrendService.new(
-        initiative: initiative,
-        health_update_repository: health_update_repo
-      )
-      trend_result = trend_service.call
-
-      data[record.id] = {
-        initiative: initiative,
-        record: record,
-        health: initiative.health,
-        health_raw_score: initiative.health_raw_score,
-        total_active_projects: dashboard.total_active_projects,
-        total_leaf_projects: initiative.leaf_projects.size,
-        attention_required: dashboard.attention_required,
-        on_hold_projects: dashboard.on_hold_projects,
-        stale_projects_14: dashboard.stale_projects(days: 14),
-        stale_projects_7: dashboard.stale_projects_between(min_days: 7, max_days: 14),
-        never_updated_projects: dashboard.never_updated_projects,
-        trend_data: trend_result[:trend_data],
-        trend_direction: trend_result[:trend_direction],
-        trend_delta: trend_result[:trend_delta],
-        weeks_of_data: trend_result[:weeks_of_data],
-        confidence_score: trend_result[:confidence_score],
-        confidence_level: trend_result[:confidence_level],
-        confidence_factors: trend_result[:confidence_factors]
-      }
-    end
-  end
 end
