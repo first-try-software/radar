@@ -1,15 +1,3 @@
-<nav class="breadcrumbs" aria-label="Breadcrumb">
-  <ol>
-    <% ref_crumb = breadcrumb_from_ref(params[:ref]) %>
-    <% if ref_crumb %>
-      <li><%= link_to ref_crumb[:name], ref_crumb[:path] %></li>
-    <% else %>
-      <li><%= link_to 'Initiatives', initiatives_path %></li>
-    <% end %>
-    <li aria-current="page"><%= @initiative_record.name %></li>
-  </ol>
-</nav>
-
 <div class="initiative-dashboard-v2">
   <!-- Initiative Header -->
   <div class="initiative-header-v2">

@@ -181,24 +181,6 @@ module ApplicationHelper
     }
   end
 
-  def breadcrumb_from_ref(ref_param)
-    return nil if ref_param.blank?
-
-    case ref_param
-    when 'dashboard'
-      { name: 'Dashboard', path: root_path }
-    when /\Ateam:(\d+)\z/
-      team = TeamRecord.find_by(id: ::Regexp.last_match(1))
-      team ? { name: team.name, path: team_path(team) } : nil
-    when /\Ainitiative:(\d+)\z/
-      initiative = InitiativeRecord.find_by(id: ::Regexp.last_match(1))
-      initiative ? { name: initiative.name, path: initiative_path(initiative) } : nil
-    when /\Aproject:(\d+)\z/
-      project = ProjectRecord.find_by(id: ::Regexp.last_match(1))
-      project ? { name: project.name, path: project_path(project) } : nil
-    end
-  end
-
   private
 
   def project_health_value(project_like)

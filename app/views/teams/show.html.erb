@@ -1,25 +1,3 @@
-<nav class="breadcrumbs" aria-label="Breadcrumb">
-  <ol>
-    <% ref_crumb = breadcrumb_from_ref(params[:ref]) %>
-    <% if ref_crumb %>
-      <li><%= link_to ref_crumb[:name], ref_crumb[:path] %></li>
-      <li><%= link_to 'Teams', teams_path(ref: ref_crumb[:ref_param]) %></li>
-    <% else %>
-      <li><%= link_to 'Teams', teams_path %></li>
-    <% end %>
-    <% ancestors = [] %>
-    <% current = @team_record.parent_relationships.first&.parent %>
-    <% while current do %>
-      <% ancestors.unshift(current) %>
-      <% current = current.parent_relationships.first&.parent %>
-    <% end %>
-    <% ancestors.each do |ancestor| %>
-      <li><%= link_to ancestor.name, team_path(ancestor, ref: params[:ref]) %></li>
-    <% end %>
-    <li aria-current="page"><%= @team_record.name %></li>
-  </ol>
-</nav>
-
 <%
   subordinate_teams = @team_record.child_relationships.includes(:child).order(:order).map(&:child).reject(&:archived)
   owned_projects = @team_record.owned_project_relationships.includes(:project).order(:order).map(&:project).reject(&:archived)
