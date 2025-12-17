@@ -19,11 +19,21 @@ class DashboardController < ApplicationController
 
     # All projects for global search
     @all_projects = all_root_projects
+    @sorted_all_projects = sort_projects(@all_projects)
+    @sorted_attention_required = sort_projects(@attention_required)
+    @sorted_never_updated_projects = sort_projects(@never_updated_projects)
+    @sorted_stale_projects_14 = sort_projects(@stale_projects_14)
+    @sorted_stale_projects_7 = sort_projects(@stale_projects_7)
+    @sorted_active_projects = sort_projects(@active_projects)
+    @sorted_inactive_projects = sort_projects(@inactive_projects)
+    @sorted_orphan_projects = sort_projects(@orphan_projects)
 
     # Teams and initiatives for columns with trend/confidence data
     @teams = team_repository.all_active_roots
+    @sorted_teams = sort_entities_by_health_name(@teams)
     @team_data = build_team_data(@teams)
     @initiatives = initiative_repository.all_active_roots
+    @sorted_initiatives = sort_entities_by_health_name(@initiatives)
     @initiative_data = build_initiative_data(@initiatives)
 
     # System-wide trend data
@@ -113,6 +123,38 @@ class DashboardController < ApplicationController
         confidence_level: trend_result[:confidence_level],
         confidence_score: trend_result[:confidence_score]
       }
+    end
+  end
+
+  def sort_projects(projects)
+    health_order = { off_track: 0, at_risk: 1, not_available: 2, on_track: 3 }
+    state_order = { blocked: 0, in_progress: 1, new: 2, done: 3, todo: 4, on_hold: 5 }
+
+    projects.sort_by do |project|
+      health = project.health || :not_available
+      health_rank = health_order[health] || 99
+
+      last_update = project.latest_health_update
+      last_date = last_update&.date
+      last_date_rank = last_date ? last_date.to_time.to_i : 0
+
+      state_rank = state_order[project.current_state] || 99
+
+      comment_rank = last_update&.description.to_s.strip.empty? ? 0 : 1
+
+      [health_rank, last_date_rank, state_rank, comment_rank, project.name]
+    end
+  end
+
+  def sort_entities_by_health_name(entities)
+    health_order = { off_track: 0, at_risk: 1, not_available: 2, on_track: 3 }
+
+    entities.sort_by do |entity|
+      health = entity.respond_to?(:health) ? entity.health : :not_available
+      health_rank = health_order[health] || 99
+      name = entity.respond_to?(:name) ? entity.name.to_s.downcase : ''
+
+      [health_rank, name]
     end
   end
 end

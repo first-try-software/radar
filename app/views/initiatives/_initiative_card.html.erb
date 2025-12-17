@@ -69,9 +69,6 @@
               first_point = points.first
               last_point = points.last
             %>
-            <line class="trend-line-dotted"
-                  x1="<%= first_point[0].round(1) %>" y1="<%= first_point[1].round(1) %>"
-                  x2="<%= last_point[0].round(1) %>" y2="<%= last_point[1].round(1) %>" />
             <polyline class="trend-line-v2" stroke="url(#<%= gradient_id %>)" points="<%= points_str %>" />
             <% points.each_with_index do |p, i| %>
               <% health = trend_data[i][:health] %>

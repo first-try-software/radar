@@ -130,9 +130,6 @@
               first_point = points.first
               last_point = points.last
             %>
-            <line class="trend-line-dotted"
-                  x1="<%= first_point[0].round(1) %>" y1="<%= first_point[1].round(1) %>"
-                  x2="<%= last_point[0].round(1) %>" y2="<%= last_point[1].round(1) %>" />
             <polyline class="trend-line-v2" stroke="url(#trend-gradient-team)" points="<%= points_str %>" />
             <% points.each_with_index do |p, i| %>
               <% health = @trend_data[i][:health] %>
@@ -155,7 +152,12 @@
           <span class="widget-info__icon">i</span>
           <div class="widget-info__tooltip">
             <div class="widget-info__methodology">Based on trend consistency, data freshness, and project coverage. Lower variance and recent updates increase confidence.</div>
-            <div class="widget-info__range">Range: 0–100 (High ≥70, Medium ≥40, Low &lt;40)</div>
+            <div class="widget-info__range">
+              <div>Range: 0–100</div>
+              <div>High ≥70</div>
+              <div>Medium ≥40</div>
+              <div>Low &lt;40</div>
+            </div>
             <div class="widget-info__score">Score: <%= @confidence_score %></div>
           </div>
         </div>
