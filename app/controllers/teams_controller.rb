@@ -1,20 +1,4 @@
 class TeamsController < ApplicationController
-  SORT_OPTIONS = %w[alphabet health].freeze
-  DEFAULT_SORT = 'alphabet'.freeze
-
-  def index
-    @sort_by = SORT_OPTIONS.include?(params[:sort]) ? params[:sort] : DEFAULT_SORT
-    @sort_dir = params[:dir] == 'desc' ? 'desc' : 'asc'
-
-    @teams = sorted_teams(@sort_by, @sort_dir)
-    @team_data = build_team_index_data(@teams)
-
-    respond_to do |format|
-      format.html
-      format.json { render json: @teams.map { |t| team_json(t) }, status: :ok }
-    end
-  end
-
   def show
     result = team_actions.find_team.perform(id: params[:id])
 
@@ -43,11 +27,7 @@ class TeamsController < ApplicationController
           record = TeamRecord.find_by(name: result.value.name)
           redirect_to(team_path(record), notice: 'Team created')
         else
-          @sort_by = DEFAULT_SORT
-          @sort_dir = 'asc'
-          @teams = sorted_teams(@sort_by, @sort_dir)
-          @errors = result.errors
-          render :index, status: :unprocessable_content
+          redirect_to(root_path, alert: result.errors.join(', '))
         end
       end
     end
@@ -234,16 +214,6 @@ class TeamsController < ApplicationController
     :unprocessable_content
   end
 
-  def team_json(team_record)
-    {
-      name: team_record.name,
-      mission: team_record.mission,
-      vision: team_record.vision,
-      point_of_contact: team_record.point_of_contact,
-      archived: team_record.archived
-    }
-  end
-
   def team_json_from_domain(team)
     {
       name: team.name,
@@ -262,41 +232,6 @@ class TeamsController < ApplicationController
       current_state: project.current_state,
       archived: project.archived?
     }
-  end
-
-  def root_teams
-    TeamRecord.left_outer_joins(:parent_relationships).where(teams_teams: { parent_id: nil })
-  end
-
-  def sorted_teams(sort_by, direction)
-    base = root_teams
-
-    case sort_by
-    when 'health'
-      sort_by_health(base, direction)
-    else # alphabet
-      dir = direction == 'desc' ? 'DESC' : 'ASC'
-      base.order(Arel.sql("teams.archived ASC, teams.name #{dir}"))
-    end
-  end
-
-  def sort_by_health(teams, direction)
-    asc_scores = { on_track: 1, at_risk: 2, off_track: 3 }
-    desc_scores = { off_track: 1, at_risk: 2, on_track: 3 }
-    scores = direction == 'desc' ? desc_scores : asc_scores
-
-    teams_with_health = teams.map do |record|
-      result = team_actions.find_team.perform(id: record.id)
-      health = result.success? ? result.value.health : :not_available
-      score = scores[health] || 999
-      [record, score]
-    end
-
-    sorted = teams_with_health.sort_by do |record, score|
-      [record.archived ? 1 : 0, score, record.name]
-    end
-
-    sorted.map(&:first)
   end
 
   def create_params
@@ -361,37 +296,4 @@ class TeamsController < ApplicationController
     @confidence_level = :low
   end
 
-  def build_team_index_data(teams)
-    health_update_repo = Rails.application.config.x.health_update_repository
-    team_repo = Rails.application.config.x.team_repository
-    data = {}
-
-    teams.each do |team_record|
-      domain_team = team_repo.find(team_record.id)
-
-      trend_service = TeamTrendService.new(
-        team: domain_team,
-        health_update_repository: health_update_repo
-      )
-      trend_result = trend_service.call
-
-      all_leaf_projects = domain_team.all_leaf_projects
-      active_projects = all_leaf_projects.reject { |p| p.current_state == :done || p.current_state == :on_hold }
-
-      data[team_record.id] = {
-        team: domain_team,
-        health: domain_team.health,
-        trend_data: trend_result[:trend_data],
-        trend_direction: trend_result[:trend_direction],
-        trend_delta: trend_result[:trend_delta],
-        weeks_of_data: trend_result[:weeks_of_data],
-        confidence_score: trend_result[:confidence_score],
-        confidence_level: trend_result[:confidence_level],
-        total_active_projects: active_projects.size,
-        total_leaf_projects: all_leaf_projects.size
-      }
-    end
-
-    data
-  end
 end

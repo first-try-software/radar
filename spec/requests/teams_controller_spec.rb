@@ -5,125 +5,6 @@ RSpec.describe TeamsController, type: :request do
   let(:json_headers) { { 'ACCEPT' => 'application/json' } }
 
   describe 'HTML endpoints' do
-    it 'renders the index' do
-      TeamRecord.create!(name: 'Platform Team')
-
-      get '/teams'
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Platform Team')
-    end
-
-    it 'renders a health indicator for teams on the index' do
-      TeamRecord.create!(name: 'Platform Team')
-
-      get '/teams'
-
-      expect(response.body).to include('metric-widget--health')
-    end
-
-    it 'sorts teams alphabetically by default' do
-      TeamRecord.create!(name: 'Zeta Team')
-      TeamRecord.create!(name: 'Alpha Team')
-
-      get '/teams'
-
-      list_section = response.body[/teams-index__list.*$/m]
-      alpha_index = list_section.index('Alpha Team')
-      zeta_index = list_section.index('Zeta Team')
-      expect(alpha_index).to be < zeta_index
-    end
-
-    it 'sorts teams alphabetically descending when requested' do
-      TeamRecord.create!(name: 'Zeta Team')
-      TeamRecord.create!(name: 'Alpha Team')
-
-      get '/teams?sort=alphabet&dir=desc'
-
-      list_section = response.body[/teams-index__list.*$/m]
-      alpha_index = list_section.index('Alpha Team')
-      zeta_index = list_section.index('Zeta Team')
-      expect(zeta_index).to be < alpha_index
-    end
-
-    it 'sorts teams by health ascending (best to worst)' do
-      on_track_team = TeamRecord.create!(name: 'On Track Team')
-      off_track_team = TeamRecord.create!(name: 'Off Track Team')
-      TeamRecord.create!(name: 'No Health Team')
-      on_track_proj = ProjectRecord.create!(name: 'On Track Project', current_state: 'in_progress')
-      off_track_proj = ProjectRecord.create!(name: 'Off Track Project', current_state: 'in_progress')
-      TeamsProjectRecord.create!(team: on_track_team, project: on_track_proj, order: 0)
-      TeamsProjectRecord.create!(team: off_track_team, project: off_track_proj, order: 0)
-      HealthUpdateRecord.create!(project: on_track_proj, date: Date.today, health: 'on_track')
-      HealthUpdateRecord.create!(project: off_track_proj, date: Date.today, health: 'off_track')
-
-      get '/teams?sort=health&dir=asc'
-
-      list_section = response.body[/teams-index__list.*$/m]
-      on_track_index = list_section.index('On Track Team')
-      off_track_index = list_section.index('Off Track Team')
-      no_health_index = list_section.index('No Health Team')
-      expect(on_track_index).to be < off_track_index
-      expect(off_track_index).to be < no_health_index
-    end
-
-    it 'sorts teams by health descending (worst to best, no health last)' do
-      on_track_team = TeamRecord.create!(name: 'On Track Team')
-      off_track_team = TeamRecord.create!(name: 'Off Track Team')
-      TeamRecord.create!(name: 'No Health Team')
-      on_track_proj = ProjectRecord.create!(name: 'On Track Project', current_state: 'in_progress')
-      off_track_proj = ProjectRecord.create!(name: 'Off Track Project', current_state: 'in_progress')
-      TeamsProjectRecord.create!(team: on_track_team, project: on_track_proj, order: 0)
-      TeamsProjectRecord.create!(team: off_track_team, project: off_track_proj, order: 0)
-      HealthUpdateRecord.create!(project: on_track_proj, date: Date.today, health: 'on_track')
-      HealthUpdateRecord.create!(project: off_track_proj, date: Date.today, health: 'off_track')
-
-      get '/teams?sort=health&dir=desc'
-
-      list_section = response.body[/teams-index__list.*$/m]
-      on_track_index = list_section.index('On Track Team')
-      off_track_index = list_section.index('Off Track Team')
-      no_health_index = list_section.index('No Health Team')
-      expect(off_track_index).to be < on_track_index
-      expect(on_track_index).to be < no_health_index
-    end
-
-    it 'sorts archived teams last when sorting by health' do
-      TeamRecord.create!(name: 'Active Team')
-      TeamRecord.create!(name: 'Archived Team', archived: true)
-
-      get '/teams?sort=health&dir=asc'
-
-      active_index = response.body.index('Active Team')
-      archived_index = response.body.index('Archived Team')
-      expect(active_index).to be < archived_index
-    end
-
-    it 'ignores invalid sort parameters' do
-      TeamRecord.create!(name: 'Test Team')
-
-      get '/teams?sort=invalid'
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Test Team')
-    end
-
-    it 'treats teams with failed health lookup as not_available when sorting by health' do
-      team = TeamRecord.create!(name: 'Test Team')
-      actions = Rails.application.config.x.team_actions
-      find_action = actions.find_team
-
-      allow(find_action).to receive(:perform).and_call_original
-      allow(find_action).to receive(:perform).with(id: team.id).and_return(
-        Result.failure(errors: 'team not found')
-      )
-
-      get '/teams?sort=health&dir=asc'
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Test Team')
-    end
-
     it 'renders the show page' do
       record = TeamRecord.create!(name: 'Platform Team')
 
@@ -173,11 +54,11 @@ RSpec.describe TeamsController, type: :request do
       expect(record.point_of_contact).to eq('POC')
     end
 
-    it 'renders validation errors on HTML create' do
+    it 'redirects with error on HTML create failure' do
       post '/teams', params: { team: { name: '' } }
 
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include('name must be present')
+      expect(response).to have_http_status(:found)
+      expect(response).to redirect_to(root_path)
     end
 
     it 'updates via HTML and redirects' do
@@ -318,17 +199,6 @@ RSpec.describe TeamsController, type: :request do
       post "/teams/#{parent.id}/subordinate_teams", params: { team: { name: '' } }
 
       expect(response).to have_http_status(:unprocessable_content)
-    end
-  end
-
-  describe 'GET /teams.json' do
-    it 'lists teams as JSON' do
-      TeamRecord.create!(name: 'Platform Team')
-
-      get '/teams.json'
-
-      expect(response).to have_http_status(:ok)
-      expect(response.parsed_body.map { |t| t['name'] }).to include('Platform Team')
     end
   end
 

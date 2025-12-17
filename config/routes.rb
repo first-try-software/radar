@@ -13,7 +13,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :teams, only: [:index, :show, :create, :update] do
+  resources :teams, only: [:show, :create, :update] do
     member do
       patch :archive
       post :owned_projects, to: 'teams#link_owned_project'
