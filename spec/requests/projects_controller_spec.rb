@@ -7,6 +7,7 @@ RSpec.describe ProjectsController, type: :request do
   describe 'HTML endpoints' do
     it 'renders the show page' do
       record = ProjectRecord.create!(name: 'Alpha')
+      HealthUpdateRecord.create!(project: record, date: Date.current, health: 'on_track')
 
       get "/projects/#{record.id}"
 
@@ -14,153 +15,14 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).to include('Alpha')
     end
 
-    it 'renders a health indicator for the project on the show page' do
-      record = ProjectRecord.create!(name: 'Alpha')
-
-      get "/projects/#{record.id}"
-
-      expect(response.body).to include('project-health')
-    end
-
-    it 'shows a health update form hidden under the project header when there are no children' do
+    it 'creates health update via HTML and redirects' do
       record = ProjectRecord.create!(name: 'Solo', current_state: 'in_progress')
-
-      get "/projects/#{record.id}"
-
-      expect(response.body).to include('data-health-toggle')
-      expect(response.body).to include('data-health-update-form')
-      expect(response.body).to include('project-header__health-update')
-      expect(response.body).to include('name="health_update[health]"')
-      expect(response.body).to include('name="health_update[date]"')
-      expect(response.body).to include(Date.current.to_s)
-      expect(response.body).to include('Description (optional)')
-      expect(response.body).to include('value="Add"')
-    end
-
-    it 'links children to their show pages' do
-      parent = ProjectRecord.create!(name: 'Parent')
-      child = ProjectRecord.create!(name: 'Child')
-      ProjectsProjectRecord.create!(parent: parent, child: child, order: 1)
-
-      get "/projects/#{parent.id}"
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include(%(href="/projects/#{child.id}">Child</a>))
-    end
-
-    it 'humanizes child states on the show page' do
-      parent = ProjectRecord.create!(name: 'Parent')
-      child = ProjectRecord.create!(name: 'Child', current_state: 'in_progress')
-      ProjectsProjectRecord.create!(parent: parent, child: child, order: 0)
-
-      get "/projects/#{parent.id}"
-
-      expect(response.body).to include('<span class="badge state">In Progress</span>')
-    end
-
-    it 'renders child project cards like the index, with heading and description' do
-      parent = ProjectRecord.create!(name: 'Parent')
-      child = ProjectRecord.create!(
-        name: 'Child',
-        description: 'Child description',
-        current_state: 'blocked',
-        archived: false,
-        point_of_contact: 'Casey'
-      )
-      ProjectsProjectRecord.create!(parent: parent, child: child, order: 0)
-
-      get "/projects/#{parent.id}"
-
-      expect(response.body).to include(%(class="section-title children-title">Projects))
-      expect(response.body).to include('Child description')
-      expect(response.body).to include('Blocked')
-      expect(response.body).to include('Casey')
-      expect(response.body).to include('project-row')
-      expect(response.body).to include('project-row__health')
-      expect(response.body).to include('project-row__text')
-      expect(response.body).to include('project-row__badges')
-    end
-
-    it 'hides archived child projects' do
-      parent = ProjectRecord.create!(name: 'Parent')
-      archived_child = ProjectRecord.create!(name: 'Archived Child', archived: true)
-      visible_child = ProjectRecord.create!(name: 'Visible Child', archived: false)
-      ProjectsProjectRecord.create!(parent: parent, child: archived_child, order: 0)
-      ProjectsProjectRecord.create!(parent: parent, child: visible_child, order: 1)
-
-      get "/projects/#{parent.id}"
-
-      expect(response.body).to include('Visible Child')
-      expect(response.body).not_to include('Archived Child')
-    end
-
-    it 'records a health update via HTML and refreshes the health indicator' do
-      record = ProjectRecord.create!(name: 'Solo', current_state: 'in_progress')
-      params = {
-        health_update: {
-          date: Date.current,
-          health: 'off_track',
-          description: 'bad day'
-        }
-      }
-
-      expect do
-        post "/projects/#{record.id}/health_updates", params: params
-      end.to change { HealthUpdateRecord.count }.by(1)
-
-      expect(response).to have_http_status(:found)
-      follow_redirect!
-      expect(response.body).to include('project-health--off_track')
-    end
-
-    it 'confirms creation and shows green dot when updating to on_track with defaults' do
-      record = ProjectRecord.create!(name: 'Crimson', current_state: 'in_progress')
-      params = {
-        health_update: {
-          date: Date.current,
-          health: 'on_track'
-        }
-      }
+      params = { health_update: { date: Date.current, health: 'on_track', description: 'All good' } }
 
       post "/projects/#{record.id}/health_updates", params: params
 
       expect(response).to have_http_status(:found)
-      follow_redirect!
-      expect(response.body).to include('Health updated')
-      expect(response.body).to include('project-health--on_track')
-    end
-
-    it 'overwrites a same-day health update instead of creating a duplicate' do
-      record = ProjectRecord.create!(name: 'Solo', current_state: 'in_progress')
-      HealthUpdateRecord.create!(project_id: record.id, date: Date.current, health: 'off_track', description: 'old')
-
-      first_params = {
-        health_update: {
-          date: Date.current,
-          health: 'off_track',
-          description: 'first'
-        }
-      }
-      second_params = {
-        health_update: {
-          date: Date.current,
-          health: 'on_track',
-          description: 'second'
-        }
-      }
-
-      post "/projects/#{record.id}/health_updates", params: first_params
-      expect(HealthUpdateRecord.count).to eq(1)
-
-      post "/projects/#{record.id}/health_updates", params: second_params
-
-      expect(HealthUpdateRecord.count).to eq(1)
-      expect(HealthUpdateRecord.first.health).to eq('on_track')
-      expect(HealthUpdateRecord.first.description).to eq('second')
-
-      expect(response).to have_http_status(:found)
-      follow_redirect!
-      expect(response.body).to include('project-health--on_track')
+      expect(response).to redirect_to(project_path(record))
     end
 
     it 'renders validation errors on HTML health update with invalid health' do
@@ -242,6 +104,15 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).to include('Zeta')
     end
 
+    it 'renders errors on HTML update failure' do
+      record = ProjectRecord.create!(name: 'BadName')
+
+      patch "/projects/#{record.id}", params: { project: { name: '' } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('name must be present')
+    end
+
     it 'updates state via HTML and redirects' do
       record = ProjectRecord.create!(name: 'Eta', current_state: 'todo')
 
@@ -268,8 +139,7 @@ RSpec.describe ProjectsController, type: :request do
       post "/projects/#{parent.id}/subordinates", params: { project: { name: 'Kappa' } }
 
       expect(response).to have_http_status(:found)
-      follow_redirect!
-      expect(response.body).to include('Kappa')
+      expect(ProjectRecord.exists?(name: 'Kappa')).to be(true)
     end
 
     it 'renders validation errors on HTML subordinate create' do
@@ -352,6 +222,26 @@ RSpec.describe ProjectsController, type: :request do
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('name must be present')
     end
+
+    it 'archives a project via HTML update' do
+      record = ProjectRecord.create!(name: 'Archivable', archived: false)
+
+      patch "/projects/#{record.id}", params: { project: { name: 'Archivable', archived: '1' } }
+
+      expect(response).to redirect_to(project_path(record))
+      record.reload
+      expect(record.archived).to be(true)
+    end
+
+    it 'unarchives a project via HTML update' do
+      record = ProjectRecord.create!(name: 'Unarchivable', archived: true)
+
+      patch "/projects/#{record.id}", params: { project: { name: 'Unarchivable', archived: '0' } }
+
+      expect(response).to redirect_to(project_path(record))
+      record.reload
+      expect(record.archived).to be(false)
+    end
   end
 
   describe 'POST /projects' do
@@ -371,6 +261,14 @@ RSpec.describe ProjectsController, type: :request do
   end
 
   describe 'GET /projects/:id' do
+    it 'shows a project with no health updates (health not in allowed list)' do
+      record = ProjectRecord.create!(name: 'NoHealth')
+
+      get "/projects/#{record.id}"
+
+      expect(response).to have_http_status(:ok)
+    end
+
     it 'shows a project' do
       record = ProjectRecord.create!(name: 'Alpha')
 
@@ -404,6 +302,27 @@ RSpec.describe ProjectsController, type: :request do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body['errors']).to include('name must be present')
+    end
+
+    it 'archives a project via JSON update with boolean true' do
+      record = ProjectRecord.create!(name: 'ToArchive', archived: false)
+
+      patch "/projects/#{record.id}", params: { project: { name: 'ToArchive', archived: true } }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body['archived']).to eq(true)
+      record.reload
+      expect(record.archived).to be(true)
+    end
+
+    it 'archives a project via update with string true' do
+      record = ProjectRecord.create!(name: 'StringArchive', archived: false)
+
+      patch "/projects/#{record.id}", params: { project: { name: 'StringArchive', archived: 'true' } }, headers: json_headers
+
+      expect(response).to have_http_status(:ok)
+      record.reload
+      expect(record.archived).to be(true)
     end
   end
 

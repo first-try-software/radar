@@ -467,6 +467,16 @@ a:hover {
   border-color: rgba(255, 209, 102, 0.4);
 }
 
+.badge--archived {
+  background: rgba(251, 191, 36, 0.2);
+  color: var(--warning);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
 .root-projects-card .badge.state,
 .children-list .badge.state {
   color: var(--muted);
@@ -1438,6 +1448,184 @@ input::placeholder {
   font-weight: 400;
   color: var(--text-muted);
   margin: 0;
+}
+
+/* Project Hero (detail page) */
+.project-hero {
+  position: relative;
+  text-align: center;
+  padding: 60px 24px 80px;
+}
+
+.project-hero__actions {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.project-hero__edit-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  transform: scaleX(-1);
+  align-items: center;
+  justify-content: center;
+}
+
+.project-hero__edit-btn:hover {
+  background: rgba(106, 167, 255, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.project-hero__title {
+  font-family: "Montserrat", sans-serif;
+  font-size: 72px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 16px 0;
+  letter-spacing: -0.02em;
+}
+
+.project-hero__tagline {
+  font-family: "Montserrat", sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin: 0 0 16px 0;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.project-hero__contact {
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Form fields for modals */
+.form-field {
+  margin-bottom: 16px;
+}
+
+.form-field__label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.form-field__input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.form-field__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(106, 167, 255, 0.15);
+}
+
+.form-field__input--textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-field--danger {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.form-field--archive {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Checkbox field component */
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.checkbox-field__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkbox-field__box {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--text-muted);
+  border-radius: 4px;
+  background: var(--surface);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.checkbox-field:hover .checkbox-field__box {
+  border-color: var(--text);
+}
+
+.checkbox-field__box::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 6px;
+  width: 5px;
+  height: 10px;
+  border: solid transparent;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.15s ease;
+}
+
+.checkbox-field__input:checked + .checkbox-field__box {
+  background: var(--warning);
+  border-color: var(--warning);
+}
+
+.checkbox-field__input:checked + .checkbox-field__box::after {
+  border-color: #1a1a1a;
+  transform: rotate(45deg) scale(1);
+}
+
+.checkbox-field__input:focus + .checkbox-field__box {
+  box-shadow: 0 0 0 3px rgba(106, 167, 255, 0.15);
+}
+
+.checkbox-field__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
 }
 
 /* Home Columns */

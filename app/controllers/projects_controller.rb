@@ -9,6 +9,7 @@ class ProjectsController < ApplicationController
           @project = result.value
           @project_record = ProjectRecord.find(params[:id])
           prepare_health_form(project: @project)
+          prepare_trend_data(project: @project)
           render :show
         else
           render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
@@ -256,7 +257,12 @@ class ProjectsController < ApplicationController
   end
 
   def update_params
-    params.fetch(:project, {}).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
+    permitted = params.fetch(:project, {}).permit(:name, :description, :point_of_contact, :archived).to_h.symbolize_keys
+    # Convert archived checkbox value to boolean if present
+    if permitted.key?(:archived)
+      permitted[:archived] = permitted[:archived] == '1' || permitted[:archived] == true || permitted[:archived] == 'true'
+    end
+    permitted
   end
 
   def health_update_params
@@ -310,6 +316,28 @@ class ProjectsController < ApplicationController
     @health_options = health_options
     @selected_health = selected_health_for(project)
     @show_health_update_form = open
+  end
+
+  def prepare_trend_data(project:)
+    trend_service = ProjectTrendService.new(
+      project: project,
+      health_update_repository: health_update_repository
+    )
+    trend_result = trend_service.call
+
+    @project_health = trend_result[:health]
+    @health_summary = trend_result[:health_summary]
+    @trend_data = trend_result[:trend_data]
+    @trend_direction = trend_result[:trend_direction]
+    @trend_delta = trend_result[:trend_delta]
+    @weeks_of_data = trend_result[:weeks_of_data]
+    @confidence_score = trend_result[:confidence_score]
+    @confidence_level = trend_result[:confidence_level]
+    @confidence_factors = trend_result[:confidence_factors]
+  end
+
+  def health_update_repository
+    Rails.application.config.x.health_update_repository
   end
 
   def health_options

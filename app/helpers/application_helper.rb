@@ -339,14 +339,12 @@ module ApplicationHelper
     cache_key = team_record.respond_to?(:id) ? team_record.id.to_s : nil
     @_domain_team_cache ||= {}
 
-    if cache_key && @_domain_team_cache.key?(cache_key)
-      return @_domain_team_cache[cache_key]
-    end
+    return @_domain_team_cache[cache_key] if @_domain_team_cache.key?(cache_key)
 
     result = Rails.application.config.x.team_actions.find_team.perform(id: cache_key)
     team = result.success? ? result.value : nil
 
-    @_domain_team_cache[cache_key] = team if cache_key
+    @_domain_team_cache[cache_key] = team
     team
   end
 

@@ -7,8 +7,9 @@ class UpdateProject
     @project_repository = project_repository
   end
 
-  def perform(id:, name:, description: '', point_of_contact: '')
+  def perform(id:, name:, description: '', point_of_contact: '', archived: nil)
     @id = id
+    @archived = archived
     @attrs = ProjectAttributes.new(name:, description:, point_of_contact:)
 
     return project_not_found_failure unless existing_project
@@ -21,14 +22,19 @@ class UpdateProject
 
   private
 
-  attr_reader :project_repository, :id, :attrs
+  attr_reader :project_repository, :id, :attrs, :archived
 
   def existing_project
     @existing_project ||= project_repository.find(id)
   end
 
   def updated_project
-    @updated_project ||= Project.new(attributes: attrs)
+    @updated_project ||= Project.new(attributes: updated_attrs)
+  end
+
+  def updated_attrs
+    archived_value = archived.nil? ? existing_project.archived? : archived
+    attrs.with(archived: archived_value, current_state: existing_project.current_state)
   end
 
   def duplicate_name?

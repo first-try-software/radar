@@ -435,6 +435,34 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       expect(html).not_to include('health-indicator-wrapper')
     end
+
+    it 'returns plain indicator when project does not respond to children_health_for_tooltip' do
+      project = instance_double('Project', health: :on_track)
+      allow(project).to receive(:respond_to?).with(:children_health_for_tooltip).and_return(false)
+      allow(project).to receive(:respond_to?).with(:health_updates_for_tooltip).and_return(false)
+      allow(project).to receive(:respond_to?).with(:health).and_return(true)
+
+      html = helper.project_health_indicator(project, with_tooltip: true)
+
+      expect(html).not_to include('health-indicator-wrapper')
+    end
+
+    it 'handles update that does not respond to description in tooltip' do
+      update = instance_double('HealthUpdate', date: Date.new(2025, 1, 13), health: :on_track)
+      allow(update).to receive(:respond_to?).with(:description).and_return(false)
+      project = instance_double(
+        'Project',
+        health: :on_track,
+        children_health_for_tooltip: nil,
+        health_updates_for_tooltip: [update]
+      )
+
+      html = helper.project_health_indicator(project, with_tooltip: true)
+
+      expect(html).to include('health-indicator-wrapper')
+      expect(html).to include('1/13')
+      expect(html).not_to include('health-trend-tooltip__desc')
+    end
   end
 
   describe '#initiative_health_indicator' do
@@ -619,6 +647,47 @@ RSpec.describe ApplicationHelper, type: :helper do
 
     it 'handles team_record without id method' do
       record = Object.new
+      result = instance_double('Result', success?: false, value: nil, errors: ['team not found'])
+      actions = Rails.application.config.x.team_actions
+      allow(actions.find_team).to receive(:perform).with(id: nil).and_return(result)
+
+      html = helper.team_health_indicator(record)
+
+      expect(html).to include('project-health--not_available')
+    end
+
+    it 'does not cache when cache_key is nil' do
+      # Create an object that doesn't respond to :id
+      record = Object.new
+
+      result = instance_double('Result', success?: false, value: nil, errors: ['team not found'])
+      actions = Rails.application.config.x.team_actions
+      allow(actions.find_team).to receive(:perform).with(id: nil).and_return(result)
+
+      # Call twice to ensure it doesn't cache when key is nil
+      helper.team_health_indicator(record)
+      helper.team_health_indicator(record)
+
+      expect(actions.find_team).to have_received(:perform).with(id: nil).at_least(:once)
+    end
+
+    it 'returns team when cache_key is nil and find succeeds' do
+      # Create an object that doesn't respond to :id
+      record = Object.new
+      domain_team = instance_double('Team', health: :on_track)
+
+      result = instance_double('Result', success?: true, value: domain_team, errors: [])
+      actions = Rails.application.config.x.team_actions
+      allow(actions.find_team).to receive(:perform).with(id: nil).and_return(result)
+
+      html = helper.team_health_indicator(record)
+
+      expect(html).to include('project-health--on_track')
+    end
+
+    it 'returns nil team when cache_key is nil and find fails' do
+      record = Object.new
+
       result = instance_double('Result', success?: false, value: nil, errors: ['team not found'])
       actions = Rails.application.config.x.team_actions
       allow(actions.find_team).to receive(:perform).with(id: nil).and_return(result)

@@ -135,4 +135,44 @@ RSpec.describe UpdateProject do
 
     expect(result.errors).to eq(['project name must be unique'])
   end
+
+  it 'archives a project when archived is set to true' do
+    repository = FakeProjectRepository.new
+    repository.update(id: '123', project: ProjectBuilder.build(name: 'Test', archived: false))
+    action = described_class.new(project_repository: repository)
+
+    action.perform(id: '123', name: 'Test', archived: true)
+
+    expect(repository.find('123').archived?).to be(true)
+  end
+
+  it 'unarchives a project when archived is set to false' do
+    repository = FakeProjectRepository.new
+    repository.update(id: '123', project: ProjectBuilder.build(name: 'Test', archived: true))
+    action = described_class.new(project_repository: repository)
+
+    action.perform(id: '123', name: 'Test', archived: false)
+
+    expect(repository.find('123').archived?).to be(false)
+  end
+
+  it 'preserves archived status when archived is not provided' do
+    repository = FakeProjectRepository.new
+    repository.update(id: '123', project: ProjectBuilder.build(name: 'Old', archived: true))
+    action = described_class.new(project_repository: repository)
+
+    action.perform(id: '123', name: 'New')
+
+    expect(repository.find('123').archived?).to be(true)
+  end
+
+  it 'preserves current_state when updating other attributes' do
+    repository = FakeProjectRepository.new
+    repository.update(id: '123', project: ProjectBuilder.build(name: 'Old', current_state: :in_progress))
+    action = described_class.new(project_repository: repository)
+
+    action.perform(id: '123', name: 'New')
+
+    expect(repository.find('123').current_state).to eq(:in_progress)
+  end
 end
