@@ -6,45 +6,29 @@
   total_leaf_projects = @team&.all_leaf_projects&.size || 0
 %>
 
-<div class="team-dashboard-v2">
-  <!-- Team Header -->
-  <div class="team-header-v2">
-    <div class="team-name-v2"><%= @team_record.name %></div>
-    <div class="team-meta-v2">
-      <span class="team-project-count"><%= @total_active_projects %> active / <%= total_leaf_projects %> projects</span>
-      <% if @team_record.archived %>
-        <span class="badge archived">archived</span>
-      <% end %>
-    </div>
+<!-- Hero Section -->
+<div class="project-hero" data-project-hero>
+  <div class="project-hero__actions">
+    <% if @team_record.archived %>
+      <span class="badge badge--archived" data-archived-badge>ARCHIVED</span>
+    <% end %>
+    <button type="button" class="project-hero__edit-btn" data-edit-toggle aria-label="Edit team">✎</button>
   </div>
+  <h1 class="project-hero__title" data-project-title><%= @team_record.name %></h1>
+  <p class="project-hero__tagline" data-project-tagline<%= ' hidden' if @team_record.mission.blank? %>><%= @team_record.mission %></p>
+  <p class="project-hero__contact" data-project-contact<%= ' hidden' if @team_record.point_of_contact.blank? %>>For more information, contact <span data-project-poc><%= @team_record.point_of_contact %></span>.</p>
+</div>
 
-  <!-- Metrics Row: Health | Trend | Confidence -->
-  <% team_health = @team&.health || :not_available %>
-  <% health_class = team_health.to_s.tr('_', '-') %>
-  <% raw_score = @team&.health_raw_score %>
-  <% raw_score_display = raw_score ? raw_score.round(2) : 'N/A' %>
-
+<!-- Metrics Row -->
+<%
+  team_health = @team&.health || :not_available
+  health_class = team_health.to_s.tr('_', '-')
+  raw_score = @team&.health_raw_score
+  raw_score_display = raw_score ? raw_score.round(2) : 'N/A'
+%>
+<div class="initiative-dashboard-v2">
   <div class="metrics-row-v2">
     <!-- Health Widget -->
-    <%
-      # Determine most urgent action
-      blocked_projects = @attention_required.select { |p| p.current_state == :blocked }
-      off_track_projects = @attention_required.select { |p| p.health == :off_track && p.current_state != :blocked }
-
-      urgent_action = if blocked_projects.any?
-        { type: :blocked, count: blocked_projects.size, text: "#{blocked_projects.size} blocked #{'project'.pluralize(blocked_projects.size)}", tab: 'attention' }
-      elsif off_track_projects.any?
-        { type: :off_track, count: off_track_projects.size, text: "#{off_track_projects.size} off-track #{'project'.pluralize(off_track_projects.size)}", tab: 'attention' }
-      elsif @stale_projects_14.any?
-        { type: :stale, count: @stale_projects_14.size, text: "#{@stale_projects_14.size} stale #{'project'.pluralize(@stale_projects_14.size)}", tab: 'update' }
-      elsif @stale_projects_7.any?
-        { type: :warning, count: @stale_projects_7.size, text: "#{@stale_projects_7.size} stale #{'project'.pluralize(@stale_projects_7.size)}", tab: 'update' }
-      elsif @never_updated_projects.any?
-        { type: :warning, count: @never_updated_projects.size, text: "#{@never_updated_projects.size} #{'project'.pluralize(@never_updated_projects.size)} never updated", tab: 'update' }
-      else
-        nil
-      end
-    %>
     <div class="metric-widget metric-widget--health metric-widget--<%= health_class %>">
       <div class="metric-widget__title-row">
         <span class="metric-widget__title">Current Health</span>
@@ -61,11 +45,6 @@
         <span class="metric-widget__dot metric-widget__dot--<%= health_class %>"></span>
         <div class="metric-widget__text">
           <div class="metric-widget__label metric-widget__label--<%= health_class %>"><%= team_health.to_s.tr('_', ' ').titleize %></div>
-          <% if urgent_action %>
-            <button type="button" class="metric-widget__urgent metric-widget__urgent--<%= urgent_action[:type] %>" data-open-tab="<%= urgent_action[:tab] %>">
-              <%= urgent_action[:text] %>
-            </button>
-          <% end %>
         </div>
       </div>
     </div>
@@ -105,8 +84,6 @@
                 [x, y]
               end
               points_str = points.map { |p| "#{p[0].round(1)},#{p[1].round(1)}" }.join(' ')
-              first_point = points.first
-              last_point = points.last
             %>
             <polyline class="trend-line-v2" stroke="url(#trend-gradient-team)" points="<%= points_str %>" />
             <% points.each_with_index do |p, i| %>
@@ -158,539 +135,882 @@
       </div>
     </div>
   </div>
+</div>
 
-  <% if defined?(@errors) && @errors.present? %>
-    <div class="errors">
-      <ul>
-        <% @errors.each do |err| %>
-          <li><%= err %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
+<!-- Toast Container -->
+<div class="toast-container" data-toast-container></div>
 
-  <!-- Tabs -->
-  <%
-    inactive_projects = @team&.all_leaf_projects&.reject { |p| [:in_progress, :blocked].include?(p.current_state) } || []
-  %>
-  <div class="dashboard-tabs-v2">
-    <button class="dashboard-tab-v2" data-tab="attention">
-      Unhealthy <span class="dashboard-tab-v2__count"><%= @attention_required.size + @on_hold_projects.size %></span>
-    </button>
-    <button class="dashboard-tab-v2" data-tab="update">
-      Stale <span class="dashboard-tab-v2__count"><%= @never_updated_projects.size + @stale_projects_14.size + @stale_projects_7.size %></span>
-    </button>
-    <button class="dashboard-tab-v2" data-tab="projects">
-      Active <span class="dashboard-tab-v2__count"><%= @total_active_projects %></span>
-    </button>
-    <button class="dashboard-tab-v2" data-tab="inactive">
-      Inactive <span class="dashboard-tab-v2__count"><%= inactive_projects.size %></span>
-    </button>
-    <button class="dashboard-tab-v2" data-tab="manage">
-      Settings
-    </button>
-  </div>
+<!-- Global Search -->
+<%
+  # Build flat list of all teams with ancestry for search
+  all_teams_flat = []
+  build_team_tree = ->(teams, ancestors = []) do
+    teams.sort_by(&:name).each do |team|
+      path = ancestors + [team.name]
+      all_teams_flat << { entity: team, type: :team, path: path, record: TeamRecord.find_by(name: team.name) }
+      build_team_tree.call(team.subordinate_teams, path) if team.subordinate_teams.any?
+    end
+  end
+  build_team_tree.call(@teams) if @teams
 
-  <!-- Tab Content: Needs Attention -->
-  <div class="tab-content-v2" data-tab-content="attention">
-    <% if @attention_required.empty? && @on_hold_projects.empty? %>
-      <div class="tab-empty-v2">Everything is on track!</div>
-    <% else %>
-      <% if @attention_required.any? %>
-        <div class="tab-section-v2">
-          <h4 class="tab-section-v2__title"><%= @attention_required.size %> Unhealthy <%= 'Project'.pluralize(@attention_required.size) %></h4>
-          <ul class="project-list-v2">
-            <% @attention_required.each do |project| %>
-              <li class="project-item-v2">
-                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
-                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
-                  <span class="project-item-v2__name"><%= project.name %></span>
-                  <% if project.current_state == :blocked %>
-                    <span class="project-item-v2__tag project-item-v2__tag--blocked">Blocked</span>
-                  <% end %>
+  # Build flat list of all initiatives
+  all_initiatives_flat = (@initiatives || []).map do |initiative|
+    { entity: initiative, type: :initiative, record: InitiativeRecord.find_by(name: initiative.name) }
+  end
+
+  # Build flat list of all projects
+  all_projects_flat = (@all_projects || []).map do |proj|
+    { entity: proj, type: :project, record: ProjectRecord.find_by(name: proj.name) }
+  end
+%>
+<div class="global-search">
+  <input type="text" class="global-search__input" placeholder="Find or create what you are looking for..." data-global-search>
+  <div class="global-search__results-container" data-global-search-container>
+    <div class="section section--search-results">
+      <h3 class="section__title" data-results-header>Results</h3>
+      <div class="section__columns" data-global-search-results>
+        <!-- Teams Column -->
+        <div class="section__column" data-results-column="teams">
+          <h4 class="section__subtitle">Teams</h4>
+          <ul class="section__list">
+            <% all_teams_flat.each do |entry| %>
+              <li class="section__item section__item--searchable"
+                  data-search-type="team"
+                  data-search-name="<%= entry[:entity].name.downcase %>"
+                  data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                <a href="<%= team_path(entry[:record]) %>" class="section__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                  <span class="section__name"><%= entry[:entity].name %></span>
                 </a>
               </li>
             <% end %>
           </ul>
         </div>
-      <% end %>
-      <% if @on_hold_projects.any? %>
-        <div class="tab-section-v2">
-          <h4 class="tab-section-v2__title"><%= @on_hold_projects.size %> On Hold</h4>
-          <ul class="project-list-v2">
-            <% @on_hold_projects.each do |project| %>
-              <li class="project-item-v2">
-                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
-                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
-                  <span class="project-item-v2__name"><%= project.name %></span>
-                </a>
-              </li>
-            <% end %>
-          </ul>
-        </div>
-      <% end %>
-    <% end %>
-  </div>
 
-  <!-- Tab Content: Needs Update -->
-  <div class="tab-content-v2" data-tab-content="update">
-    <% if @never_updated_projects.empty? && @stale_projects_14.empty? && @stale_projects_7.empty? %>
-      <div class="tab-empty-v2">Everything is up to date!</div>
-    <% else %>
-      <% if @never_updated_projects.any? %>
-        <div class="tab-section-v2">
-          <h4 class="tab-section-v2__title"><%= @never_updated_projects.size %> Never Updated</h4>
-          <ul class="project-list-v2">
-            <% @never_updated_projects.each do |project| %>
-              <li class="project-item-v2">
-                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
-                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
-                  <span class="project-item-v2__name"><%= project.name %></span>
-                  <span class="project-item-v2__tag project-item-v2__tag--stale">Stale</span>
+        <!-- Initiatives Column -->
+        <div class="section__column" data-results-column="initiatives">
+          <h4 class="section__subtitle">Initiatives</h4>
+          <ul class="section__list">
+            <% all_initiatives_flat.each do |entry| %>
+              <li class="section__item section__item--searchable"
+                  data-search-type="initiative"
+                  data-search-name="<%= entry[:entity].name.downcase %>"
+                  data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                <a href="<%= initiative_path(entry[:record]) %>" class="section__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                  <span class="section__name"><%= entry[:entity].name %></span>
                 </a>
               </li>
             <% end %>
           </ul>
         </div>
-      <% end %>
-      <% if @stale_projects_14.any? %>
-        <div class="tab-section-v2">
-          <h4 class="tab-section-v2__title"><%= @stale_projects_14.size %> Not Updated in 14+ Days</h4>
-          <ul class="project-list-v2">
-            <% @stale_projects_14.each do |project| %>
-              <li class="project-item-v2">
-                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
-                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
-                  <span class="project-item-v2__name"><%= project.name %></span>
-                  <span class="project-item-v2__tag project-item-v2__tag--stale">Stale</span>
-                </a>
-              </li>
-            <% end %>
-          </ul>
-        </div>
-      <% end %>
-      <% if @stale_projects_7.any? %>
-        <div class="tab-section-v2">
-          <h4 class="tab-section-v2__title"><%= @stale_projects_7.size %> Not Updated in 7+ Days</h4>
-          <ul class="project-list-v2">
-            <% @stale_projects_7.each do |project| %>
-              <li class="project-item-v2">
-                <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
-                  <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
-                  <span class="project-item-v2__name"><%= project.name %></span>
-                  <span class="project-item-v2__tag project-item-v2__tag--stale">Stale</span>
-                </a>
-              </li>
-            <% end %>
-          </ul>
-        </div>
-      <% end %>
-    <% end %>
-  </div>
 
-  <!-- Tab Content: Active Projects -->
-  <div class="tab-content-v2" data-tab-content="projects">
-    <%
-      active_projects = @team&.all_leaf_projects&.select { |p| [:in_progress, :blocked].include?(p.current_state) } || []
-      stale_project_names = (@stale_projects_14 + @stale_projects_7 + @never_updated_projects).map(&:name)
-    %>
-    <% if active_projects.empty? %>
-      <div class="tab-empty-v2">No active projects</div>
-    <% else %>
-      <div class="tab-section-v2">
-        <h4 class="tab-section-v2__title"><%= active_projects.size %> Active <%= 'Project'.pluralize(active_projects.size) %></h4>
-        <ul class="project-list-v2">
-          <% active_projects.sort_by { |p| [p.health == :on_track ? 2 : (p.health == :at_risk ? 1 : 0), p.name] }.each do |project| %>
-            <li class="project-item-v2">
-              <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
-                <span class="project-item-v2__health project-item-v2__health--<%= project.health %>"></span>
-                <span class="project-item-v2__name"><%= project.name %></span>
-                <% if project.current_state == :blocked %>
-                  <span class="project-item-v2__tag project-item-v2__tag--blocked">Blocked</span>
-                <% elsif stale_project_names.include?(project.name) %>
-                  <span class="project-item-v2__tag project-item-v2__tag--stale">Stale</span>
-                <% end %>
-              </a>
-            </li>
-          <% end %>
-        </ul>
+        <!-- Projects Column -->
+        <div class="section__column" data-results-column="projects">
+          <h4 class="section__subtitle">Projects</h4>
+          <ul class="section__list">
+            <% all_projects_flat.each do |entry| %>
+              <li class="section__item section__item--searchable"
+                  data-search-type="project"
+                  data-search-name="<%= entry[:entity].name.downcase %>"
+                  data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                <a href="<%= project_path(entry[:record]) %>" class="section__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                  <span class="section__name"><%= entry[:entity].name %></span>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </div>
       </div>
-    <% end %>
-  </div>
 
-  <!-- Tab Content: Inactive Projects -->
-  <div class="tab-content-v2" data-tab-content="inactive">
-    <%
-      state_order = { new: 0, todo: 1, on_hold: 2, done: 3 }
-      sorted_inactive = inactive_projects.sort_by { |p| [state_order[p.current_state] || 99, p.name] }
-    %>
-    <% if inactive_projects.empty? %>
-      <div class="tab-empty-v2">No inactive projects</div>
-    <% else %>
-      <div class="tab-section-v2">
-        <h4 class="tab-section-v2__title"><%= inactive_projects.size %> Inactive <%= 'Project'.pluralize(inactive_projects.size) %></h4>
-        <ul class="project-list-v2">
-          <% sorted_inactive.each do |project| %>
-            <li class="project-item-v2">
-              <a href="<%= project_path(ProjectRecord.find_by(name: project.name), ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
-                <span class="project-item-v2__health project-item-v2__health--<%= project.health || :not_available %>"></span>
-                <span class="project-item-v2__name"><%= project.name %></span>
-                <span class="project-item-v2__tag project-item-v2__tag--inactive"><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
-              </a>
-            </li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
-  </div>
-
-  <!-- Tab Content: Settings -->
-  <div class="tab-content-v2" data-tab-content="manage">
-    <!-- Team Details -->
-    <div class="manage-section-v2">
-      <h4 class="manage-section-v2__title">Team Details</h4>
-      <div class="settings-fields">
-        <div class="editable-field settings-field__value<%= ' editable-field--empty' if @team_record.name.blank? %>"
-             contenteditable="true"
-             data-field="name"
-             data-hint="Team name"
-             data-update-url="<%= team_path(@team_record) %>"><%= @team_record.name.presence || 'Team name' %></div>
-        <div class="editable-field settings-field__value<%= ' editable-field--empty' if @team_record.mission.blank? %>"
-             contenteditable="true"
-             data-field="mission"
-             data-hint="Mission"
-             data-update-url="<%= team_path(@team_record) %>"><%= @team_record.mission.presence || 'Mission' %></div>
-        <div class="editable-field settings-field__value<%= ' editable-field--empty' if @team_record.vision.blank? %>"
-             contenteditable="true"
-             data-field="vision"
-             data-hint="Vision"
-             data-update-url="<%= team_path(@team_record) %>"><%= @team_record.vision.presence || 'Vision' %></div>
-        <div class="editable-field settings-field__value<%= ' editable-field--empty' if @team_record.point_of_contact.blank? %>"
-             contenteditable="true"
-             data-field="point_of_contact"
-             data-hint="Contact"
-             data-update-url="<%= team_path(@team_record) %>"><%= @team_record.point_of_contact.presence || 'Contact' %></div>
-      </div>
-    </div>
-
-    <!-- Subordinate Teams (always shown) -->
-    <div class="manage-section-v2">
-      <h4 class="manage-section-v2__title">Subordinate Teams</h4>
-      <% if subordinate_teams.any? %>
-        <ul class="project-list-v2">
-          <% subordinate_teams.each do |sub_team| %>
-            <% sub_team_domain = Rails.application.config.x.team_repository.find(sub_team.id) %>
-            <% sub_team_health = sub_team_domain&.health || :not_available %>
-            <li class="project-item-v2">
-              <a href="<%= team_path(sub_team, ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
-                <span class="project-item-v2__health project-item-v2__health--<%= sub_team_health %>"></span>
-                <span class="project-item-v2__name"><%= sub_team.name %></span>
-              </a>
-            </li>
-          <% end %>
-        </ul>
-      <% end %>
-      <form action="<%= subordinate_teams_team_path(@team_record) %>"
-            method="post"
-            class="add-project-form-v2"
-            style="margin-top: 12px;">
-        <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-        <div class="add-project-form-v2__row">
-          <input type="text"
-                 name="team[name]"
-                 class="project-dropdown__input"
-                 placeholder="Add a team..."
-                 style="flex: 1;"
-                 required />
-          <button type="submit" class="btn secondary">Add</button>
-        </div>
-      </form>
-    </div>
-
-    <% if is_leaf_team %>
-      <!-- Add/Link Project (only for leaf teams) -->
-      <div class="manage-section-v2">
-        <h4 class="manage-section-v2__title">Add Project</h4>
-        <%
-          projects_owned_by_any_team = TeamsProjectRecord.pluck(:project_id)
-          available_projects = ProjectRecord.where(archived: false).where.not(id: projects_owned_by_any_team).order(:name)
-        %>
-        <form action="<%= owned_projects_team_path(@team_record) %>"
-              method="post"
-              class="add-project-form-v2"
-              data-add-link-form
-              data-add-url="<%= add_owned_project_team_path(@team_record) %>"
-              data-link-url="<%= owned_projects_team_path(@team_record) %>">
-          <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-          <input type="hidden" name="project[name]" value="" data-project-name-field />
-          <input type="hidden" name="project_id" value="" data-child-id-field />
-          <div class="add-project-form-v2__row">
-            <div class="project-dropdown" data-project-dropdown>
-              <div class="project-dropdown__input-wrapper">
-                <input type="text"
-                       class="project-dropdown__input"
-                       placeholder="Add or link a project..."
-                       data-project-dropdown-input
-                       autocomplete="off" />
-                <% if available_projects.any? %>
-                  <span class="project-dropdown__arrow">▼</span>
-                <% end %>
-              </div>
-              <% if available_projects.any? %>
-                <div class="project-dropdown__menu" data-project-dropdown-menu>
-                  <div class="project-dropdown__options" data-project-options>
-                    <% available_projects.each do |project| %>
-                      <button type="button"
-                              class="project-dropdown__option"
-                              data-project-id="<%= project.id %>"
-                              data-project-name="<%= project.name %>"
-                              data-project-search-text="<%= project.name.downcase %>">
-                        <span class="project-dropdown__option-name"><%= project.name %></span>
-                        <% if project.description.present? %>
-                          <span class="project-dropdown__option-desc"><%= truncate(project.description, length: 50) %></span>
-                        <% end %>
-                      </button>
-                    <% end %>
-                  </div>
-                  <div class="project-dropdown__no-results" data-no-results hidden>
-                    No matches — press Add to create
-                  </div>
-                </div>
-              <% end %>
+      <!-- No Results / Create Owned Project (only for leaf teams) -->
+      <% if is_leaf_team %>
+        <div class="global-search__no-results" data-no-results hidden>
+          <h3 class="section__title">Create Owned Project</h3>
+          <p class="global-search__context">New project will be owned by "<%= @team_record.name %>"</p>
+          <form action="<%= add_owned_project_team_path(@team_record) %>" method="post" class="global-search__create-form" data-create-form>
+            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+            <div class="global-search__form-fields-inline">
+              <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-create-name required>
+              <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
+              <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
+              <button type="submit" class="global-search__create-btn">Create Owned Project</button>
             </div>
-            <button type="submit" class="btn secondary" data-add-link-submit disabled>Add</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Owned Projects List (only for leaf teams) -->
-      <% if owned_projects.any? %>
-        <div class="manage-section-v2">
-          <h4 class="manage-section-v2__title"><%= owned_projects.size %> Owned <%= 'Project'.pluralize(owned_projects.size) %></h4>
-          <ul class="project-list-v2">
-            <% project_repo = Rails.application.config.x.project_repository %>
-            <% owned_projects.each do |project_record| %>
-              <% domain_project = project_repo.find(project_record.id) %>
-              <% project_health = domain_project&.health || :not_available %>
-              <li class="project-item-v2">
-                <a href="<%= project_path(project_record, ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
-                  <span class="project-item-v2__health project-item-v2__health--<%= project_health %>"></span>
-                  <span class="project-item-v2__name"><%= project_record.name %></span>
-                </a>
-              </li>
-            <% end %>
-          </ul>
+          </form>
+        </div>
+      <% else %>
+        <div class="global-search__no-results" data-no-results hidden>
+          <p class="global-search__no-matches">No matches found</p>
         </div>
       <% end %>
-    <% end %>
+    </div>
   </div>
 </div>
 
+<!-- Subordinate Teams Section -->
+<%
+  health_update_repo = Rails.application.config.x.health_update_repository
+  all_subteams = subordinate_teams.map do |sub_team|
+    domain_team = Rails.application.config.x.team_repository.find(sub_team.id)
+    health = domain_team&.health || :not_available
+    leaf_projects = domain_team&.all_leaf_projects || []
+    project_count = leaf_projects.size
+    stale_count = leaf_projects.count do |p|
+      latest = p.latest_health_update
+      latest.nil? || (Date.current - latest.date.to_date).to_i > 7
+    end
+
+    # Get trend direction
+    trend_service = TeamTrendService.new(team: domain_team, health_update_repository: health_update_repo)
+    trend_result = trend_service.call
+    trend_direction = trend_result[:trend_direction]
+
+    { record: sub_team, domain: domain_team, health: health, trend: trend_direction, projects: project_count, stale: stale_count }
+  end.sort_by { |t| [t[:health] == :off_track ? 0 : (t[:health] == :at_risk ? 1 : 2), t[:record].name.downcase] }
+
+  unhealthy_subteams = all_subteams.select { |t| [:off_track, :at_risk].include?(t[:health]) }
+  stale_subteams = all_subteams.select { |t| t[:stale] > 0 }
+%>
+<section class="section section--projects">
+  <div class="section__title-row">
+    <h3 class="section__title">Subordinate Teams</h3>
+    <div class="dashboard-tabs-v2">
+      <button class="dashboard-tab-v2 active" data-team-tab="all">
+        All <span class="dashboard-tab-v2__count"><%= all_subteams.size %></span>
+      </button>
+      <button class="dashboard-tab-v2" data-team-tab="unhealthy">
+        Unhealthy <span class="dashboard-tab-v2__count"><%= unhealthy_subteams.size %></span>
+      </button>
+      <button class="dashboard-tab-v2" data-team-tab="stale">
+        Stale <span class="dashboard-tab-v2__count"><%= stale_subteams.size %></span>
+      </button>
+      <button class="dashboard-tab-v2 dashboard-tab-v2--add" data-toggle-create-team aria-label="Create subordinate team">+</button>
+    </div>
+  </div>
+
+  <!-- Create Subordinate Team Form (inline) -->
+  <div class="inline-create-section" data-create-team-section hidden>
+    <form action="<%= subordinate_teams_team_path(@team_record) %>" method="post" class="inline-create-form" data-create-subteam-form>
+      <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+      <div class="inline-create-form__row">
+        <input type="text" name="team[name]" class="inline-create-form__input" placeholder="Team Name (required)" required data-subteam-name>
+        <input type="text" name="team[mission]" class="inline-create-form__input" placeholder="Brief Mission (highly recommended)">
+        <input type="text" name="team[point_of_contact]" class="inline-create-form__input" placeholder="Contacts (highly recommended)">
+        <button type="submit" class="btn btn--small" data-subteam-submit>Create Team</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tab Content: All -->
+  <div class="tab-content-v2 active" data-team-tab-content="all">
+    <% if all_subteams.empty? %>
+      <div class="tab-empty-v2">No subordinate teams</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <li class="project-item-v2 project-item-v2--header">
+          <div class="team-item__grid team-item__grid--header">
+            <span class="team-item__col team-item__col--health"></span>
+            <span class="team-item__col team-item__col--name team-item__header-label">Team</span>
+            <span class="team-item__col team-item__col--trend team-item__header-label">Trend</span>
+            <span class="team-item__col team-item__col--projects team-item__header-label">Projects</span>
+            <span class="team-item__col team-item__col--stale team-item__header-label">Stale</span>
+            <span class="team-item__col team-item__col--contact team-item__header-label">Contact</span>
+          </div>
+        </li>
+        <% all_subteams.each do |team_data| %>
+          <%
+            trend_arrow = case team_data[:trend]
+              when :up then '↑'
+              when :down then '↓'
+              else '→'
+            end
+            trend_class = "team-item__trend team-item__trend--#{team_data[:trend]}"
+          %>
+          <li class="project-item-v2">
+            <a href="<%= team_path(team_data[:record], ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
+              <div class="team-item__grid">
+                <span class="team-item__col team-item__col--health">
+                  <span class="project-item-v2__health project-item-v2__health--<%= team_data[:health] %>"></span>
+                </span>
+                <span class="team-item__col team-item__col--name"><%= team_data[:record].name %></span>
+                <span class="team-item__col team-item__col--trend">
+                  <span class="<%= trend_class %>"><%= trend_arrow %></span>
+                </span>
+                <span class="team-item__col team-item__col--projects"><%= team_data[:projects] %></span>
+                <span class="team-item__col team-item__col--stale<%= ' team-item__col--stale-warning' if team_data[:stale] > 0 %>"
+                      <% if team_data[:stale] > 0 %>data-stale-link="<%= team_path(team_data[:record], tab: 'stale') %>"<% end %>><%= team_data[:stale] %></span>
+                <span class="team-item__col team-item__col--contact"><%= team_data[:record].point_of_contact.presence || '—' %></span>
+              </div>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+
+  <!-- Tab Content: Unhealthy -->
+  <div class="tab-content-v2" data-team-tab-content="unhealthy">
+    <% if unhealthy_subteams.empty? %>
+      <div class="tab-empty-v2">All subordinate teams are healthy!</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <li class="project-item-v2 project-item-v2--header">
+          <div class="team-item__grid team-item__grid--header">
+            <span class="team-item__col team-item__col--health"></span>
+            <span class="team-item__col team-item__col--name team-item__header-label">Team</span>
+            <span class="team-item__col team-item__col--trend team-item__header-label">Trend</span>
+            <span class="team-item__col team-item__col--projects team-item__header-label">Projects</span>
+            <span class="team-item__col team-item__col--stale team-item__header-label">Stale</span>
+            <span class="team-item__col team-item__col--contact team-item__header-label">Contact</span>
+          </div>
+        </li>
+        <% unhealthy_subteams.each do |team_data| %>
+          <%
+            trend_arrow = case team_data[:trend]
+              when :up then '↑'
+              when :down then '↓'
+              else '→'
+            end
+            trend_class = "team-item__trend team-item__trend--#{team_data[:trend]}"
+          %>
+          <li class="project-item-v2">
+            <a href="<%= team_path(team_data[:record], ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
+              <div class="team-item__grid">
+                <span class="team-item__col team-item__col--health">
+                  <span class="project-item-v2__health project-item-v2__health--<%= team_data[:health] %>"></span>
+                </span>
+                <span class="team-item__col team-item__col--name"><%= team_data[:record].name %></span>
+                <span class="team-item__col team-item__col--trend">
+                  <span class="<%= trend_class %>"><%= trend_arrow %></span>
+                </span>
+                <span class="team-item__col team-item__col--projects"><%= team_data[:projects] %></span>
+                <span class="team-item__col team-item__col--stale<%= ' team-item__col--stale-warning' if team_data[:stale] > 0 %>"
+                      <% if team_data[:stale] > 0 %>data-stale-link="<%= team_path(team_data[:record], tab: 'stale') %>"<% end %>><%= team_data[:stale] %></span>
+                <span class="team-item__col team-item__col--contact"><%= team_data[:record].point_of_contact.presence || '—' %></span>
+              </div>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+
+  <!-- Tab Content: Stale -->
+  <div class="tab-content-v2" data-team-tab-content="stale">
+    <% if stale_subteams.empty? %>
+      <div class="tab-empty-v2">All subordinate teams are up to date!</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <li class="project-item-v2 project-item-v2--header">
+          <div class="team-item__grid team-item__grid--header">
+            <span class="team-item__col team-item__col--health"></span>
+            <span class="team-item__col team-item__col--name team-item__header-label">Team</span>
+            <span class="team-item__col team-item__col--trend team-item__header-label">Trend</span>
+            <span class="team-item__col team-item__col--projects team-item__header-label">Projects</span>
+            <span class="team-item__col team-item__col--stale team-item__header-label">Stale</span>
+            <span class="team-item__col team-item__col--contact team-item__header-label">Contact</span>
+          </div>
+        </li>
+        <% stale_subteams.each do |team_data| %>
+          <%
+            trend_arrow = case team_data[:trend]
+              when :up then '↑'
+              when :down then '↓'
+              else '→'
+            end
+            trend_class = "team-item__trend team-item__trend--#{team_data[:trend]}"
+          %>
+          <li class="project-item-v2">
+            <a href="<%= team_path(team_data[:record], ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
+              <div class="team-item__grid">
+                <span class="team-item__col team-item__col--health">
+                  <span class="project-item-v2__health project-item-v2__health--<%= team_data[:health] %>"></span>
+                </span>
+                <span class="team-item__col team-item__col--name"><%= team_data[:record].name %></span>
+                <span class="team-item__col team-item__col--trend">
+                  <span class="<%= trend_class %>"><%= trend_arrow %></span>
+                </span>
+                <span class="team-item__col team-item__col--projects"><%= team_data[:projects] %></span>
+                <span class="team-item__col team-item__col--stale<%= ' team-item__col--stale-warning' if team_data[:stale] > 0 %>"
+                      <% if team_data[:stale] > 0 %>data-stale-link="<%= team_path(team_data[:record], tab: 'stale') %>"<% end %>><%= team_data[:stale] %></span>
+                <span class="team-item__col team-item__col--contact"><%= team_data[:record].point_of_contact.presence || '—' %></span>
+              </div>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+</section>
+
+<!-- Owned Projects Section -->
+<%
+  leaf_projects = @team&.all_leaf_projects || []
+  sorted_projects = leaf_projects.sort_by { |p| [p.health == :off_track ? 0 : (p.health == :at_risk ? 1 : 2), p.name.downcase] }
+
+  unhealthy = leaf_projects.select { |p| [:off_track, :at_risk].include?(p.health) }
+  sorted_unhealthy = unhealthy.sort_by { |p| [p.health == :off_track ? 0 : 1, p.name.downcase] }
+
+  stale = leaf_projects.select do |p|
+    latest = p.latest_health_update
+    latest.nil? || (Date.current - latest.date.to_date).to_i > 7
+  end
+  sorted_stale = stale.sort_by { |p| p.name.downcase }
+
+  active_states = [:new, :in_progress, :blocked]
+  inactive_states = [:completed, :paused, :cancelled, :done, :on_hold, :todo]
+
+  active_projects = leaf_projects.select { |p| active_states.include?(p.current_state) }
+  sorted_active = active_projects.sort_by { |p| [p.health == :off_track ? 0 : (p.health == :at_risk ? 1 : 2), p.name.downcase] }
+
+  inactive_projects = leaf_projects.select { |p| inactive_states.include?(p.current_state) }
+  sorted_inactive = inactive_projects.sort_by { |p| p.name.downcase }
+%>
+<section class="section section--projects">
+  <div class="section__title-row">
+    <h3 class="section__title">Owned Projects</h3>
+    <div class="dashboard-tabs-v2">
+      <button class="dashboard-tab-v2 active" data-child-tab="all">
+        All <span class="dashboard-tab-v2__count"><%= leaf_projects.size %></span>
+      </button>
+      <button class="dashboard-tab-v2" data-child-tab="unhealthy">
+        Unhealthy <span class="dashboard-tab-v2__count"><%= unhealthy.size %></span>
+      </button>
+      <button class="dashboard-tab-v2" data-child-tab="stale">
+        Stale <span class="dashboard-tab-v2__count"><%= stale.size %></span>
+      </button>
+      <button class="dashboard-tab-v2" data-child-tab="active">
+        Active <span class="dashboard-tab-v2__count"><%= active_projects.size %></span>
+      </button>
+      <button class="dashboard-tab-v2" data-child-tab="inactive">
+        Inactive <span class="dashboard-tab-v2__count"><%= inactive_projects.size %></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Content: All -->
+  <div class="tab-content-v2 active" data-child-tab-content="all">
+    <% if leaf_projects.empty? %>
+      <div class="tab-empty-v2">No owned projects</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_projects.each do |project| %>
+          <%= render 'dashboard/project_list_item', project: project, ref: "team:#{@team_record.id}" %>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+
+  <!-- Tab Content: Unhealthy -->
+  <div class="tab-content-v2" data-child-tab-content="unhealthy">
+    <% if unhealthy.empty? %>
+      <div class="tab-empty-v2">All owned projects are healthy!</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_unhealthy.each do |project| %>
+          <%= render 'dashboard/project_list_item', project: project, ref: "team:#{@team_record.id}" %>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+
+  <!-- Tab Content: Stale -->
+  <div class="tab-content-v2" data-child-tab-content="stale">
+    <% if stale.empty? %>
+      <div class="tab-empty-v2">All owned projects are up to date!</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_stale.each do |project| %>
+          <%= render 'dashboard/project_list_item', project: project, ref: "team:#{@team_record.id}", tag_text: 'Stale', tag_modifier: 'stale' %>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+
+  <!-- Tab Content: Active -->
+  <div class="tab-content-v2" data-child-tab-content="active">
+    <% if active_projects.empty? %>
+      <div class="tab-empty-v2">No active owned projects</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_active.each do |project| %>
+          <% tag_text = project.current_state == :blocked ? 'Blocked' : nil %>
+          <% tag_modifier = project.current_state == :blocked ? 'blocked' : nil %>
+          <%= render 'dashboard/project_list_item', project: project, ref: "team:#{@team_record.id}", tag_text: tag_text, tag_modifier: tag_modifier %>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+
+  <!-- Tab Content: Inactive -->
+  <div class="tab-content-v2" data-child-tab-content="inactive">
+    <% if inactive_projects.empty? %>
+      <div class="tab-empty-v2">No inactive owned projects</div>
+    <% else %>
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_inactive.each do |project| %>
+          <% tag_text = project.current_state.to_s.tr('_', ' ').titleize %>
+          <%= render 'dashboard/project_list_item', project: project, ref: "team:#{@team_record.id}", tag_text: tag_text, tag_modifier: 'inactive' %>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+</section>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" data-edit-modal hidden>
+  <div class="modal">
+    <div class="modal__header">
+      <h3>Edit Team</h3>
+    </div>
+    <form class="edit-project-form" data-edit-form>
+      <div class="modal__body">
+        <div class="form-field">
+          <label for="team_name" class="form-field__label">Name</label>
+          <input type="text" id="team_name" name="team[name]" class="form-field__input" value="<%= @team_record.name %>" required data-input-name>
+        </div>
+        <div class="form-field">
+          <label for="team_mission" class="form-field__label">Mission</label>
+          <input type="text" id="team_mission" name="team[mission]" class="form-field__input" value="<%= @team_record.mission %>" data-input-mission>
+        </div>
+        <div class="form-field">
+          <label for="team_vision" class="form-field__label">Vision</label>
+          <input type="text" id="team_vision" name="team[vision]" class="form-field__input" value="<%= @team_record.vision %>" data-input-vision>
+        </div>
+        <div class="form-field">
+          <label for="team_point_of_contact" class="form-field__label">Contact(s)</label>
+          <input type="text" id="team_point_of_contact" name="team[point_of_contact]" class="form-field__input" value="<%= @team_record.point_of_contact %>" data-input-poc>
+        </div>
+        <div class="form-field form-field--archive">
+          <span class="form-field__label">Archive this team and remove it from view?</span>
+          <label class="checkbox-field">
+            <input type="hidden" name="team[archived]" value="0">
+            <input type="checkbox" name="team[archived]" value="1" class="checkbox-field__input" <%= 'checked' if @team_record.archived %> data-archive-checkbox>
+            <span class="checkbox-field__box"></span>
+            <span class="checkbox-field__label" data-archive-label><%= @team_record.archived ? 'This team is archived and hidden.' : 'Click checkbox to archive' %></span>
+          </label>
+        </div>
+      </div>
+      <div class="modal__actions">
+        <button type="button" class="btn secondary" data-edit-cancel>Cancel</button>
+        <button type="submit" class="btn" data-edit-save>Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<% if defined?(@errors) && @errors.present? %>
+  <div class="errors">
+    <ul>
+      <% @errors.each do |err| %>
+        <li><%= err %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+document.addEventListener('DOMContentLoaded', () => {
+  const token = document.querySelector('meta[name="csrf-token"]')?.content;
 
-    // Editable fields
-    document.querySelectorAll('.editable-field').forEach((el) => {
-      const hint = el.dataset.hint;
-      let original = el.innerText;
-      let isShowingHint = el.classList.contains('editable-field--empty');
+  // Edit modal
+  const editToggle = document.querySelector('[data-edit-toggle]');
+  const editModal = document.querySelector('[data-edit-modal]');
+  const editCancel = document.querySelector('[data-edit-cancel]');
+  const editForm = document.querySelector('[data-edit-form]');
 
-      el.addEventListener('focus', () => {
-        if (isShowingHint && hint) {
-          el.innerText = '';
-          el.classList.remove('editable-field--empty');
-          isShowingHint = false;
-        }
+  const showEditModal = () => {
+    editModal.hidden = false;
+  };
+
+  const hideEditModal = () => {
+    editModal.hidden = true;
+  };
+
+  editToggle?.addEventListener('click', showEditModal);
+  editCancel?.addEventListener('click', hideEditModal);
+
+  editModal?.addEventListener('click', (e) => {
+    if (e.target === editModal) hideEditModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && editModal && !editModal.hidden) {
+      hideEditModal();
+    }
+  });
+
+  // Dynamic archive checkbox label
+  const archiveCheckbox = document.querySelector('[data-archive-checkbox]');
+  const archiveLabel = document.querySelector('[data-archive-label]');
+
+  archiveCheckbox?.addEventListener('change', () => {
+    archiveLabel.textContent = archiveCheckbox.checked
+      ? 'This team is archived and hidden.'
+      : 'Click checkbox to archive';
+  });
+
+  // AJAX form submission for edit
+  editForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(editForm);
+    const saveBtn = editForm.querySelector('[data-edit-save]');
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = 'Saving...';
+    saveBtn.disabled = true;
+
+    try {
+      const response = await fetch('<%= team_path(@team_record) %>', {
+        method: 'PATCH',
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRF-Token': token
+        },
+        body: formData
       });
 
-      el.addEventListener('blur', () => {
-        const value = el.innerText.trim();
+      const data = await response.json();
 
-        if (!value && hint) {
-          el.innerText = hint;
-          el.classList.add('editable-field--empty');
-          isShowingHint = true;
+      if (response.ok) {
+        // Update hero section
+        const titleEl = document.querySelector('[data-project-title]');
+        const taglineEl = document.querySelector('[data-project-tagline]');
+        const contactEl = document.querySelector('[data-project-contact]');
+        const pocEl = document.querySelector('[data-project-poc]');
+        const actionsEl = document.querySelector('.project-hero__actions');
+        let archivedBadge = document.querySelector('[data-archived-badge]');
+
+        const name = formData.get('team[name]');
+        const mission = formData.get('team[mission]');
+        const poc = formData.get('team[point_of_contact]');
+        const archived = formData.get('team[archived]') === '1';
+
+        if (titleEl) titleEl.textContent = name;
+
+        if (taglineEl) {
+          taglineEl.textContent = mission;
+          taglineEl.hidden = !mission;
         }
 
-        const saveValue = isShowingHint ? '' : value;
-        const originalValue = original === hint ? '' : original;
+        if (contactEl && pocEl) {
+          pocEl.textContent = poc;
+          contactEl.hidden = !poc;
+        }
 
-        if (saveValue === originalValue) return;
+        // Handle archived badge
+        if (archived && !archivedBadge) {
+          archivedBadge = document.createElement('span');
+          archivedBadge.className = 'badge badge--archived';
+          archivedBadge.setAttribute('data-archived-badge', '');
+          archivedBadge.textContent = 'ARCHIVED';
+          actionsEl.insertBefore(archivedBadge, actionsEl.firstChild);
+        } else if (!archived && archivedBadge) {
+          archivedBadge.remove();
+        }
 
-        const field = el.dataset.field;
-        const url = el.dataset.updateUrl;
-        fetch(url, {
-          method: 'PATCH',
+        hideEditModal();
+      } else {
+        const errorMsg = data.errors ? data.errors.join(', ') : 'Failed to save';
+        alert(errorMsg);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('An error occurred. Please try again.');
+    } finally {
+      saveBtn.textContent = originalText;
+      saveBtn.disabled = false;
+    }
+  });
+
+  // Add subordinate team form
+  const subteamForm = document.querySelector('[data-create-subteam-form]');
+  if (subteamForm) {
+    subteamForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(subteamForm);
+      const submitBtn = subteamForm.querySelector('[data-subteam-submit]');
+      const nameInput = subteamForm.querySelector('[data-subteam-name]');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Adding...';
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch(subteamForm.action, {
+          method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
             'Accept': 'application/json',
             'X-CSRF-Token': token
           },
-          body: JSON.stringify({ team: { [field]: saveValue } })
-        }).then((resp) => {
-          if (resp.ok) { original = isShowingHint ? hint : value; }
-        }).catch((err) => console.error(err));
-      });
-    });
+          body: formData
+        });
 
-    // Tab toggle behavior
-    const tabs = document.querySelectorAll('.dashboard-tab-v2');
-    const tabContents = document.querySelectorAll('.tab-content-v2');
+        const data = await response.json();
 
-    function openTab(tabName) {
-      const tab = document.querySelector(`.dashboard-tab-v2[data-tab="${tabName}"]`);
-      const content = document.querySelector(`[data-tab-content="${tabName}"]`);
-
-      // Close all tabs
-      tabs.forEach(t => t.classList.remove('active'));
-      tabContents.forEach(c => c.classList.remove('active'));
-
-      // Open the requested tab
-      tab?.classList.add('active');
-      content?.classList.add('active');
-    }
-
-    tabs.forEach((tab) => {
-      tab.addEventListener('click', () => {
-        const tabName = tab.dataset.tab;
-        const isActive = tab.classList.contains('active');
-
-        if (isActive) {
-          // Close if already active
-          tabs.forEach(t => t.classList.remove('active'));
-          tabContents.forEach(c => c.classList.remove('active'));
+        if (response.ok) {
+          showToast(`"${data.name}" created!`, 'success');
+          // Clear all form inputs
+          subteamForm.querySelectorAll('input:not([type="hidden"])').forEach(input => input.value = '');
+          nameInput.focus();
+          // Reload with parameter to keep form open
+          const url = new URL(window.location.href);
+          url.searchParams.set('showCreateForm', 'true');
+          setTimeout(() => window.location.href = url.toString(), 1500);
         } else {
-          openTab(tabName);
+          const errorMsg = data.errors ? data.errors.join(', ') : 'Failed to create team';
+          showToast(errorMsg, 'error');
         }
+      } catch (error) {
+        showToast('An error occurred. Please try again.', 'error');
+      } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+  }
+
+  // Global search functionality
+  const globalSearch = document.querySelector('[data-global-search]');
+  const searchContainer = document.querySelector('[data-global-search-container]');
+  const searchResultsBox = document.querySelector('.section--search-results');
+
+  if (globalSearch && searchContainer && searchResultsBox) {
+    const columns = searchResultsBox.querySelectorAll('[data-results-column]');
+    const noResultsEl = searchResultsBox.querySelector('[data-no-results]');
+    const createNameInput = searchResultsBox.querySelector('[data-create-name]');
+    const resultsGrid = searchResultsBox.querySelector('.section__columns');
+    const resultsHeader = searchResultsBox.querySelector('[data-results-header]');
+
+    globalSearch.addEventListener('input', (e) => {
+      const query = e.target.value.trim();
+      const queryLower = query.toLowerCase();
+
+      if (query === '') {
+        searchContainer.classList.remove('open');
+        return;
+      }
+
+      searchContainer.classList.add('open');
+
+      let totalVisible = 0;
+
+      columns.forEach((column) => {
+        const items = column.querySelectorAll('.section__item--searchable');
+        let columnVisible = 0;
+
+        items.forEach((item) => {
+          const name = item.dataset.searchName || '';
+          const poc = item.dataset.searchPoc || '';
+          const matches = name.includes(queryLower) || poc.includes(queryLower);
+          item.hidden = !matches;
+          if (matches) columnVisible++;
+        });
+
+        column.hidden = columnVisible === 0;
+        totalVisible += columnVisible;
       });
+
+      if (noResultsEl) {
+        noResultsEl.hidden = totalVisible > 0;
+        const capitalizedQuery = query.charAt(0).toUpperCase() + query.slice(1);
+        if (createNameInput) createNameInput.value = capitalizedQuery;
+      }
+
+      if (resultsGrid) resultsGrid.hidden = totalVisible === 0;
+      if (resultsHeader) resultsHeader.hidden = totalVisible === 0;
     });
 
-    // Urgent action badge click opens tab
-    document.querySelectorAll('[data-open-tab]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        openTab(btn.dataset.openTab);
-      });
+    document.addEventListener('click', (e) => {
+      const globalSearchEl = document.querySelector('.global-search');
+      if (globalSearchEl && !globalSearchEl.contains(e.target)) {
+        searchContainer.classList.remove('open');
+        globalSearch.value = '';
+      }
     });
 
-    // Add/Link form handling
-    const addLinkForm = document.querySelector('[data-add-link-form]');
-    if (addLinkForm) {
-      const input = addLinkForm.querySelector('[data-project-dropdown-input]');
-      const nameField = addLinkForm.querySelector('[data-project-name-field]');
-      const idField = addLinkForm.querySelector('[data-child-id-field]');
-      const submitBtn = addLinkForm.querySelector('[data-add-link-submit]');
-      const addUrl = addLinkForm.dataset.addUrl;
-      const linkUrl = addLinkForm.dataset.linkUrl;
+    globalSearch.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        searchContainer.classList.remove('open');
+        globalSearch.value = '';
+        globalSearch.blur();
+      }
+    });
 
-      const updateSubmitState = () => {
-        const hasInput = input.value.trim().length > 0;
-        submitBtn.disabled = !hasInput;
-      };
-
-      input?.addEventListener('input', updateSubmitState);
-
-      addLinkForm.addEventListener('submit', (e) => {
+    const createForm = searchResultsBox.querySelector('[data-create-form]');
+    if (createForm) {
+      createForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const selectedId = idField.value;
-        const inputValue = input.value.trim();
 
-        if (selectedId) {
-          addLinkForm.action = linkUrl;
-          idField.name = 'project_id';
-          idField.value = selectedId;
-        } else if (inputValue) {
-          addLinkForm.action = addUrl;
-          nameField.value = inputValue;
-        } else {
-          return;
-        }
+        const formData = new FormData(createForm);
+        const submitBtn = createForm.querySelector('.global-search__create-btn');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Creating...';
+        submitBtn.disabled = true;
 
-        addLinkForm.submit();
-      });
-    }
+        try {
+          const response = await fetch(createForm.action, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'X-CSRF-Token': formData.get('authenticity_token')
+            },
+            body: formData
+          });
 
-    // Project dropdown with inline search
-    const projectDropdown = document.querySelector('[data-project-dropdown]');
-    if (projectDropdown) {
-      const input = projectDropdown.querySelector('[data-project-dropdown-input]');
-      const menu = projectDropdown.querySelector('[data-project-dropdown-menu]');
-      const optionsContainer = projectDropdown.querySelector('[data-project-options]');
-      const noResults = projectDropdown.querySelector('[data-no-results]');
-      const idField = document.querySelector('[data-child-id-field]');
-      let selectedProjectName = '';
+          const data = await response.json();
 
-      const closeMenu = () => {
-        menu?.classList.remove('open');
-        filterOptions('');
-        if (selectedProjectName) {
-          input.value = selectedProjectName;
-        }
-      };
-
-      const openMenu = () => {
-        menu?.classList.add('open');
-        if (selectedProjectName && input.value === selectedProjectName) {
-          input.value = '';
-        }
-      };
-
-      const filterOptions = (query) => {
-        const lowerQuery = query.toLowerCase();
-        let visibleCount = 0;
-
-        optionsContainer?.querySelectorAll('.project-dropdown__option').forEach((option) => {
-          const searchText = option.dataset.projectSearchText || '';
-          const matches = searchText.includes(lowerQuery);
-          option.style.display = matches ? '' : 'none';
-          if (matches) visibleCount++;
-        });
-
-        if (noResults) {
-          noResults.hidden = visibleCount > 0;
-        }
-      };
-
-      input?.addEventListener('focus', openMenu);
-
-      input?.addEventListener('input', (e) => {
-        if (idField) idField.value = '';
-        selectedProjectName = '';
-
-        if (!menu?.classList.contains('open')) {
-          openMenu();
-        }
-        filterOptions(e.target.value);
-      });
-
-      input?.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          closeMenu();
-          input?.blur();
-        }
-      });
-
-      optionsContainer?.querySelectorAll('.project-dropdown__option').forEach((optionBtn) => {
-        optionBtn.addEventListener('click', () => {
-          const projectId = optionBtn.dataset.projectId;
-          const projectName = optionBtn.dataset.projectName;
-
-          if (idField) idField.value = projectId;
-          selectedProjectName = projectName;
-          input.value = projectName;
-          input.classList.add('project-dropdown__input--selected');
-          closeMenu();
-
-          const submitBtn = document.querySelector('[data-add-link-submit]');
-          if (submitBtn) submitBtn.disabled = false;
-        });
-      });
-
-      document.addEventListener('click', (e) => {
-        if (!projectDropdown.contains(e.target)) {
-          closeMenu();
+          if (response.ok) {
+            showToast(`"${data.name}" created and linked to team!`, 'success');
+            searchContainer.classList.remove('open');
+            globalSearch.value = '';
+            createForm.reset();
+            // Reload to show new project
+            setTimeout(() => window.location.reload(), 1500);
+          } else {
+            const errorMsg = data.errors ? data.errors.join(', ') : 'Failed to create project';
+            showToast(errorMsg, 'error');
+          }
+        } catch (error) {
+          showToast('An error occurred. Please try again.', 'error');
+        } finally {
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
         }
       });
     }
+  }
+
+  // Child projects tab switching
+  const childTabs = document.querySelectorAll('[data-child-tab]');
+  const childTabContents = document.querySelectorAll('[data-child-tab-content]');
+
+  const openChildTab = (tabName) => {
+    const targetTab = document.querySelector(`[data-child-tab="${tabName}"]`);
+    if (!targetTab) return;
+
+    childTabs.forEach((t) => t.classList.remove('active'));
+    targetTab.classList.add('active');
+
+    childTabContents.forEach((content) => {
+      content.classList.toggle('active', content.dataset.childTabContent === tabName);
+    });
+  };
+
+  childTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      openChildTab(tab.dataset.childTab);
+    });
   });
+
+  // Open tab from URL parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  if (tabParam) {
+    openChildTab(tabParam);
+  }
+
+  // Stale count click handler
+  document.querySelectorAll('[data-stale-link]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = el.dataset.staleLink;
+    });
+  });
+
+  // Subordinate teams tab switching
+  const teamTabs = document.querySelectorAll('[data-team-tab]');
+  const teamTabContents = document.querySelectorAll('[data-team-tab-content]');
+
+  teamTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.dataset.teamTab;
+
+      teamTabs.forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      teamTabContents.forEach((content) => {
+        content.classList.toggle('active', content.dataset.teamTabContent === tabName);
+      });
+    });
+  });
+
+  // Toggle create team section
+  const createTeamToggle = document.querySelector('[data-toggle-create-team]');
+  const createTeamSection = document.querySelector('[data-create-team-section]');
+
+  const showCreateForm = () => {
+    if (createTeamSection && createTeamToggle) {
+      createTeamSection.hidden = false;
+      createTeamToggle.classList.add('active');
+      createTeamToggle.textContent = '×';
+      createTeamSection.querySelector('input[name="team[name]"]')?.focus();
+    }
+  };
+
+  const hideCreateForm = () => {
+    if (createTeamSection && createTeamToggle) {
+      createTeamSection.hidden = true;
+      createTeamToggle.classList.remove('active');
+      createTeamToggle.textContent = '+';
+    }
+  };
+
+  if (createTeamToggle && createTeamSection) {
+    createTeamToggle.addEventListener('click', () => {
+      if (createTeamSection.hidden) {
+        showCreateForm();
+      } else {
+        hideCreateForm();
+      }
+    });
+
+    // Show form if URL parameter is present
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('showCreateForm') === 'true') {
+      showCreateForm();
+      // Clean up the URL
+      urlParams.delete('showCreateForm');
+      const newUrl = urlParams.toString()
+        ? `${window.location.pathname}?${urlParams.toString()}`
+        : window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }
+
+  // Toast notification function
+  function showToast(message, type = 'success') {
+    const container = document.querySelector('[data-toast-container]');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast--${type}`;
+    toast.innerHTML = message;
+
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.classList.add('toast--visible');
+    });
+
+    setTimeout(() => {
+      toast.classList.remove('toast--visible');
+      setTimeout(() => toast.remove(), 300);
+    }, 10000);
+
+    toast.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'A') {
+        toast.classList.remove('toast--visible');
+        setTimeout(() => toast.remove(), 300);
+      }
+    });
+  }
+});
 </script>
