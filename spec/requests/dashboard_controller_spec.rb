@@ -120,7 +120,47 @@ RSpec.describe DashboardController, type: :request do
 
       expect(response.body).to include('Teams')
       expect(response.body).to include('Alpha Team')
-      expect(response.body).to include('home-column__health')
+      expect(response.body).to include('project-item-v2__health')
+    end
+
+    it 'shows only top-level teams in teams column' do
+      parent_team = TeamRecord.create!(name: 'Parent Team')
+      child_team = TeamRecord.create!(name: 'Child Team')
+      TeamsTeamRecord.create!(parent: parent_team, child: child_team, order: 0)
+
+      get '/'
+
+      # Parent team should be in teams column, child team only in search results
+      expect(response.body).to include('Parent Team')
+      expect(response.body.scan('Child Team').count).to eq(1) # Only in global search
+    end
+
+    it 'shows global search for teams, initiatives, and projects' do
+      TeamRecord.create!(name: 'Search Team', point_of_contact: 'team-poc@example.com')
+      InitiativeRecord.create!(name: 'Search Initiative', point_of_contact: 'init-poc@example.com')
+      ProjectRecord.create!(name: 'Search Project', current_state: 'in_progress', point_of_contact: 'proj-poc@example.com')
+
+      get '/'
+
+      expect(response.body).to include('data-global-search')
+      expect(response.body).to include('global-search__results')
+      expect(response.body).to include('Search Team')
+      expect(response.body).to include('Search Initiative')
+      expect(response.body).to include('Search Project')
+      expect(response.body).to include('team-poc@example.com')
+      expect(response.body).to include('init-poc@example.com')
+      expect(response.body).to include('proj-poc@example.com')
+    end
+
+    it 'shows create project form in global search when no results' do
+      get '/'
+
+      expect(response.body).to include('global-search__create-btn')
+      expect(response.body).to include('Create Project')
+      expect(response.body).to include('global-search__results-header')
+      expect(response.body).to include('project[name]')
+      expect(response.body).to include('project[description]')
+      expect(response.body).to include('project[point_of_contact]')
     end
 
     it 'shows initiatives column with health indicators' do
@@ -133,7 +173,7 @@ RSpec.describe DashboardController, type: :request do
 
       expect(response.body).to include('Initiatives')
       expect(response.body).to include('Beta Initiative')
-      expect(response.body).to include('home-column__health')
+      expect(response.body).to include('project-item-v2__health')
     end
   end
 end

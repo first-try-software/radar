@@ -1,3 +1,6 @@
+<!-- Toast Container -->
+<div class="toast-container" data-toast-container></div>
+
 <div class="home-hero">
   <h1 class="home-hero__title">Status</h1>
   <p class="home-hero__tagline">If you know, you know. If you don't, you come here.</p>
@@ -170,6 +173,107 @@
               <span class="metric-widget__hint"><%= confidence_cta[:text] %></span>
             <% end %>
           <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Search -->
+  <%
+    # Build flat list of all teams with ancestry for search
+    all_teams_flat = []
+    build_team_tree = ->(teams, ancestors = []) do
+      teams.sort_by(&:name).each do |team|
+        path = ancestors + [team.name]
+        all_teams_flat << { entity: team, type: :team, path: path, record: TeamRecord.find_by(name: team.name) }
+        build_team_tree.call(team.subordinate_teams, path) if team.subordinate_teams.any?
+      end
+    end
+    build_team_tree.call(@teams)
+
+    # Build flat list of all initiatives
+    all_initiatives_flat = @initiatives.map do |initiative|
+      { entity: initiative, type: :initiative, record: InitiativeRecord.find_by(name: initiative.name) }
+    end
+
+    # Build flat list of all projects
+    all_projects_flat = @all_projects.map do |project|
+      { entity: project, type: :project, record: ProjectRecord.find_by(name: project.name) }
+    end
+  %>
+  <div class="global-search">
+    <input type="text" class="global-search__input" placeholder="Find or create what you are looking for..." data-global-search autofocus>
+    <div class="global-search__results-container" data-global-search-container>
+      <div class="global-search__results-box">
+        <h3 class="global-search__results-header" data-results-header>Results</h3>
+        <div class="global-search__columns" data-global-search-results>
+          <!-- Teams Column -->
+          <div class="global-search__column" data-results-column="teams">
+            <h4 class="global-search__column-title">Teams</h4>
+            <ul class="global-search__column-list">
+              <% all_teams_flat.each do |entry| %>
+                <li class="global-search__item"
+                    data-search-type="team"
+                    data-search-name="<%= entry[:entity].name.downcase %>"
+                    data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                  <a href="<%= team_path(entry[:record]) %>" class="global-search__link">
+                    <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                    <span class="global-search__name"><%= entry[:entity].name %></span>
+                  </a>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+
+          <!-- Initiatives Column -->
+          <div class="global-search__column" data-results-column="initiatives">
+            <h4 class="global-search__column-title">Initiatives</h4>
+            <ul class="global-search__column-list">
+              <% all_initiatives_flat.each do |entry| %>
+                <li class="global-search__item"
+                    data-search-type="initiative"
+                    data-search-name="<%= entry[:entity].name.downcase %>"
+                    data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                  <a href="<%= initiative_path(entry[:record]) %>" class="global-search__link">
+                    <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                    <span class="global-search__name"><%= entry[:entity].name %></span>
+                  </a>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+
+          <!-- Projects Column -->
+          <div class="global-search__column" data-results-column="projects">
+            <h4 class="global-search__column-title">Projects</h4>
+            <ul class="global-search__column-list">
+              <% all_projects_flat.each do |entry| %>
+                <li class="global-search__item"
+                    data-search-type="project"
+                    data-search-name="<%= entry[:entity].name.downcase %>"
+                    data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                  <a href="<%= project_path(entry[:record]) %>" class="global-search__link">
+                    <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                    <span class="global-search__name"><%= entry[:entity].name %></span>
+                  </a>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+
+        <!-- No Results / Create -->
+        <div class="global-search__no-results" data-no-results hidden>
+          <h3 class="global-search__results-header">Create Project</h3>
+          <form action="<%= projects_path %>" method="post" class="global-search__create-form" data-create-form>
+            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+            <div class="global-search__form-fields-inline">
+              <input type="text" name="project[name]" class="global-search__form-input" placeholder="Name" data-create-name required>
+              <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (optional)">
+              <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contact (optional)">
+              <button type="submit" class="global-search__create-btn">Create Project</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -444,5 +548,163 @@
         openTab(btn.dataset.openTab);
       });
     });
+
+    // Global search functionality
+    const globalSearch = document.querySelector('[data-global-search]');
+    const searchContainer = document.querySelector('[data-global-search-container]');
+    const searchResultsBox = document.querySelector('.global-search__results-box');
+
+    if (globalSearch && searchContainer && searchResultsBox) {
+      const columns = searchResultsBox.querySelectorAll('[data-results-column]');
+      const noResultsEl = searchResultsBox.querySelector('[data-no-results]');
+      const createNameInput = searchResultsBox.querySelector('[data-create-name]');
+      const resultsGrid = searchResultsBox.querySelector('.global-search__columns');
+      const resultsHeader = searchResultsBox.querySelector('[data-results-header]');
+
+      globalSearch.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        const queryLower = query.toLowerCase();
+
+        if (query === '') {
+          searchContainer.classList.remove('open');
+          return;
+        }
+
+        // Show search results with animation
+        searchContainer.classList.add('open');
+
+        // Filter results by name and point of contact only
+        let totalVisible = 0;
+
+        columns.forEach((column) => {
+          const items = column.querySelectorAll('.global-search__item');
+          let columnVisible = 0;
+
+          items.forEach((item) => {
+            const name = item.dataset.searchName || '';
+            const poc = item.dataset.searchPoc || '';
+            const matches = name.includes(queryLower) || poc.includes(queryLower);
+            item.hidden = !matches;
+            if (matches) columnVisible++;
+          });
+
+          // Hide entire column if no matches
+          column.hidden = columnVisible === 0;
+
+          totalVisible += columnVisible;
+        });
+
+        // Show create option if no results across all columns
+        if (noResultsEl) {
+          noResultsEl.hidden = totalVisible > 0;
+          // Capitalize only the first word of the search term
+          const capitalizedQuery = query.charAt(0).toUpperCase() + query.slice(1);
+          if (createNameInput) createNameInput.value = capitalizedQuery;
+        }
+
+        // Hide results grid and header if no results, show create prompt
+        if (resultsGrid) {
+          resultsGrid.hidden = totalVisible === 0;
+        }
+        if (resultsHeader) {
+          resultsHeader.hidden = totalVisible === 0;
+        }
+      });
+
+      // Close search results when clicking outside
+      document.addEventListener('click', (e) => {
+        const globalSearchEl = document.querySelector('.global-search');
+        if (globalSearchEl && !globalSearchEl.contains(e.target)) {
+          searchContainer.classList.remove('open');
+          globalSearch.value = '';
+        }
+      });
+
+      // Close on Escape
+      globalSearch.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          searchContainer.classList.remove('open');
+          globalSearch.value = '';
+          globalSearch.blur();
+        }
+      });
+
+      // Handle create project form submission via AJAX
+      const createForm = searchResultsBox.querySelector('[data-create-form]');
+      if (createForm) {
+        createForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const formData = new FormData(createForm);
+          const submitBtn = createForm.querySelector('.global-search__create-btn');
+          const originalText = submitBtn.textContent;
+          submitBtn.textContent = 'Creating...';
+          submitBtn.disabled = true;
+
+          try {
+            const response = await fetch(createForm.action, {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/json',
+                'X-CSRF-Token': formData.get('authenticity_token')
+              },
+              body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              // Show success toast
+              showToast(`<a href="${data.url}">"${data.name}"</a> created!`, 'success');
+
+              // Close search and reset
+              searchContainer.classList.remove('open');
+              globalSearch.value = '';
+              createForm.reset();
+            } else {
+              // Show error toast
+              const errorMsg = data.errors ? data.errors.join(', ') : 'Failed to create project';
+              showToast(errorMsg, 'error');
+            }
+          } catch (error) {
+            showToast('An error occurred. Please try again.', 'error');
+          } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+          }
+        });
+      }
+    }
+
+    // Toast notification function
+    function showToast(message, type = 'success') {
+      const container = document.querySelector('[data-toast-container]');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `toast toast--${type}`;
+      toast.innerHTML = message;
+
+      container.appendChild(toast);
+
+      // Trigger animation
+      requestAnimationFrame(() => {
+        toast.classList.add('toast--visible');
+      });
+
+      // Auto-remove after 10 seconds
+      setTimeout(() => {
+        toast.classList.remove('toast--visible');
+        setTimeout(() => toast.remove(), 300);
+      }, 10000);
+
+      // Click to dismiss
+      toast.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'A') {
+          toast.classList.remove('toast--visible');
+          setTimeout(() => toast.remove(), 300);
+        }
+      });
+    }
   });
 </script>

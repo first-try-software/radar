@@ -27,22 +27,24 @@
 
   <body>
     <div class="page">
-      <div class="header">
-        <div>
-          <%= link_to 'Status', root_path, class: 'title' %>
+      <% unless controller_name == 'dashboard' && action_name == 'index' %>
+        <div class="header">
+          <div>
+            <%= link_to 'Status', root_path, class: 'title' %>
+          </div>
+          <div class="header-links">
+            <a href="<%= teams_path %>" class="header-link">
+              <span class="header-link-text">Teams</span>
+            </a>
+            <a href="<%= initiatives_path %>" class="header-link">
+              <span class="header-link-text">Initiatives</span>
+            </a>
+            <a href="<%= projects_path %>" class="header-link">
+              <span class="header-link-text">Projects</span>
+            </a>
+          </div>
         </div>
-        <div class="header-links">
-          <a href="<%= teams_path %>" class="header-link">
-            <span class="header-link-text">Teams</span>
-          </a>
-          <a href="<%= initiatives_path %>" class="header-link">
-            <span class="header-link-text">Initiatives</span>
-          </a>
-          <a href="<%= projects_path %>" class="header-link">
-            <span class="header-link-text">Projects</span>
-          </a>
-        </div>
-      </div>
+      <% end %>
 
       <% flash.each do |_, message| %>
         <div class="flash">

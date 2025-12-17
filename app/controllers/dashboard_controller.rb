@@ -17,6 +17,9 @@ class DashboardController < ApplicationController
     @active_projects = all_root_projects.select { |p| [:in_progress, :blocked].include?(p.current_state) }
     @inactive_projects = all_root_projects.reject { |p| [:in_progress, :blocked].include?(p.current_state) }
 
+    # All projects for global search
+    @all_projects = all_root_projects
+
     # Teams and initiatives for columns with trend/confidence data
     @teams = team_repository.all_active_roots
     @team_data = build_team_data(@teams)

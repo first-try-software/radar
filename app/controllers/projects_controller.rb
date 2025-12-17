@@ -42,7 +42,14 @@ class ProjectsController < ApplicationController
     result = project_actions.create_project.perform(**create_params)
 
     respond_to do |format|
-      format.json { render_result(result, success_status: :created) }
+      format.json do
+        if result.success?
+          record = ProjectRecord.find_by(name: result.value.name)
+          render json: project_json(result.value).merge(url: project_path(record)), status: :created
+        else
+          render json: { errors: result.errors }, status: :unprocessable_content
+        end
+      end
       format.html do
         if result.success?
           record = ProjectRecord.find_by(name: result.value.name)
