@@ -181,6 +181,111 @@
 </div>
 <% end %>
 
+<!-- Toast Container -->
+<div class="toast-container" data-toast-container></div>
+
+<!-- Global Search -->
+<%
+  # Build flat list of all teams with ancestry for search
+  all_teams_flat = []
+  build_team_tree = ->(teams, ancestors = []) do
+    teams.sort_by(&:name).each do |team|
+      path = ancestors + [team.name]
+      all_teams_flat << { entity: team, type: :team, path: path, record: TeamRecord.find_by(name: team.name) }
+      build_team_tree.call(team.subordinate_teams, path) if team.subordinate_teams.any?
+    end
+  end
+  build_team_tree.call(@teams) if @teams
+
+  # Build flat list of all initiatives
+  all_initiatives_flat = (@initiatives || []).map do |initiative|
+    { entity: initiative, type: :initiative, record: InitiativeRecord.find_by(name: initiative.name) }
+  end
+
+  # Build flat list of all projects
+  all_projects_flat = (@all_projects || []).map do |proj|
+    { entity: proj, type: :project, record: ProjectRecord.find_by(name: proj.name) }
+  end
+%>
+<div class="global-search">
+  <input type="text" class="global-search__input" placeholder="Find or create what you are looking for..." data-global-search>
+  <div class="global-search__results-container" data-global-search-container>
+    <div class="section section--search-results">
+      <h3 class="section__title" data-results-header>Results</h3>
+      <div class="section__columns" data-global-search-results>
+        <!-- Teams Column -->
+        <div class="section__column" data-results-column="teams">
+          <h4 class="section__subtitle">Teams</h4>
+          <ul class="section__list">
+            <% all_teams_flat.each do |entry| %>
+              <li class="section__item section__item--searchable"
+                  data-search-type="team"
+                  data-search-name="<%= entry[:entity].name.downcase %>"
+                  data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                <a href="<%= team_path(entry[:record]) %>" class="section__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                  <span class="section__name"><%= entry[:entity].name %></span>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+
+        <!-- Initiatives Column -->
+        <div class="section__column" data-results-column="initiatives">
+          <h4 class="section__subtitle">Initiatives</h4>
+          <ul class="section__list">
+            <% all_initiatives_flat.each do |entry| %>
+              <li class="section__item section__item--searchable"
+                  data-search-type="initiative"
+                  data-search-name="<%= entry[:entity].name.downcase %>"
+                  data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                <a href="<%= initiative_path(entry[:record]) %>" class="section__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                  <span class="section__name"><%= entry[:entity].name %></span>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+
+        <!-- Projects Column -->
+        <div class="section__column" data-results-column="projects">
+          <h4 class="section__subtitle">Projects</h4>
+          <ul class="section__list">
+            <% all_projects_flat.each do |entry| %>
+              <li class="section__item section__item--searchable"
+                  data-search-type="project"
+                  data-search-name="<%= entry[:entity].name.downcase %>"
+                  data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                <a href="<%= project_path(entry[:record]) %>" class="section__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                  <span class="section__name"><%= entry[:entity].name %></span>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+
+      <!-- No Results / Create Child -->
+      <div class="global-search__no-results" data-no-results hidden>
+        <h3 class="section__title">Create Child Project</h3>
+        <p class="global-search__context">New project will be linked as a child of "<%= project.name %>"</p>
+        <form action="<%= subordinates_project_path(@project_record) %>" method="post" class="global-search__create-form" data-create-form>
+          <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+          <div class="global-search__form-fields-inline">
+            <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-create-name required>
+            <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
+            <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
+            <button type="submit" class="global-search__create-btn">Create Child Project</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Edit Modal -->
 <div class="modal-overlay" data-edit-modal hidden>
   <div class="modal">
@@ -380,5 +485,142 @@ document.addEventListener('DOMContentLoaded', () => {
       saveBtn.disabled = false;
     }
   });
+
+  // Global search functionality
+  const globalSearch = document.querySelector('[data-global-search]');
+  const searchContainer = document.querySelector('[data-global-search-container]');
+  const searchResultsBox = document.querySelector('.section--search-results');
+
+  if (globalSearch && searchContainer && searchResultsBox) {
+    const columns = searchResultsBox.querySelectorAll('[data-results-column]');
+    const noResultsEl = searchResultsBox.querySelector('[data-no-results]');
+    const createNameInput = searchResultsBox.querySelector('[data-create-name]');
+    const resultsGrid = searchResultsBox.querySelector('.section__columns');
+    const resultsHeader = searchResultsBox.querySelector('[data-results-header]');
+
+    globalSearch.addEventListener('input', (e) => {
+      const query = e.target.value.trim();
+      const queryLower = query.toLowerCase();
+
+      if (query === '') {
+        searchContainer.classList.remove('open');
+        return;
+      }
+
+      searchContainer.classList.add('open');
+
+      let totalVisible = 0;
+
+      columns.forEach((column) => {
+        const items = column.querySelectorAll('.section__item--searchable');
+        let columnVisible = 0;
+
+        items.forEach((item) => {
+          const name = item.dataset.searchName || '';
+          const poc = item.dataset.searchPoc || '';
+          const matches = name.includes(queryLower) || poc.includes(queryLower);
+          item.hidden = !matches;
+          if (matches) columnVisible++;
+        });
+
+        column.hidden = columnVisible === 0;
+        totalVisible += columnVisible;
+      });
+
+      if (noResultsEl) {
+        noResultsEl.hidden = totalVisible > 0;
+        const capitalizedQuery = query.charAt(0).toUpperCase() + query.slice(1);
+        if (createNameInput) createNameInput.value = capitalizedQuery;
+      }
+
+      if (resultsGrid) resultsGrid.hidden = totalVisible === 0;
+      if (resultsHeader) resultsHeader.hidden = totalVisible === 0;
+    });
+
+    document.addEventListener('click', (e) => {
+      const globalSearchEl = document.querySelector('.global-search');
+      if (globalSearchEl && !globalSearchEl.contains(e.target)) {
+        searchContainer.classList.remove('open');
+        globalSearch.value = '';
+      }
+    });
+
+    globalSearch.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        searchContainer.classList.remove('open');
+        globalSearch.value = '';
+        globalSearch.blur();
+      }
+    });
+
+    const createForm = searchResultsBox.querySelector('[data-create-form]');
+    if (createForm) {
+      createForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(createForm);
+        const submitBtn = createForm.querySelector('.global-search__create-btn');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Creating...';
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch(createForm.action, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'X-CSRF-Token': formData.get('authenticity_token')
+            },
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            showToast(`<a href="${data.url}">"${data.name}"</a> created as child project!`, 'success');
+            searchContainer.classList.remove('open');
+            globalSearch.value = '';
+            createForm.reset();
+          } else {
+            const errorMsg = data.errors ? data.errors.join(', ') : 'Failed to create child project';
+            showToast(errorMsg, 'error');
+          }
+        } catch (error) {
+          showToast('An error occurred. Please try again.', 'error');
+        } finally {
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+        }
+      });
+    }
+  }
+
+  // Toast notification function
+  function showToast(message, type = 'success') {
+    const container = document.querySelector('[data-toast-container]');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast--${type}`;
+    toast.innerHTML = message;
+
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.classList.add('toast--visible');
+    });
+
+    setTimeout(() => {
+      toast.classList.remove('toast--visible');
+      setTimeout(() => toast.remove(), 300);
+    }, 10000);
+
+    toast.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'A') {
+        toast.classList.remove('toast--visible');
+        setTimeout(() => toast.remove(), 300);
+      }
+    });
+  }
 });
 </script>

@@ -10,6 +10,7 @@ class ProjectsController < ApplicationController
           @project_record = ProjectRecord.find(params[:id])
           prepare_health_form(project: @project)
           prepare_trend_data(project: @project)
+          prepare_global_search_data
           render :show
         else
           render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
@@ -334,6 +335,24 @@ class ProjectsController < ApplicationController
     @confidence_score = trend_result[:confidence_score]
     @confidence_level = trend_result[:confidence_level]
     @confidence_factors = trend_result[:confidence_factors]
+  end
+
+  def prepare_global_search_data
+    @teams = team_repository.all_active_roots
+    @initiatives = initiative_repository.all_active_roots
+    @all_projects = project_repository.all_active_roots
+  end
+
+  def team_repository
+    Rails.application.config.x.team_repository
+  end
+
+  def initiative_repository
+    Rails.application.config.x.initiative_repository
+  end
+
+  def project_repository
+    Rails.application.config.x.project_repository
   end
 
   def health_update_repository

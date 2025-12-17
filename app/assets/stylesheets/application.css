@@ -1924,6 +1924,13 @@ input::placeholder {
   text-align: left;
 }
 
+.global-search__context {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 12px 0;
+  font-style: italic;
+}
+
 .global-search__create-prompt {
   display: flex;
   flex-direction: column;
