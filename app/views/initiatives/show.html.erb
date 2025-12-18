@@ -3,6 +3,11 @@
 <% related_project_count = @initiative_record.related_projects.count %>
 
 <div class="project-hero" data-project-hero>
+  <% if @initiative %>
+    <div class="project-hero__breadcrumb">
+      <%= initiative_breadcrumb(@initiative, @initiative_record) %>
+    </div>
+  <% end %>
   <div class="project-hero__actions">
     <% if @initiative_record.archived %>
       <span class="badge badge--archived" data-archived-badge>ARCHIVED</span>

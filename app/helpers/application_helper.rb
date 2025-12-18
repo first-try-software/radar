@@ -185,6 +185,47 @@ module ApplicationHelper
     }
   end
 
+  # Breadcrumb helpers
+
+  def project_breadcrumb(project, project_record)
+    crumbs = [{ name: 'Status', path: root_path }]
+
+    # Collect project ancestors
+    project_ancestors = collect_project_ancestors(project)
+
+    # Find owning team from root ancestor or current project
+    root_project = project_ancestors.last || project
+    if root_project.respond_to?(:owning_team) && root_project.owning_team
+      team_crumbs = build_team_hierarchy_crumbs(root_project.owning_team)
+      crumbs.concat(team_crumbs)
+    end
+
+    # Add project hierarchy (parents) in root-first order
+    project_ancestors.reverse.each do |ancestor|
+      ancestor_record = ProjectRecord.find_by(name: ancestor.name)
+      crumbs << { name: ancestor.name, path: project_path(ancestor_record) } if ancestor_record
+    end
+
+    render_breadcrumb(crumbs)
+  end
+
+  def team_breadcrumb(team, team_record)
+    crumbs = [{ name: 'Status', path: root_path }]
+
+    # Add parent team hierarchy
+    if team.respond_to?(:parent_team) && team.parent_team
+      parent_crumbs = build_team_hierarchy_crumbs(team.parent_team)
+      crumbs.concat(parent_crumbs)
+    end
+
+    render_breadcrumb(crumbs)
+  end
+
+  def initiative_breadcrumb(initiative, initiative_record)
+    crumbs = [{ name: 'Status', path: root_path }]
+    render_breadcrumb(crumbs)
+  end
+
   private
 
   def project_health_value(project_like)
@@ -380,6 +421,52 @@ module ApplicationHelper
         )
       end
       safe_join([header, projects_list])
+    end
+  end
+
+  private
+
+  def build_team_hierarchy_crumbs(team)
+    crumbs = []
+    current = team
+
+    # Collect ancestors
+    ancestors = []
+    while current
+      ancestors << current
+      current = current.respond_to?(:parent_team) ? current.parent_team : nil
+    end
+
+    # Reverse to get root-first order
+    ancestors.reverse.each do |t|
+      team_record = TeamRecord.find_by(name: t.name)
+      crumbs << { name: t.name, path: team_path(team_record) } if team_record
+    end
+
+    crumbs
+  end
+
+  def collect_project_ancestors(project)
+    ancestors = []
+    current = project.respond_to?(:parent) ? project.parent : nil
+
+    while current
+      ancestors << current
+      current = current.respond_to?(:parent) ? current.parent : nil
+    end
+
+    ancestors
+  end
+
+  def render_breadcrumb(crumbs)
+    return ''.html_safe if crumbs.size <= 1
+
+    links = crumbs.map do |crumb|
+      link_to(crumb[:name], crumb[:path], class: 'breadcrumb__link')
+    end
+
+    content_tag(:nav, class: 'breadcrumb', aria: { label: 'Breadcrumb' }) do
+      safe_join(links, content_tag(:span, ' / ', class: 'breadcrumb__separator'))
     end
   end
 end

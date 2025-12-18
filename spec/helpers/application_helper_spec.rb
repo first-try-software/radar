@@ -697,4 +697,184 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(html).to include('project-health--not_available')
     end
   end
+
+  describe '#project_breadcrumb' do
+    it 'returns empty string when project has no parent or team' do
+      project = double('Project', parent: nil, owning_team: nil)
+      allow(project).to receive(:respond_to?).with(:owning_team).and_return(true)
+      allow(project).to receive(:respond_to?).with(:parent).and_return(true)
+      project_record = ProjectRecord.create!(name: 'Orphan')
+
+      result = helper.project_breadcrumb(project, project_record)
+
+      expect(result).to eq('')
+    end
+
+    it 'includes Home and parent project in breadcrumb' do
+      parent_record = ProjectRecord.create!(name: 'Parent Project')
+      child_record = ProjectRecord.create!(name: 'Child Project')
+
+      parent = double('Project', name: 'Parent Project', parent: nil, owning_team: nil)
+      allow(parent).to receive(:respond_to?).with(:parent).and_return(true)
+      allow(parent).to receive(:respond_to?).with(:owning_team).and_return(true)
+
+      child = double('Project', name: 'Child Project', parent: parent, owning_team: nil)
+      allow(child).to receive(:respond_to?).with(:owning_team).and_return(true)
+      allow(child).to receive(:respond_to?).with(:parent).and_return(true)
+
+      result = helper.project_breadcrumb(child, child_record)
+
+      expect(result).to include('Status')
+      expect(result).to include('Parent Project')
+    end
+
+    it 'includes owning team in breadcrumb' do
+      team_record = TeamRecord.create!(name: 'Platform')
+      project_record = ProjectRecord.create!(name: 'Feature')
+
+      team = double('Team', name: 'Platform', parent_team: nil)
+      allow(team).to receive(:respond_to?).with(:parent_team).and_return(true)
+
+      project = double('Project', name: 'Feature', parent: nil, owning_team: team)
+      allow(project).to receive(:respond_to?).with(:owning_team).and_return(true)
+      allow(project).to receive(:respond_to?).with(:parent).and_return(true)
+
+      result = helper.project_breadcrumb(project, project_record)
+
+      expect(result).to include('Status')
+      expect(result).to include('Platform')
+    end
+  end
+
+  describe '#team_breadcrumb' do
+    it 'returns empty string when team has no parent' do
+      team = double('Team', parent_team: nil)
+      allow(team).to receive(:respond_to?).with(:parent_team).and_return(true)
+      team_record = TeamRecord.create!(name: 'Root Team')
+
+      result = helper.team_breadcrumb(team, team_record)
+
+      expect(result).to eq('')
+    end
+
+    it 'includes Home and parent team in breadcrumb' do
+      parent_record = TeamRecord.create!(name: 'Engineering')
+      child_record = TeamRecord.create!(name: 'Platform')
+
+      parent = double('Team', name: 'Engineering', parent_team: nil)
+      allow(parent).to receive(:respond_to?).with(:parent_team).and_return(true)
+
+      child = double('Team', name: 'Platform', parent_team: parent)
+      allow(child).to receive(:respond_to?).with(:parent_team).and_return(true)
+
+      result = helper.team_breadcrumb(child, child_record)
+
+      expect(result).to include('Status')
+      expect(result).to include('Engineering')
+    end
+  end
+
+  describe '#initiative_breadcrumb' do
+    it 'returns empty string for initiatives (only Home, which is skipped)' do
+      initiative = double('Initiative')
+      initiative_record = InitiativeRecord.create!(name: 'Q1 Goals')
+
+      result = helper.initiative_breadcrumb(initiative, initiative_record)
+
+      expect(result).to eq('')
+    end
+  end
+
+  describe 'breadcrumb edge cases' do
+    it 'handles team without respond_to parent_team in hierarchy' do
+      team_record = TeamRecord.create!(name: 'NoParentMethod')
+
+      # Team that doesn't respond to parent_team
+      team = double('Team', name: 'NoParentMethod')
+      allow(team).to receive(:respond_to?).with(:parent_team).and_return(false)
+
+      result = helper.team_breadcrumb(team, team_record)
+
+      expect(result).to eq('')
+    end
+
+    it 'handles project without respond_to parent in hierarchy' do
+      project_record = ProjectRecord.create!(name: 'NoParentMethod')
+
+      project = double('Project', name: 'NoParentMethod')
+      allow(project).to receive(:respond_to?).with(:owning_team).and_return(false)
+      allow(project).to receive(:respond_to?).with(:parent).and_return(false)
+
+      result = helper.project_breadcrumb(project, project_record)
+
+      expect(result).to eq('')
+    end
+
+    it 'handles team hierarchy with missing team record' do
+      # Only create the child record, not the parent
+      child_record = TeamRecord.create!(name: 'ChildOnly')
+
+      parent = double('Team', name: 'MissingParent', parent_team: nil)
+      allow(parent).to receive(:respond_to?).with(:parent_team).and_return(true)
+
+      child = double('Team', name: 'ChildOnly', parent_team: parent)
+      allow(child).to receive(:respond_to?).with(:parent_team).and_return(true)
+
+      result = helper.team_breadcrumb(child, child_record)
+
+      # Should only include Home (parent record doesn't exist)
+      expect(result).to eq('')
+    end
+
+    it 'handles project with parent that does not respond to parent' do
+      parent_record = ProjectRecord.create!(name: 'ParentNoMethod')
+      child_record = ProjectRecord.create!(name: 'ChildProject')
+
+      parent = double('Project', name: 'ParentNoMethod', parent: nil, owning_team: nil)
+      allow(parent).to receive(:respond_to?).with(:parent).and_return(false)
+      allow(parent).to receive(:respond_to?).with(:owning_team).and_return(true)
+
+      child = double('Project', name: 'ChildProject', parent: parent, owning_team: nil)
+      allow(child).to receive(:respond_to?).with(:owning_team).and_return(true)
+      allow(child).to receive(:respond_to?).with(:parent).and_return(true)
+
+      result = helper.project_breadcrumb(child, child_record)
+
+      expect(result).to include('Status')
+      expect(result).to include('ParentNoMethod')
+    end
+
+    it 'handles team in hierarchy that does not respond to parent_team' do
+      parent_record = TeamRecord.create!(name: 'ParentTeam')
+      child_record = TeamRecord.create!(name: 'ChildTeam')
+
+      parent = double('Team', name: 'ParentTeam')
+      allow(parent).to receive(:respond_to?).with(:parent_team).and_return(false)
+
+      child = double('Team', name: 'ChildTeam', parent_team: parent)
+      allow(child).to receive(:respond_to?).with(:parent_team).and_return(true)
+
+      result = helper.team_breadcrumb(child, child_record)
+
+      expect(result).to include('Status')
+      expect(result).to include('ParentTeam')
+    end
+
+    it 'handles project ancestor without record in database' do
+      child_record = ProjectRecord.create!(name: 'ChildOnly')
+
+      parent = double('Project', name: 'MissingRecord', parent: nil, owning_team: nil)
+      allow(parent).to receive(:respond_to?).with(:parent).and_return(true)
+      allow(parent).to receive(:respond_to?).with(:owning_team).and_return(true)
+
+      child = double('Project', name: 'ChildOnly', parent: parent, owning_team: nil)
+      allow(child).to receive(:respond_to?).with(:owning_team).and_return(true)
+      allow(child).to receive(:respond_to?).with(:parent).and_return(true)
+
+      result = helper.project_breadcrumb(child, child_record)
+
+      # Parent record doesn't exist so it shouldn't appear, just Home
+      expect(result).to eq('')
+    end
+  end
 end

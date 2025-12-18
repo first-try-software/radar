@@ -10,6 +10,11 @@
 
 <!-- Hero Section -->
 <div class="project-hero" data-project-hero>
+  <% if @team %>
+    <div class="project-hero__breadcrumb">
+      <%= team_breadcrumb(@team, @team_record) %>
+    </div>
+  <% end %>
   <div class="project-hero__actions">
     <% if @team_record.archived %>
       <span class="badge badge--archived" data-archived-badge>ARCHIVED</span>

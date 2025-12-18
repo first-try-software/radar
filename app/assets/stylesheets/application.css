@@ -1457,6 +1457,35 @@ input::placeholder {
   padding: 60px 24px 80px;
 }
 
+.project-hero__breadcrumb {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.breadcrumb {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.breadcrumb__link {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.breadcrumb__link:hover {
+  color: var(--accent);
+}
+
+.breadcrumb__separator {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
 .project-hero__actions {
   position: absolute;
   top: 24px;

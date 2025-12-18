@@ -2,6 +2,11 @@
 <% project = @project || @project_record %>
 
 <div class="project-hero" data-project-hero>
+  <% if @project %>
+    <div class="project-hero__breadcrumb">
+      <%= project_breadcrumb(@project, @project_record) %>
+    </div>
+  <% end %>
   <div class="project-hero__actions">
     <% if project.archived? %>
       <span class="badge badge--archived" data-archived-badge>ARCHIVED</span>
