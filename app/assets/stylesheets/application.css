@@ -3846,7 +3846,9 @@ input::placeholder {
 
 .inline-create-form__row {
   display: flex;
+  align-items: center;
   gap: 12px;
+  flex-wrap: nowrap;
 }
 
 .inline-create-form__input {
@@ -3855,10 +3857,12 @@ input::placeholder {
   padding: 10px 16px;
   font-size: 14px;
   font-family: inherit;
-  color: var(--text-primary);
-  background: var(--card-bg);
+  color: var(--text);
+  background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: 8px;
+  height: 42px;
+  box-sizing: border-box;
 }
 
 .inline-create-form__input:focus {
@@ -3868,6 +3872,13 @@ input::placeholder {
 
 .inline-create-form__input::placeholder {
   color: var(--text-muted);
+}
+
+input.inline-create-form__input--date {
+  flex: 0 0 150px !important;
+  width: 150px;
+  min-width: 150px;
+  max-width: 150px;
 }
 
 /* Team List Grid */
@@ -4099,20 +4110,23 @@ input::placeholder {
 /* Health Dropdown */
 .health-dropdown {
   position: relative;
+  flex-shrink: 0;
 }
 
 .health-dropdown__toggle {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
-  background: var(--card-bg);
+  padding: 10px 16px;
+  background: var(--card);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--text);
   font-size: 14px;
   cursor: pointer;
-  min-width: 130px;
+  min-width: 140px;
+  height: 42px;
+  box-sizing: border-box;
 }
 
 .health-dropdown__toggle:hover {

@@ -499,40 +499,35 @@
 <section class="section section--updates">
   <h3 class="section__title">Updates</h3>
 
-  <div class="updates-list" data-updates-list>
-    <!-- Create Update Form (first row) -->
+  <!-- Create Update Form -->
+  <div class="inline-create-section">
     <form class="update-form" data-update-form action="<%= health_updates_project_path(@project_record) %>" method="post">
       <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-      <div class="update-row update-row--form">
-        <div class="update-row__date">
-          <input type="date" name="health_update[date]" class="update-form__input update-form__input--date" value="<%= Date.current.strftime('%Y-%m-%d') %>" required data-update-date>
-        </div>
-        <div class="update-row__health">
-          <input type="hidden" name="health_update[health]" value="<%= @selected_health %>" data-health-input>
-          <div class="health-dropdown" data-health-dropdown>
-            <button type="button" class="health-dropdown__toggle" data-health-toggle>
-              <span class="health-dropdown__indicator health-dropdown__indicator--<%= @selected_health %>" data-health-indicator></span>
-              <span class="health-dropdown__label" data-health-label><%= @selected_health.to_s.tr('_', ' ').titleize %></span>
-              <span class="health-dropdown__arrow">▾</span>
-            </button>
-            <div class="health-dropdown__menu" data-health-menu>
-              <% @health_options.each do |health_opt| %>
-                <button type="button" class="health-dropdown__option" data-health-value="<%= health_opt %>">
-                  <span class="health-dropdown__indicator health-dropdown__indicator--<%= health_opt %>"></span>
-                  <span><%= health_opt.to_s.tr('_', ' ').titleize %></span>
-                </button>
-              <% end %>
-            </div>
+      <input type="hidden" name="health_update[health]" value="<%= @selected_health %>" data-health-input>
+      <div class="inline-create-form__row">
+        <input type="date" name="health_update[date]" class="inline-create-form__input inline-create-form__input--date" value="<%= Date.current.strftime('%Y-%m-%d') %>" required data-update-date>
+        <div class="health-dropdown" data-health-dropdown>
+          <button type="button" class="health-dropdown__toggle" data-health-toggle>
+            <span class="health-dropdown__indicator health-dropdown__indicator--<%= @selected_health %>" data-health-indicator></span>
+            <span class="health-dropdown__label" data-health-label><%= @selected_health.to_s.tr('_', ' ').titleize %></span>
+            <span class="health-dropdown__arrow">▾</span>
+          </button>
+          <div class="health-dropdown__menu" data-health-menu>
+            <% @health_options.each do |health_opt| %>
+              <button type="button" class="health-dropdown__option" data-health-value="<%= health_opt %>">
+                <span class="health-dropdown__indicator health-dropdown__indicator--<%= health_opt %>"></span>
+                <span><%= health_opt.to_s.tr('_', ' ').titleize %></span>
+              </button>
+            <% end %>
           </div>
         </div>
-        <div class="update-row__description">
-          <input type="text" name="health_update[description]" class="update-form__input" placeholder="What's the latest?" data-update-description>
-        </div>
-        <div class="update-row__actions">
-          <button type="submit" class="btn btn--small" data-update-submit>Add Update</button>
-        </div>
+        <input type="text" name="health_update[description]" class="inline-create-form__input" placeholder="What changed since the last update?" data-update-description>
+        <button type="submit" class="btn btn--small" data-update-submit>Add Update</button>
       </div>
     </form>
+  </div>
+
+  <div class="updates-list" data-updates-list>
 
     <!-- Existing Updates Header -->
     <div class="updates-header" data-updates-header<%= ' hidden' unless @health_updates&.any? %>>
