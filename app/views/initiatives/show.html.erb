@@ -306,16 +306,18 @@
 
       <!-- No Results / Create -->
       <div class="global-search__no-results" data-no-results hidden>
-        <h3 class="section__title">Create Project</h3>
-        <form action="<%= projects_path %>" method="post" class="global-search__create-form" data-create-form>
-          <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-          <div class="global-search__form-fields-inline">
-            <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-create-name required>
-            <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
-            <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
-            <button type="submit" class="global-search__create-btn">Create Project</button>
-          </div>
-        </form>
+        <h3 class="section__title">Create Related Project</h3>
+        <div class="global-search__form-card">
+          <form action="<%= projects_path %>" method="post" class="global-search__create-form" data-create-form>
+            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+            <div class="global-search__form-fields-inline">
+              <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-create-name required>
+              <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
+              <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
+              <button type="submit" class="global-search__create-btn">Create Related Project</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
@@ -372,7 +374,21 @@
           Archived <span class="dashboard-tab-v2__count"><%= archived_projects.size %></span>
         </button>
       <% end %>
+      <button class="dashboard-tab-v2 dashboard-tab-v2--add" data-toggle-create-related aria-label="Create related project">+</button>
     </div>
+  </div>
+
+  <!-- Create Related Project Form (inline) -->
+  <div class="inline-create-section" data-create-related-section hidden>
+    <form action="<%= add_related_project_initiative_path(@initiative_record) %>" method="post" class="inline-create-form" data-create-related-form>
+      <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+      <div class="inline-create-form__row">
+        <input type="text" name="project[name]" class="inline-create-form__input" placeholder="Project Name (required)" required data-related-name>
+        <input type="text" name="project[description]" class="inline-create-form__input" placeholder="Brief Description (highly recommended)">
+        <input type="text" name="project[point_of_contact]" class="inline-create-form__input" placeholder="Contacts (highly recommended)">
+        <button type="submit" class="btn btn--small" data-related-submit>Create Related Project</button>
+      </div>
+    </form>
   </div>
 
   <!-- Tab Content: All -->
@@ -918,6 +934,76 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => toast.remove(), 300);
       }
     });
+  }
+
+  // Toggle create related project section
+  const createRelatedToggle = document.querySelector('[data-toggle-create-related]');
+  const createRelatedSection = document.querySelector('[data-create-related-section]');
+
+  const showCreateRelatedForm = () => {
+    if (createRelatedSection && createRelatedToggle) {
+      createRelatedSection.hidden = false;
+      createRelatedToggle.classList.add('active');
+      createRelatedToggle.textContent = '×';
+      createRelatedSection.querySelector('input[name="project[name]"]')?.focus();
+    }
+  };
+
+  const hideCreateRelatedForm = () => {
+    if (createRelatedSection && createRelatedToggle) {
+      createRelatedSection.hidden = true;
+      createRelatedToggle.classList.remove('active');
+      createRelatedToggle.textContent = '+';
+    }
+  };
+
+  if (createRelatedToggle && createRelatedSection) {
+    createRelatedToggle.addEventListener('click', () => {
+      if (createRelatedSection.hidden) {
+        showCreateRelatedForm();
+      } else {
+        hideCreateRelatedForm();
+      }
+    });
+
+    // Handle form submission via AJAX
+    const createRelatedForm = document.querySelector('[data-create-related-form]');
+    if (createRelatedForm) {
+      createRelatedForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(createRelatedForm);
+        const submitBtn = createRelatedForm.querySelector('[data-related-submit]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating...';
+
+        try {
+          const response = await fetch(createRelatedForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            showToast(`Created related project: <a href="${data.url}">${data.name}</a>`);
+            createRelatedForm.reset();
+            // Reload to show the new project
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            const error = await response.json();
+            showToast(error.message || 'Failed to create project', 'error');
+          }
+        } catch (err) {
+          showToast('An error occurred', 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      });
+    }
   }
 });
 </script>

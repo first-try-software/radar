@@ -273,15 +273,17 @@
         <!-- No Results / Create -->
         <div class="global-search__no-results" data-no-results hidden>
           <h3 class="section__title">Create Project</h3>
-          <form action="<%= projects_path %>" method="post" class="global-search__create-form" data-create-form>
-            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-            <div class="global-search__form-fields-inline">
-              <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-create-name required>
-              <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
-              <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
-              <button type="submit" class="global-search__create-btn">Create Project</button>
-            </div>
-          </form>
+          <div class="global-search__form-card">
+            <form action="<%= projects_path %>" method="post" class="global-search__create-form" data-create-form>
+              <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+              <div class="global-search__form-fields-inline">
+                <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-create-name required>
+                <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
+                <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
+                <button type="submit" class="global-search__create-btn">Create Project</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

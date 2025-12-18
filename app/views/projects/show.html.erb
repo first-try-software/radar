@@ -322,16 +322,17 @@
       <!-- No Results / Create Child -->
       <div class="global-search__no-results" data-no-results hidden>
         <h3 class="section__title">Create Child Project</h3>
-        <p class="global-search__context">New project will be linked as a child of "<%= project.name %>"</p>
-        <form action="<%= subordinates_project_path(@project_record) %>" method="post" class="global-search__create-form" data-create-form>
-          <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-          <div class="global-search__form-fields-inline">
-            <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-create-name required>
-            <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
-            <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
-            <button type="submit" class="global-search__create-btn">Create Child Project</button>
-          </div>
-        </form>
+        <div class="global-search__form-card">
+          <form action="<%= subordinates_project_path(@project_record) %>" method="post" class="global-search__create-form" data-create-form>
+            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+            <div class="global-search__form-fields-inline">
+              <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-create-name required>
+              <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
+              <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
+              <button type="submit" class="global-search__create-btn">Create Child Project</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
@@ -389,7 +390,21 @@
           Archived <span class="dashboard-tab-v2__count"><%= archived_projects.size %></span>
         </button>
       <% end %>
+      <button class="dashboard-tab-v2 dashboard-tab-v2--add" data-toggle-create-child aria-label="Create child project">+</button>
     </div>
+  </div>
+
+  <!-- Create Child Project Form (inline) -->
+  <div class="inline-create-section" data-create-child-section hidden>
+    <form action="<%= subordinates_project_path(@project_record) %>" method="post" class="inline-create-form" data-create-child-form>
+      <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+      <div class="inline-create-form__row">
+        <input type="text" name="project[name]" class="inline-create-form__input" placeholder="Project Name (required)" required data-child-name>
+        <input type="text" name="project[description]" class="inline-create-form__input" placeholder="Brief Description (highly recommended)">
+        <input type="text" name="project[point_of_contact]" class="inline-create-form__input" placeholder="Contacts (highly recommended)">
+        <button type="submit" class="btn btn--small" data-child-submit>Create Child Project</button>
+      </div>
+    </form>
   </div>
 
   <!-- Tab Content: All -->
@@ -1025,6 +1040,76 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => toast.remove(), 300);
       }
     });
+  }
+
+  // Toggle create child project section
+  const createChildToggle = document.querySelector('[data-toggle-create-child]');
+  const createChildSection = document.querySelector('[data-create-child-section]');
+
+  const showCreateChildForm = () => {
+    if (createChildSection && createChildToggle) {
+      createChildSection.hidden = false;
+      createChildToggle.classList.add('active');
+      createChildToggle.textContent = '×';
+      createChildSection.querySelector('input[name="project[name]"]')?.focus();
+    }
+  };
+
+  const hideCreateChildForm = () => {
+    if (createChildSection && createChildToggle) {
+      createChildSection.hidden = true;
+      createChildToggle.classList.remove('active');
+      createChildToggle.textContent = '+';
+    }
+  };
+
+  if (createChildToggle && createChildSection) {
+    createChildToggle.addEventListener('click', () => {
+      if (createChildSection.hidden) {
+        showCreateChildForm();
+      } else {
+        hideCreateChildForm();
+      }
+    });
+
+    // Handle form submission via AJAX
+    const createChildForm = document.querySelector('[data-create-child-form]');
+    if (createChildForm) {
+      createChildForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(createChildForm);
+        const submitBtn = createChildForm.querySelector('[data-child-submit]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating...';
+
+        try {
+          const response = await fetch(createChildForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            showToast(`Created child project: <a href="${data.url}">${data.name}</a>`);
+            createChildForm.reset();
+            // Reload to show the new project
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            const error = await response.json();
+            showToast(error.message || 'Failed to create project', 'error');
+          }
+        } catch (err) {
+          showToast('An error occurred', 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      });
+    }
   }
 });
 </script>

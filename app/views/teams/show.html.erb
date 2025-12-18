@@ -276,16 +276,17 @@
       <% if is_leaf_team %>
         <div class="global-search__no-results" data-no-results hidden>
           <h3 class="section__title">Create Owned Project</h3>
-          <p class="global-search__context">New project will be owned by "<%= @team_record.name %>"</p>
-          <form action="<%= add_owned_project_team_path(@team_record) %>" method="post" class="global-search__create-form" data-create-form>
-            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-            <div class="global-search__form-fields-inline">
-              <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-create-name required>
-              <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
-              <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
-              <button type="submit" class="global-search__create-btn">Create Owned Project</button>
-            </div>
-          </form>
+          <div class="global-search__form-card">
+            <form action="<%= add_owned_project_team_path(@team_record) %>" method="post" class="global-search__create-form" data-create-form>
+              <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+              <div class="global-search__form-fields-inline">
+                <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-create-name required>
+                <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
+                <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
+                <button type="submit" class="global-search__create-btn">Create Owned Project</button>
+              </div>
+            </form>
+          </div>
         </div>
       <% else %>
         <div class="global-search__no-results" data-no-results hidden>
@@ -356,7 +357,7 @@
         <input type="text" name="team[name]" class="inline-create-form__input" placeholder="Team Name (required)" required data-subteam-name>
         <input type="text" name="team[mission]" class="inline-create-form__input" placeholder="Brief Mission (highly recommended)">
         <input type="text" name="team[point_of_contact]" class="inline-create-form__input" placeholder="Contacts (highly recommended)">
-        <button type="submit" class="btn btn--small" data-subteam-submit>Create Team</button>
+        <button type="submit" class="btn btn--small" data-subteam-submit>Create Subteam</button>
       </div>
     </form>
   </div>
@@ -564,7 +565,21 @@
           Archived <span class="dashboard-tab-v2__count"><%= archived_projects.size %></span>
         </button>
       <% end %>
+      <button class="dashboard-tab-v2 dashboard-tab-v2--add" data-toggle-create-owned aria-label="Create owned project">+</button>
     </div>
+  </div>
+
+  <!-- Create Owned Project Form (inline) -->
+  <div class="inline-create-section" data-create-owned-section hidden>
+    <form action="<%= add_owned_project_team_path(@team_record) %>" method="post" class="inline-create-form" data-create-owned-form>
+      <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+      <div class="inline-create-form__row">
+        <input type="text" name="project[name]" class="inline-create-form__input" placeholder="Project Name (required)" required data-owned-name>
+        <input type="text" name="project[description]" class="inline-create-form__input" placeholder="Brief Description (highly recommended)">
+        <input type="text" name="project[point_of_contact]" class="inline-create-form__input" placeholder="Contacts (highly recommended)">
+        <button type="submit" class="btn btn--small" data-owned-submit>Create Owned Project</button>
+      </div>
+    </form>
   </div>
 
   <!-- Tab Content: All -->
@@ -1101,6 +1116,76 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => toast.remove(), 300);
       }
     });
+  }
+
+  // Toggle create owned project section
+  const createOwnedToggle = document.querySelector('[data-toggle-create-owned]');
+  const createOwnedSection = document.querySelector('[data-create-owned-section]');
+
+  const showCreateOwnedForm = () => {
+    if (createOwnedSection && createOwnedToggle) {
+      createOwnedSection.hidden = false;
+      createOwnedToggle.classList.add('active');
+      createOwnedToggle.textContent = '×';
+      createOwnedSection.querySelector('input[name="project[name]"]')?.focus();
+    }
+  };
+
+  const hideCreateOwnedForm = () => {
+    if (createOwnedSection && createOwnedToggle) {
+      createOwnedSection.hidden = true;
+      createOwnedToggle.classList.remove('active');
+      createOwnedToggle.textContent = '+';
+    }
+  };
+
+  if (createOwnedToggle && createOwnedSection) {
+    createOwnedToggle.addEventListener('click', () => {
+      if (createOwnedSection.hidden) {
+        showCreateOwnedForm();
+      } else {
+        hideCreateOwnedForm();
+      }
+    });
+
+    // Handle form submission via AJAX
+    const createOwnedForm = document.querySelector('[data-create-owned-form]');
+    if (createOwnedForm) {
+      createOwnedForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(createOwnedForm);
+        const submitBtn = createOwnedForm.querySelector('[data-owned-submit]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating...';
+
+        try {
+          const response = await fetch(createOwnedForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            showToast(`Created owned project: <a href="${data.url}">${data.name}</a>`);
+            createOwnedForm.reset();
+            // Reload to show the new project
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            const error = await response.json();
+            showToast(error.message || 'Failed to create project', 'error');
+          }
+        } catch (err) {
+          showToast('An error occurred', 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      });
+    }
   }
 });
 </script>
