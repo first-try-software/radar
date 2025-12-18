@@ -1,3 +1,4 @@
+<% content_for(:title) { "#{@initiative_record.name} - Status" } %>
 <% allowed_states = SetInitiativeState::SETTABLE_STATES %>
 <% cascading_states = Initiative::CASCADING_STATES %>
 <% related_project_count = @initiative_record.related_projects.count %>

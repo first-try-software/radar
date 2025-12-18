@@ -3582,7 +3582,7 @@ input::placeholder {
 }
 
 .project-item-v2__header-label {
-  font-size: 11px;
+  font-size: 11px !important;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3881,7 +3881,7 @@ input::placeholder {
 }
 
 .team-item__header-label {
-  font-size: 11px;
+  font-size: 11px !important;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;

@@ -1,3 +1,4 @@
+<% content_for(:title) { "#{@project_record.name} - Status" } %>
 <% allowed_states = SetProjectState::SETTABLE_STATES %>
 <% project = @project || @project_record %>
 

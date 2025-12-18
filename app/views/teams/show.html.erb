@@ -1,3 +1,4 @@
+<% content_for(:title) { "#{@team_record.name} - Status" } %>
 <%
   all_child_teams = @team_record.child_relationships.includes(:child).order(:order).map(&:child)
   subordinate_teams = all_child_teams.reject(&:archived)
