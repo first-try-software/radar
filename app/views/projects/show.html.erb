@@ -118,7 +118,7 @@
         <div class="metric-widget__text">
           <div class="metric-widget__label metric-widget__label--<%= health_class %>"><%= health.to_s.tr('_', ' ').titleize %></div>
           <% if !is_leaf && off_track_count && off_track_count > 0 %>
-            <div class="metric-widget__detail"><%= off_track_count %> of <%= active_count %> active #{'project'.pluralize(active_count)} off-track</div>
+            <div class="metric-widget__detail"><%= off_track_count %> of <%= active_count %> active <%= 'project'.pluralize(active_count) %> off-track</div>
           <% end %>
         </div>
       </div>
