@@ -27,11 +27,12 @@
     <%
       blocked_projects = @attention_required.select { |p| p.current_state == :blocked }
       off_track_projects = @attention_required.select { |p| p.health == :off_track && p.current_state != :blocked }
+      active_projects_count = @all_projects.count { |p| [:in_progress, :blocked].include?(p.current_state) }
 
       urgent_action = if blocked_projects.any?
         { type: :blocked, count: blocked_projects.size, text: "#{blocked_projects.size} blocked #{'project'.pluralize(blocked_projects.size)}", tab: 'attention' }
       elsif off_track_projects.any?
-        { type: :off_track, count: off_track_projects.size, text: "#{off_track_projects.size} off-track #{'project'.pluralize(off_track_projects.size)}", tab: 'attention' }
+        { type: :off_track, count: off_track_projects.size, text: "#{off_track_projects.size} of #{active_projects_count} active #{'project'.pluralize(active_projects_count)} off-track", tab: 'attention' }
       elsif @stale_projects_14.any?
         { type: :stale, count: @stale_projects_14.size, text: "#{@stale_projects_14.size} stale #{'project'.pluralize(@stale_projects_14.size)}", tab: 'update' }
       elsif @stale_projects_7.any?

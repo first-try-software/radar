@@ -74,6 +74,14 @@
   health_class = initiative_health.to_s.tr('_', '-')
   raw_score = @initiative&.health_raw_score
   raw_score_display = raw_score ? raw_score.round(2) : 'N/A'
+
+  # Calculate off-track and active counts
+  all_leaves = @initiative&.leaf_projects || []
+  active_states = [:in_progress, :blocked]
+  active_projects = all_leaves.select { |p| active_states.include?(p.current_state) }
+  off_track_active = active_projects.select { |p| p.health == :off_track }
+  off_track_count = off_track_active.size
+  active_count = active_projects.size
 %>
 <div class="initiative-dashboard-v2">
   <div class="metrics-row-v2">
@@ -94,6 +102,9 @@
         <span class="metric-widget__dot metric-widget__dot--<%= health_class %>"></span>
         <div class="metric-widget__text">
           <div class="metric-widget__label metric-widget__label--<%= health_class %>"><%= initiative_health.to_s.tr('_', ' ').titleize %></div>
+          <% if off_track_count > 0 %>
+            <div class="metric-widget__detail"><%= off_track_count %> of <%= active_count %> active #{'project'.pluralize(active_count)} off-track</div>
+          <% end %>
         </div>
       </div>
     </div>

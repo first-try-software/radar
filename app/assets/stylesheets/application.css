@@ -3166,6 +3166,13 @@ input::placeholder {
 .metric-widget__label--off-track { color: var(--danger); }
 .metric-widget__label--not-available { color: var(--text-muted); }
 
+.metric-widget__detail {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
 /* Trend Widget */
 .metric-widget--trend.metric-widget--trend-up {
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(34, 197, 94, 0.03));
