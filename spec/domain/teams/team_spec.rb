@@ -107,27 +107,37 @@ RSpec.describe Team do
   end
 
   describe '#health' do
-    it 'returns a rollup of leaf projects from owned projects' do
-      leaf_project = double('Project', current_state: :in_progress, health: :on_track)
-      owned_project = double('Project', leaf_descendants: [leaf_project])
-      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { [owned_project] })
+    it 'returns health based on owned projects in working states' do
+      project = double('Project', current_state: :in_progress, health: :on_track)
+      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { [project] })
 
       expect(team.health).to eq(:on_track)
     end
 
-    it 'returns :not_available when no leaf projects are in a working state' do
-      leaf_project = double('Project', current_state: :todo, health: :on_track)
-      owned_project = double('Project', leaf_descendants: [leaf_project])
-      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { [owned_project] })
+    it 'returns :not_available when no owned projects are in a working state' do
+      project = double('Project', current_state: :todo, health: :on_track)
+      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { [project] })
 
       expect(team.health).to eq(:not_available)
     end
 
-    it 'includes leaf projects from subordinate teams' do
-      parent_leaf = double('Project', current_state: :in_progress, health: :on_track)
-      parent_project = double('Project', leaf_descendants: [parent_leaf])
-      child_leaf = double('Project', current_state: :blocked, health: :off_track)
-      child_project = double('Project', leaf_descendants: [child_leaf])
+    it 'weights each owned project equally regardless of decomposition' do
+      # A parent project with many children gets same weight as a leaf project
+      leaf_project = double('Project', current_state: :in_progress, health: :off_track)
+      parent_project = double('Project', current_state: :in_progress, health: :on_track)
+      team = described_class.new(
+        name: 'Platform',
+        owned_projects_loader: ->(_team) { [leaf_project, parent_project] }
+      )
+
+      # off_track (-1) + on_track (1) = 0 average -> at_risk
+      expect(team.health).to eq(:at_risk)
+    end
+
+    it 'includes subordinate team health with equal weight' do
+      # Parent team owns one project, child team has its own rolled-up health
+      parent_project = double('Project', current_state: :in_progress, health: :on_track)
+      child_project = double('Project', current_state: :blocked, health: :off_track)
       child_team = described_class.new(name: 'Child', owned_projects_loader: ->(_t) { [child_project] })
       parent_team = described_class.new(
         name: 'Parent',
@@ -135,12 +145,12 @@ RSpec.describe Team do
         subordinate_teams_loader: ->(_t) { [child_team] }
       )
 
+      # Parent project on_track (1) + child team off_track (-1) = 0 average -> at_risk
       expect(parent_team.health).to eq(:at_risk)
     end
 
-    it 'recursively includes leaf projects from nested subordinate teams' do
-      grandchild_leaf = double('Project', current_state: :in_progress, health: :off_track)
-      grandchild_project = double('Project', leaf_descendants: [grandchild_leaf])
+    it 'recursively includes health from nested subordinate teams' do
+      grandchild_project = double('Project', current_state: :in_progress, health: :off_track)
       grandchild_team = described_class.new(name: 'Grandchild', owned_projects_loader: ->(_t) { [grandchild_project] })
       child_team = described_class.new(name: 'Child', subordinate_teams_loader: ->(_t) { [grandchild_team] })
       parent_team = described_class.new(name: 'Parent', subordinate_teams_loader: ->(_t) { [child_team] })
@@ -154,21 +164,32 @@ RSpec.describe Team do
 
       expect(parent_team.health).to eq(:not_available)
     end
+
+    it 'ignores subordinate teams with not_available health' do
+      project = double('Project', current_state: :in_progress, health: :on_track)
+      empty_child_team = described_class.new(name: 'EmptyChild')
+      parent_team = described_class.new(
+        name: 'Parent',
+        owned_projects_loader: ->(_t) { [project] },
+        subordinate_teams_loader: ->(_t) { [empty_child_team] }
+      )
+
+      # Only parent's project counts since child has no health data
+      expect(parent_team.health).to eq(:on_track)
+    end
   end
 
   describe '#health_raw_score' do
-    it 'returns the raw score from HealthRollup' do
-      leaf_project = double('Project', current_state: :in_progress, health: :on_track)
-      owned_project = double('Project', leaf_descendants: [leaf_project])
-      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { [owned_project] })
+    it 'returns the raw score based on owned projects' do
+      project = double('Project', current_state: :in_progress, health: :on_track)
+      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { [project] })
 
       expect(team.health_raw_score).to eq(1.0)
     end
 
-    it 'returns nil when no leaf projects are in a working state' do
-      leaf_project = double('Project', current_state: :todo, health: :on_track)
-      owned_project = double('Project', leaf_descendants: [leaf_project])
-      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { [owned_project] })
+    it 'returns nil when no owned projects are in a working state' do
+      project = double('Project', current_state: :todo, health: :on_track)
+      team = described_class.new(name: 'Platform', owned_projects_loader: ->(_team) { [project] })
 
       expect(team.health_raw_score).to be_nil
     end

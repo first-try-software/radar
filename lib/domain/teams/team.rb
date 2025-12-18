@@ -45,11 +45,24 @@ class Team
   end
 
   def health
-    HealthRollup.rollup(all_leaf_projects)
+    health_values = collect_health_values
+    return :not_available if health_values.empty?
+
+    average = health_values.sum(0.0) / health_values.length
+    if average > 0.5
+      :on_track
+    elsif average <= -0.5
+      :off_track
+    else
+      :at_risk
+    end
   end
 
   def health_raw_score
-    HealthRollup.raw_score(all_leaf_projects)
+    health_values = collect_health_values
+    return nil if health_values.empty?
+
+    health_values.sum(0.0) / health_values.length
   end
 
   def all_leaf_projects
@@ -67,7 +80,7 @@ class Team
   end
 
   def effective_contact
-    return point_of_contact if point_of_contact.present?
+    return point_of_contact if point_of_contact && !point_of_contact.strip.empty?
     return parent_team.effective_contact if parent_team
 
     nil
@@ -75,7 +88,25 @@ class Team
 
   private
 
+  HEALTH_SCORES = { on_track: 1, at_risk: 0, off_track: -1 }.freeze
+  WORKING_STATES = [:in_progress, :blocked].freeze
+
   attr_reader :owned_projects_loader, :subordinate_teams_loader, :parent_team_loader
+
+  def collect_health_values
+    project_scores = owned_projects
+      .select { |p| WORKING_STATES.include?(p.current_state) }
+      .map { |p| HEALTH_SCORES[p.health] }
+      .compact
+
+    subordinate_scores = subordinate_teams
+      .map(&:health)
+      .reject { |h| h == :not_available }
+      .map { |h| HEALTH_SCORES[h] }
+      .compact
+
+    project_scores + subordinate_scores
+  end
 
   def load_owned_projects
     owned_projects_loader ? Array(owned_projects_loader.call(self)) : []

@@ -96,30 +96,53 @@ RSpec.describe DashboardController, type: :request do
       expect(response.body).to include('At Risk')
     end
 
-    it 'shows on_track system health when most projects are on_track' do
-      # Create 2 on_track projects: score = 2/2 = 1.0 >= 0.51
+    it 'shows on_track system health when most teams/initiatives are on_track' do
+      # Create a team with 2 on_track owned projects
+      team = TeamRecord.create!(name: 'Good Team')
       project_a = ProjectRecord.create!(name: 'On Track A', current_state: 'in_progress')
       HealthUpdateRecord.create!(project: project_a, date: Date.current, health: 'on_track')
+      TeamsProjectRecord.create!(team: team, project: project_a, order: 1)
 
       project_b = ProjectRecord.create!(name: 'On Track B', current_state: 'in_progress')
       HealthUpdateRecord.create!(project: project_b, date: Date.current, health: 'on_track')
+      TeamsProjectRecord.create!(team: team, project: project_b, order: 2)
 
       get '/'
 
       expect(response.body).to include('metric-widget__label--on-track')
     end
 
-    it 'shows off_track system health when most projects are off_track' do
-      # Create 2 off_track projects: score = -2/2 = -1.0 <= -0.49
+    it 'shows off_track system health when most teams/initiatives are off_track' do
+      # Create a team with 2 off_track owned projects
+      team = TeamRecord.create!(name: 'Bad Team')
       project_a = ProjectRecord.create!(name: 'Off Track A', current_state: 'in_progress')
       HealthUpdateRecord.create!(project: project_a, date: Date.current, health: 'off_track')
+      TeamsProjectRecord.create!(team: team, project: project_a, order: 1)
 
       project_b = ProjectRecord.create!(name: 'Off Track B', current_state: 'in_progress')
       HealthUpdateRecord.create!(project: project_b, date: Date.current, health: 'off_track')
+      TeamsProjectRecord.create!(team: team, project: project_b, order: 2)
 
       get '/'
 
       expect(response.body).to include('metric-widget__label--off-track')
+    end
+
+    it 'shows at_risk system health when teams/initiatives are mixed' do
+      # Create one on_track team and one off_track team -> average = 0 -> at_risk
+      team_a = TeamRecord.create!(name: 'Good Team')
+      project_a = ProjectRecord.create!(name: 'On Track', current_state: 'in_progress')
+      HealthUpdateRecord.create!(project: project_a, date: Date.current, health: 'on_track')
+      TeamsProjectRecord.create!(team: team_a, project: project_a, order: 1)
+
+      team_b = TeamRecord.create!(name: 'Bad Team')
+      project_b = ProjectRecord.create!(name: 'Off Track', current_state: 'in_progress')
+      HealthUpdateRecord.create!(project: project_b, date: Date.current, health: 'off_track')
+      TeamsProjectRecord.create!(team: team_b, project: project_b, order: 1)
+
+      get '/'
+
+      expect(response.body).to include('metric-widget__label--at-risk')
     end
 
     it 'shows teams column with health indicators' do

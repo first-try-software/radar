@@ -171,12 +171,36 @@ RSpec.describe Initiative do
     expect(initiative.related_projects.length).to eq(1)
   end
 
+  describe '#leaf_projects' do
+    it 'returns leaf projects directly when related project is a leaf' do
+      leaf_project = double('LeafProject', id: 1, leaf?: true)
+      initiative = described_class.new(
+        name: 'Modernize Infra',
+        related_projects_loader: ->(_initiative) { [leaf_project] }
+      )
+
+      expect(initiative.leaf_projects).to eq([leaf_project])
+    end
+
+    it 'returns leaf descendants when related project is a parent' do
+      child_a = double('ChildA', id: 2, name: 'A')
+      child_b = double('ChildB', id: 3, name: 'B')
+      parent_project = double('ParentProject', id: 1, leaf?: false, leaf_descendants: [child_a, child_b])
+      initiative = described_class.new(
+        name: 'Modernize Infra',
+        related_projects_loader: ->(_initiative) { [parent_project] }
+      )
+
+      expect(initiative.leaf_projects).to contain_exactly(child_a, child_b)
+    end
+  end
+
   describe '#health' do
     it 'returns a rollup of related projects in working states' do
       related_projects = [
-        double('Project', current_state: :in_progress, health: :off_track, leaf?: true, id: 1, name: 'P1'),
-        double('Project', current_state: :blocked, health: :off_track, leaf?: true, id: 2, name: 'P2'),
-        double('Project', current_state: :todo, health: :on_track, leaf?: true, id: 3, name: 'P3')
+        double('Project', current_state: :in_progress, health: :off_track),
+        double('Project', current_state: :blocked, health: :off_track),
+        double('Project', current_state: :todo, health: :on_track)
       ]
       initiative = described_class.new(
         name: 'Modernize Infra',
@@ -188,8 +212,8 @@ RSpec.describe Initiative do
 
     it 'returns :not_available when no related projects are in a working state' do
       related_projects = [
-        double('Project', current_state: :todo, health: :on_track, leaf?: true, id: 1, name: 'P1'),
-        double('Project', current_state: :done, health: :off_track, leaf?: true, id: 2, name: 'P2')
+        double('Project', current_state: :todo, health: :on_track),
+        double('Project', current_state: :done, health: :off_track)
       ]
       initiative = described_class.new(
         name: 'Modernize Infra',
@@ -199,17 +223,18 @@ RSpec.describe Initiative do
       expect(initiative.health).to eq(:not_available)
     end
 
-    it 'uses leaf descendants for parent projects' do
-      leaf1 = double('Leaf1', current_state: :in_progress, health: :on_track, leaf?: true, id: 1, name: 'Leaf1')
-      leaf2 = double('Leaf2', current_state: :in_progress, health: :on_track, leaf?: true, id: 2, name: 'Leaf2')
-      parent = double('Parent', leaf?: false, leaf_descendants: [leaf1, leaf2])
+    it 'weights each related project equally regardless of decomposition' do
+      # Parent project with many children gets same weight as a leaf project
+      leaf_project = double('LeafProject', current_state: :in_progress, health: :off_track)
+      parent_project = double('ParentProject', current_state: :in_progress, health: :on_track)
 
       initiative = described_class.new(
         name: 'Modernize Infra',
-        related_projects_loader: ->(_initiative) { [parent] }
+        related_projects_loader: ->(_initiative) { [leaf_project, parent_project] }
       )
 
-      expect(initiative.health).to eq(:on_track)
+      # off_track (-1) + on_track (1) = 0 average -> at_risk
+      expect(initiative.health).to eq(:at_risk)
     end
   end
 end

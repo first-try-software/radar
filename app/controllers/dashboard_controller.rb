@@ -81,17 +81,29 @@ class DashboardController < ApplicationController
     Rails.application.config.x.initiative_repository
   end
 
+  HEALTH_SCORES = { on_track: 1, at_risk: 0, off_track: -1 }.freeze
+
   def calculate_system_health
-    summary = @health_summary
-    total = summary[:on_track] + summary[:at_risk] + summary[:off_track]
-    return :not_available if total.zero?
+    # Average teams and initiatives equally - each entity gets one vote
+    health_values = []
 
-    # Calculate weighted score: on_track=1, at_risk=0, off_track=-1
-    score = (summary[:on_track] * 1 + summary[:at_risk] * 0 + summary[:off_track] * -1).to_f / total
+    @teams.each do |team|
+      health = team.health
+      health_values << HEALTH_SCORES[health] if health != :not_available && HEALTH_SCORES.key?(health)
+    end
 
-    if score >= 0.51
+    @initiatives.each do |initiative|
+      health = initiative.health
+      health_values << HEALTH_SCORES[health] if health != :not_available && HEALTH_SCORES.key?(health)
+    end
+
+    return :not_available if health_values.empty?
+
+    average = health_values.sum(0.0) / health_values.length
+
+    if average > 0.5
       :on_track
-    elsif score <= -0.49
+    elsif average <= -0.5
       :off_track
     else
       :at_risk

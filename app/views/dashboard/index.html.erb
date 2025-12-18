@@ -12,33 +12,41 @@
   <% system_health = @system_health || :not_available %>
   <% health_class = system_health.to_s.tr('_', '-') %>
   <%
-    summary = @health_summary
-    total = summary[:on_track] + summary[:at_risk] + summary[:off_track]
-    raw_score = if total > 0
-      (summary[:on_track] * 1 + summary[:at_risk] * 0 + summary[:off_track] * -1).to_f / total
-    else
-      nil
+    # Calculate raw score from teams + initiatives equally weighted
+    health_scores = { on_track: 1, at_risk: 0, off_track: -1 }
+    health_values = []
+    @teams.each do |team|
+      health = team.health
+      health_values << health_scores[health] if health != :not_available && health_scores.key?(health)
     end
+    @initiatives.each do |initiative|
+      health = initiative.health
+      health_values << health_scores[health] if health != :not_available && health_scores.key?(health)
+    end
+    raw_score = health_values.any? ? health_values.sum(0.0) / health_values.length : nil
     raw_score_display = raw_score ? raw_score.round(2) : 'N/A'
   %>
 
   <div class="metrics-row-v2">
     <!-- Health Widget -->
     <%
-      blocked_projects = @attention_required.select { |p| p.current_state == :blocked }
-      off_track_projects = @attention_required.select { |p| p.health == :off_track && p.current_state != :blocked }
-      active_projects_count = @all_projects.count { |p| [:in_progress, :blocked].include?(p.current_state) }
+      # Count off-track teams and initiatives
+      off_track_teams = @teams.select { |t| t.health == :off_track }
+      off_track_initiatives = @initiatives.select { |i| i.health == :off_track }
+      off_track_count = off_track_teams.size + off_track_initiatives.size
+      total_entities = @teams.size + @initiatives.size
 
-      urgent_action = if blocked_projects.any?
-        { type: :blocked, count: blocked_projects.size, text: "#{blocked_projects.size} blocked #{'project'.pluralize(blocked_projects.size)}", tab: 'attention' }
-      elsif off_track_projects.any?
-        { type: :off_track, count: off_track_projects.size, text: "#{off_track_projects.size} of #{active_projects_count} active #{'project'.pluralize(active_projects_count)} off-track", tab: 'attention' }
-      elsif @stale_projects_14.any?
-        { type: :stale, count: @stale_projects_14.size, text: "#{@stale_projects_14.size} stale #{'project'.pluralize(@stale_projects_14.size)}", tab: 'update' }
-      elsif @stale_projects_7.any?
-        { type: :warning, count: @stale_projects_7.size, text: "#{@stale_projects_7.size} stale #{'project'.pluralize(@stale_projects_7.size)}", tab: 'update' }
-      elsif @never_updated_projects.any?
-        { type: :warning, count: @never_updated_projects.size, text: "#{@never_updated_projects.size} #{'project'.pluralize(@never_updated_projects.size)} never updated", tab: 'update' }
+      # Count at-risk teams and initiatives
+      at_risk_teams = @teams.select { |t| t.health == :at_risk }
+      at_risk_initiatives = @initiatives.select { |i| i.health == :at_risk }
+      at_risk_count = at_risk_teams.size + at_risk_initiatives.size
+
+      urgent_action = if off_track_count > 0
+        entity_word = off_track_count == 1 ? 'team/initiative' : 'teams/initiatives'
+        { text: "#{off_track_count} of #{total_entities} #{entity_word} off-track" }
+      elsif at_risk_count > 0
+        entity_word = at_risk_count == 1 ? 'team/initiative' : 'teams/initiatives'
+        { text: "#{at_risk_count} of #{total_entities} #{entity_word} at-risk" }
       else
         nil
       end
@@ -49,7 +57,7 @@
         <div class="widget-info">
           <span class="widget-info__icon">i</span>
             <div class="widget-info__tooltip">
-              <div class="widget-info__methodology">Average of active, leaf-node project health scores.</div>
+              <div class="widget-info__methodology">Average of team and initiative health scores, equally weighted.</div>
               <div class="widget-info__range">
                 <div>On Track = +1</div>
                 <div>At Risk = 0</div>
@@ -64,10 +72,8 @@
         <div class="metric-widget__text">
           <div class="metric-widget__label metric-widget__label--<%= health_class %>"><%= system_health.to_s.tr('_', ' ').titleize %></div>
           <% if urgent_action %>
-            <button type="button" class="metric-widget__urgent metric-widget__urgent--<%= urgent_action[:type] %>" data-open-tab="<%= urgent_action[:tab] %>">
-              <%= urgent_action[:text] %>
-            </button>
-    <% end %>
+            <span class="metric-widget__detail"><%= urgent_action[:text] %></span>
+          <% end %>
         </div>
       </div>
     </div>
@@ -126,17 +132,15 @@
 
     <!-- Confidence Widget -->
     <%
-      confidence_cta = case @confidence_factors[:biggest_drag]
+      confidence_hint = case @confidence_factors[:biggest_drag]
       when :variance
-        { text: "Volatile health trend", tab: nil, type: :info }
+        "Volatile health trend"
       when :staleness
-        days = @confidence_factors.dig(:details, :days_since_update)
-        { text: "Data is #{days}+ days old", tab: 'update', type: :warning }
+        "Data growing stale"
       when :coverage
-        count = @confidence_factors.dig(:details, :projects_needing_update) || 0
-        { text: "#{count} #{'project'.pluralize(count)} need updates", tab: 'update', type: :warning }
+        "Update coverage is uneven"
       when :insufficient_data
-        { text: "Building history...", tab: nil, type: :info }
+        "Building history..."
       else
         nil
       end
@@ -172,14 +176,8 @@
         </div>
         <div class="metric-widget__text">
           <div class="metric-widget__label confidence-label--<%= @confidence_level %>"><%= @confidence_level.to_s.titleize %></div>
-          <% if confidence_cta && @confidence_level != :high %>
-            <% if confidence_cta[:tab] %>
-              <button type="button" class="metric-widget__urgent metric-widget__urgent--<%= confidence_cta[:type] %>" data-open-tab="<%= confidence_cta[:tab] %>">
-                <%= confidence_cta[:text] %>
-              </button>
-            <% else %>
-              <span class="metric-widget__hint"><%= confidence_cta[:text] %></span>
-            <% end %>
+          <% if confidence_hint && @confidence_level != :high %>
+            <span class="metric-widget__hint"><%= confidence_hint %></span>
           <% end %>
         </div>
       </div>

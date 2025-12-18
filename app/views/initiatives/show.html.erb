@@ -76,13 +76,13 @@
   raw_score = @initiative&.health_raw_score
   raw_score_display = raw_score ? raw_score.round(2) : 'N/A'
 
-  # Calculate off-track and active counts
-  all_leaves = @initiative&.leaf_projects || []
+  # Calculate off-track and active counts from direct relationships
+  related = @initiative&.related_projects || []
   active_states = [:in_progress, :blocked]
-  active_projects = all_leaves.select { |p| active_states.include?(p.current_state) }
-  off_track_active = active_projects.select { |p| p.health == :off_track }
+  active_related = related.select { |p| active_states.include?(p.current_state) }
+  off_track_active = active_related.select { |p| p.health == :off_track }
   off_track_count = off_track_active.size
-  active_count = active_projects.size
+  active_count = active_related.size
 %>
 <div class="initiative-dashboard-v2">
   <div class="metrics-row-v2">
@@ -104,7 +104,7 @@
         <div class="metric-widget__text">
           <div class="metric-widget__label metric-widget__label--<%= health_class %>"><%= initiative_health.to_s.tr('_', ' ').titleize %></div>
           <% if off_track_count > 0 %>
-            <div class="metric-widget__detail"><%= off_track_count %> of <%= active_count %> active <%= 'project'.pluralize(active_count) %> off-track</div>
+            <div class="metric-widget__detail"><%= off_track_count %> of <%= active_count %> related <%= 'project'.pluralize(active_count) %> off-track</div>
           <% end %>
         </div>
       </div>
@@ -162,17 +162,15 @@
 
     <!-- Confidence Widget -->
     <%
-      confidence_cta = case @confidence_factors&.dig(:biggest_drag)
+      confidence_hint = case @confidence_factors&.dig(:biggest_drag)
       when :variance
-        { text: "Volatile health trend", type: :info }
+        "Volatile health trend"
       when :staleness
-        days = @confidence_factors.dig(:details, :days_since_update)
-        { text: "Data is #{days}+ days old", type: :warning }
+        "Data growing stale"
       when :coverage
-        count = @confidence_factors.dig(:details, :projects_needing_update) || 0
-        { text: "#{count} #{'project'.pluralize(count)} need updates", type: :warning }
+        "Update coverage is uneven"
       when :insufficient_data
-        { text: "Building history...", type: :info }
+        "Building history..."
       else
         nil
       end
@@ -208,8 +206,8 @@
         </div>
         <div class="metric-widget__text">
           <div class="metric-widget__label confidence-label--<%= @confidence_level %>"><%= @confidence_level.to_s.titleize %></div>
-          <% if confidence_cta && @confidence_level != :high %>
-            <span class="metric-widget__hint"><%= confidence_cta[:text] %></span>
+          <% if confidence_hint && @confidence_level != :high %>
+            <span class="metric-widget__hint"><%= confidence_hint %></span>
           <% end %>
         </div>
       </div>
@@ -325,16 +323,16 @@
 
 <!-- Related Projects Section -->
 <%
-  all_leaf_projects = @initiative&.leaf_projects || []
-  leaf_projects = all_leaf_projects.reject { |p| p.respond_to?(:archived?) && p.archived? }
-  archived_projects = all_leaf_projects.select { |p| p.respond_to?(:archived?) && p.archived? }
-  sorted_projects = sort_projects_canonical(leaf_projects)
+  all_related_projects = @initiative&.related_projects || []
+  direct_projects = all_related_projects.reject { |p| p.respond_to?(:archived?) && p.archived? }
+  archived_projects = all_related_projects.select { |p| p.respond_to?(:archived?) && p.archived? }
+  sorted_projects = sort_projects_canonical(direct_projects)
   sorted_archived = sort_projects_canonical(archived_projects)
 
-  unhealthy = leaf_projects.select { |p| [:off_track, :at_risk].include?(p.health) }
+  unhealthy = direct_projects.select { |p| [:off_track, :at_risk].include?(p.health) }
   sorted_unhealthy = sort_projects_canonical(unhealthy)
 
-  stale = leaf_projects.select do |p|
+  stale = direct_projects.select do |p|
     next false unless [:in_progress, :blocked].include?(p.current_state)
     latest = p.latest_health_update
     latest.nil? || (Date.current - latest.date.to_date).to_i > 7
@@ -344,10 +342,10 @@
   active_states = [:new, :in_progress, :blocked]
   inactive_states = [:completed, :paused, :cancelled, :done, :on_hold, :todo]
 
-  active_projects = leaf_projects.select { |p| active_states.include?(p.current_state) }
+  active_projects = direct_projects.select { |p| active_states.include?(p.current_state) }
   sorted_active = sort_projects_canonical(active_projects)
 
-  inactive_projects = leaf_projects.select { |p| inactive_states.include?(p.current_state) }
+  inactive_projects = direct_projects.select { |p| inactive_states.include?(p.current_state) }
   sorted_inactive = sort_projects_canonical(inactive_projects)
 %>
 <section class="section section--projects">
@@ -355,7 +353,7 @@
     <h3 class="section__title">Related Projects</h3>
     <div class="dashboard-tabs-v2">
       <button class="dashboard-tab-v2 active" data-child-tab="all">
-        All <span class="dashboard-tab-v2__count"><%= leaf_projects.size %></span>
+        All <span class="dashboard-tab-v2__count"><%= direct_projects.size %></span>
       </button>
       <button class="dashboard-tab-v2" data-child-tab="unhealthy">
         Unhealthy <span class="dashboard-tab-v2__count"><%= unhealthy.size %></span>
@@ -393,7 +391,7 @@
 
   <!-- Tab Content: All -->
   <div class="tab-content-v2 active" data-child-tab-content="all">
-    <% if leaf_projects.empty? %>
+    <% if direct_projects.empty? %>
       <div class="tab-empty-v2">No related projects</div>
     <% else %>
       <ul class="project-list-v2">
