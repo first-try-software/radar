@@ -128,6 +128,11 @@ class TeamRepository
     TeamRecord.where(archived: false).where.not(id: child_ids).map { |record| build_entity(record) }
   end
 
+  def all_archived_roots
+    child_ids = TeamsTeamRecord.pluck(:child_id)
+    TeamRecord.where(archived: true).where.not(id: child_ids).map { |record| build_entity(record) }
+  end
+
   private
 
   attr_reader :project_repository

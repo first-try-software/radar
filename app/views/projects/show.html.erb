@@ -289,8 +289,11 @@
 <!-- Child Projects Section (only for parent projects) -->
 <% if @project && !@project.leaf? %>
 <%
-  leaf_descendants = @project.leaf_descendants
+  all_leaf_descendants = @project.leaf_descendants
+  leaf_descendants = all_leaf_descendants.reject { |p| p.respond_to?(:archived?) && p.archived? }
+  archived_projects = all_leaf_descendants.select { |p| p.respond_to?(:archived?) && p.archived? }
   sorted_descendants = sort_projects_canonical(leaf_descendants)
+  sorted_archived = sort_projects_canonical(archived_projects)
 
   unhealthy = leaf_descendants.select { |p| [:off_track, :at_risk].include?(p.health) }
   sorted_unhealthy = sort_projects_canonical(unhealthy)
@@ -329,6 +332,11 @@
       <button class="dashboard-tab-v2" data-child-tab="inactive">
         Inactive <span class="dashboard-tab-v2__count"><%= inactive_projects.size %></span>
       </button>
+      <% if archived_projects.any? %>
+        <button class="dashboard-tab-v2" data-child-tab="archived">
+          Archived <span class="dashboard-tab-v2__count"><%= archived_projects.size %></span>
+        </button>
+      <% end %>
     </div>
   </div>
 
@@ -404,6 +412,18 @@
       </ul>
     <% end %>
   </div>
+
+  <!-- Tab Content: Archived -->
+  <% if archived_projects.any? %>
+    <div class="tab-content-v2" data-child-tab-content="archived">
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_archived.each do |child_project| %>
+          <%= render 'dashboard/project_list_item', project: child_project, tag_text: 'Archived', tag_modifier: 'archived' %>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
 </section>
 <% end %>
 

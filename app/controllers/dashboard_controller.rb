@@ -34,9 +34,11 @@ class DashboardController < ApplicationController
     @teams = team_repository.all_active_roots
     @sorted_teams = sort_entities_by_health_name(@teams)
     @team_data = build_team_data(@teams)
+    @archived_teams = team_repository.all_archived_roots
     @initiatives = initiative_repository.all_active_roots
     @sorted_initiatives = sort_entities_by_health_name(@initiatives)
     @initiative_data = build_initiative_data(@initiatives)
+    @archived_initiatives = initiative_repository.all_archived
 
     # System-wide trend data
     trend_service = SystemTrendService.new(

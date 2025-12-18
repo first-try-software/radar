@@ -304,6 +304,21 @@
       <% else %>
         <p class="section__empty">No teams</p>
       <% end %>
+      <% if @archived_teams.any? %>
+        <details class="section__archived-details">
+          <summary class="section__archived-summary">Archived (<%= @archived_teams.size %>)</summary>
+          <ul class="section__list section__list--archived">
+            <% @archived_teams.each do |team| %>
+              <li class="section__item section__item--archived">
+                <a href="<%= team_path(TeamRecord.find_by(name: team.name)) %>" class="section__link">
+                  <span class="project-item-v2__health project-item-v2__health--not_available"></span>
+                  <span class="section__name"><%= team.name %></span>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </details>
+      <% end %>
     </div>
     <div class="section">
       <h3 class="section__title">Initiatives</h3>
@@ -320,6 +335,21 @@
         </ul>
       <% else %>
         <p class="section__empty">No initiatives</p>
+      <% end %>
+      <% if @archived_initiatives.any? %>
+        <details class="section__archived-details">
+          <summary class="section__archived-summary">Archived (<%= @archived_initiatives.size %>)</summary>
+          <ul class="section__list section__list--archived">
+            <% @archived_initiatives.each do |initiative| %>
+              <li class="section__item section__item--archived">
+                <a href="<%= initiative_path(InitiativeRecord.find_by(name: initiative.name)) %>" class="section__link">
+                  <span class="project-item-v2__health project-item-v2__health--not_available"></span>
+                  <span class="section__name"><%= initiative.name %></span>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </details>
       <% end %>
     </div>
   </div>

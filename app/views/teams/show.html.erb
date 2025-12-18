@@ -1,7 +1,9 @@
 <%
-  subordinate_teams = @team_record.child_relationships.includes(:child).order(:order).map(&:child).reject(&:archived)
+  all_child_teams = @team_record.child_relationships.includes(:child).order(:order).map(&:child)
+  subordinate_teams = all_child_teams.reject(&:archived)
+  archived_child_teams = all_child_teams.select(&:archived)
   owned_projects = @team_record.owned_project_relationships.includes(:project).order(:order).map(&:project).reject(&:archived)
-  has_subteams = subordinate_teams.any?
+  has_subteams = subordinate_teams.any? || archived_child_teams.any?
   is_leaf_team = !has_subteams
   total_leaf_projects = @team&.all_leaf_projects&.size || 0
 %>
@@ -269,6 +271,11 @@
     { record: sub_team, domain: domain_team, health: health, trend: trend_direction, projects: project_count, stale: stale_count }
   end.sort_by { |t| [t[:health] == :off_track ? 0 : (t[:health] == :at_risk ? 1 : 2), t[:record].name.downcase] }
 
+  archived_subteams = archived_child_teams.map do |sub_team|
+    domain_team = Rails.application.config.x.team_repository.find(sub_team.id)
+    { record: sub_team, domain: domain_team, health: :not_available, trend: :stable, projects: 0, stale: 0 }
+  end.sort_by { |t| t[:record].name.downcase }
+
   unhealthy_subteams = all_subteams.select { |t| [:off_track, :at_risk].include?(t[:health]) }
   stale_subteams = all_subteams.select { |t| t[:stale] > 0 }
 %>
@@ -285,6 +292,11 @@
       <button class="dashboard-tab-v2" data-team-tab="stale">
         Stale <span class="dashboard-tab-v2__count"><%= stale_subteams.size %></span>
       </button>
+      <% if archived_subteams.any? %>
+        <button class="dashboard-tab-v2" data-team-tab="archived">
+          Archived <span class="dashboard-tab-v2__count"><%= archived_subteams.size %></span>
+        </button>
+      <% end %>
       <button class="dashboard-tab-v2 dashboard-tab-v2--add" data-toggle-create-team aria-label="Create subordinate team">+</button>
     </div>
   </div>
@@ -442,12 +454,49 @@
       </ul>
     <% end %>
   </div>
+
+  <!-- Tab Content: Archived -->
+  <% if archived_subteams.any? %>
+    <div class="tab-content-v2" data-team-tab-content="archived">
+      <ul class="project-list-v2">
+        <li class="project-item-v2 project-item-v2--header">
+          <div class="team-item__grid team-item__grid--header">
+            <span class="team-item__col team-item__col--health"></span>
+            <span class="team-item__col team-item__col--name team-item__header-label">Team</span>
+            <span class="team-item__col team-item__col--trend team-item__header-label">Trend</span>
+            <span class="team-item__col team-item__col--projects team-item__header-label">Projects</span>
+            <span class="team-item__col team-item__col--stale team-item__header-label">Stale</span>
+            <span class="team-item__col team-item__col--contact team-item__header-label">Contact</span>
+          </div>
+        </li>
+        <% archived_subteams.each do |team_data| %>
+          <li class="project-item-v2">
+            <a href="<%= team_path(team_data[:record]) %>" class="project-item-v2__link">
+              <div class="team-item__grid">
+                <span class="team-item__col team-item__col--health">
+                  <span class="project-item-v2__health project-item-v2__health--not_available"></span>
+                </span>
+                <span class="team-item__col team-item__col--name" style="font-style: italic;"><%= team_data[:record].name %></span>
+                <span class="team-item__col team-item__col--trend">—</span>
+                <span class="team-item__col team-item__col--projects">—</span>
+                <span class="team-item__col team-item__col--stale">—</span>
+                <span class="team-item__col team-item__col--contact"><%= team_data[:record].point_of_contact.presence || '—' %></span>
+              </div>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
 </section>
 
 <!-- Owned Projects Section -->
 <%
-  leaf_projects = @team&.all_leaf_projects || []
+  all_leaf_projects = @team&.all_leaf_projects || []
+  leaf_projects = all_leaf_projects.reject { |p| p.respond_to?(:archived?) && p.archived? }
+  archived_projects = all_leaf_projects.select { |p| p.respond_to?(:archived?) && p.archived? }
   sorted_projects = sort_projects_canonical(leaf_projects)
+  sorted_archived = sort_projects_canonical(archived_projects)
 
   unhealthy = leaf_projects.select { |p| [:off_track, :at_risk].include?(p.health) }
   sorted_unhealthy = sort_projects_canonical(unhealthy)
@@ -486,6 +535,11 @@
       <button class="dashboard-tab-v2" data-child-tab="inactive">
         Inactive <span class="dashboard-tab-v2__count"><%= inactive_projects.size %></span>
       </button>
+      <% if archived_projects.any? %>
+        <button class="dashboard-tab-v2" data-child-tab="archived">
+          Archived <span class="dashboard-tab-v2__count"><%= archived_projects.size %></span>
+        </button>
+      <% end %>
     </div>
   </div>
 
@@ -561,6 +615,18 @@
       </ul>
     <% end %>
   </div>
+
+  <!-- Tab Content: Archived -->
+  <% if archived_projects.any? %>
+    <div class="tab-content-v2" data-child-tab-content="archived">
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_archived.each do |project| %>
+          <%= render 'dashboard/project_list_item', project: project, tag_text: 'Archived', tag_modifier: 'archived' %>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
 </section>
 
 <!-- Edit Modal -->

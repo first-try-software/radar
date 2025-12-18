@@ -276,8 +276,11 @@
 
 <!-- Related Projects Section -->
 <%
-  leaf_projects = @initiative&.leaf_projects || []
+  all_leaf_projects = @initiative&.leaf_projects || []
+  leaf_projects = all_leaf_projects.reject { |p| p.respond_to?(:archived?) && p.archived? }
+  archived_projects = all_leaf_projects.select { |p| p.respond_to?(:archived?) && p.archived? }
   sorted_projects = sort_projects_canonical(leaf_projects)
+  sorted_archived = sort_projects_canonical(archived_projects)
 
   unhealthy = leaf_projects.select { |p| [:off_track, :at_risk].include?(p.health) }
   sorted_unhealthy = sort_projects_canonical(unhealthy)
@@ -316,6 +319,11 @@
       <button class="dashboard-tab-v2" data-child-tab="inactive">
         Inactive <span class="dashboard-tab-v2__count"><%= inactive_projects.size %></span>
       </button>
+      <% if archived_projects.any? %>
+        <button class="dashboard-tab-v2" data-child-tab="archived">
+          Archived <span class="dashboard-tab-v2__count"><%= archived_projects.size %></span>
+        </button>
+      <% end %>
     </div>
   </div>
 
@@ -391,6 +399,18 @@
       </ul>
     <% end %>
   </div>
+
+  <!-- Tab Content: Archived -->
+  <% if archived_projects.any? %>
+    <div class="tab-content-v2" data-child-tab-content="archived">
+      <ul class="project-list-v2">
+        <%= render 'dashboard/project_list_header' %>
+        <% sorted_archived.each do |project| %>
+          <%= render 'dashboard/project_list_item', project: project, tag_text: 'Archived', tag_modifier: 'archived' %>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
 </section>
 
 <!-- Edit Modal -->

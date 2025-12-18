@@ -88,6 +88,10 @@ class InitiativeRepository
     InitiativeRecord.where(archived: false).map { |record| build_entity(record) }
   end
 
+  def all_archived
+    InitiativeRecord.where(archived: true).map { |record| build_entity(record) }
+  end
+
   private
 
   attr_reader :project_repository
