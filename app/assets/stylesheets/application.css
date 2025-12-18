@@ -1522,7 +1522,7 @@ input::placeholder {
   font-size: 72px;
   font-weight: 700;
   color: var(--text);
-  margin: 0 0 16px 0;
+  margin: 36px 0 16px 0;
   letter-spacing: -0.02em;
 }
 
