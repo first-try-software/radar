@@ -298,6 +298,44 @@
             checkForExactMatch(inputValue);
           });
         }
+
+        // Sticky header reveal on scroll
+        const stickyHeader = document.querySelector('[data-sticky-header]');
+        const heroBreadcrumb = document.querySelector('[data-hero-breadcrumb]');
+
+        if (stickyHeader && heroBreadcrumb) {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                // When breadcrumb is not intersecting (scrolled past), show sticky header
+                if (!entry.isIntersecting) {
+                  stickyHeader.classList.add('sticky-header--visible');
+                } else {
+                  stickyHeader.classList.remove('sticky-header--visible');
+                }
+              });
+            },
+            {
+              // Trigger when breadcrumb bottom edge crosses viewport top
+              rootMargin: '0px 0px 0px 0px',
+              threshold: 0
+            }
+          );
+
+          observer.observe(heroBreadcrumb);
+
+          // Connect sticky edit button to main edit functionality
+          const stickyEditBtn = stickyHeader.querySelector('[data-sticky-edit-toggle]');
+          const mainEditBtn = document.querySelector('[data-edit-toggle]');
+
+          if (stickyEditBtn && mainEditBtn) {
+            stickyEditBtn.addEventListener('click', () => {
+              mainEditBtn.click();
+              // Scroll back to top so user can see the edit modal/form
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+          }
+        }
       });
     </script>
   </body>

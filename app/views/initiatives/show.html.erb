@@ -2,12 +2,38 @@
 <% cascading_states = Initiative::CASCADING_STATES %>
 <% related_project_count = @initiative_record.related_projects.count %>
 
-<div class="project-hero" data-project-hero>
-  <% if @initiative %>
-    <div class="project-hero__breadcrumb">
-      <%= initiative_breadcrumb(@initiative, @initiative_record) %>
+<!-- Sticky Header -->
+<div class="sticky-header" data-sticky-header>
+  <div class="sticky-header__container">
+    <div class="sticky-header__left">
+      <div class="sticky-header__breadcrumb">
+        <%= @initiative ? initiative_breadcrumb(@initiative, @initiative_record) : render_breadcrumb([{ name: 'Status', path: root_path }]) %>
+      </div>
+      <h2 class="sticky-header__title"><%= @initiative_record.name %></h2>
     </div>
-  <% end %>
+    <div class="sticky-header__right">
+      <div class="sticky-header__actions">
+        <% if @initiative_record.archived %>
+          <span class="badge badge--archived">ARCHIVED</span>
+        <% end %>
+        <div class="sticky-header__badge">
+          <span class="badge state state--<%= @initiative_record.current_state.to_s.tr('_', '-') %>"><%= @initiative_record.current_state.to_s.tr('_', ' ').upcase %></span>
+        </div>
+        <button type="button" class="sticky-header__edit-btn" data-sticky-edit-toggle aria-label="Edit initiative">✎</button>
+      </div>
+      <% if @initiative_record.point_of_contact.present? %>
+        <span class="sticky-header__contact">Contact: <%= @initiative_record.point_of_contact %></span>
+      <% else %>
+        <span class="sticky-header__contact sticky-header__contact--missing">No contact specified</span>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div class="project-hero" data-project-hero>
+  <div class="project-hero__breadcrumb" data-hero-breadcrumb>
+    <%= @initiative ? initiative_breadcrumb(@initiative, @initiative_record) : render_breadcrumb([{ name: 'Status', path: root_path }]) %>
+  </div>
   <div class="project-hero__actions">
     <% if @initiative_record.archived %>
       <span class="badge badge--archived" data-archived-badge>ARCHIVED</span>

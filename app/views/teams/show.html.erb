@@ -8,13 +8,37 @@
   total_leaf_projects = @team&.all_leaf_projects&.size || 0
 %>
 
+<!-- Sticky Header -->
+<div class="sticky-header" data-sticky-header>
+  <div class="sticky-header__container">
+    <div class="sticky-header__left">
+      <div class="sticky-header__breadcrumb">
+        <%= @team ? team_breadcrumb(@team, @team_record) : render_breadcrumb([{ name: 'Status', path: root_path }]) %>
+      </div>
+      <h2 class="sticky-header__title"><%= @team_record.name %></h2>
+    </div>
+    <div class="sticky-header__right">
+      <div class="sticky-header__actions">
+        <% if @team_record.archived %>
+          <span class="badge badge--archived">ARCHIVED</span>
+        <% end %>
+        <button type="button" class="sticky-header__edit-btn" data-sticky-edit-toggle aria-label="Edit team">✎</button>
+      </div>
+      <% sticky_contact = @team&.effective_contact || @team_record.point_of_contact %>
+      <% if sticky_contact.present? %>
+        <span class="sticky-header__contact">Contact: <%= sticky_contact %></span>
+      <% else %>
+        <span class="sticky-header__contact sticky-header__contact--missing">No contact specified</span>
+      <% end %>
+    </div>
+  </div>
+</div>
+
 <!-- Hero Section -->
 <div class="project-hero" data-project-hero>
-  <% if @team %>
-    <div class="project-hero__breadcrumb">
-      <%= team_breadcrumb(@team, @team_record) %>
-    </div>
-  <% end %>
+  <div class="project-hero__breadcrumb" data-hero-breadcrumb>
+    <%= @team ? team_breadcrumb(@team, @team_record) : render_breadcrumb([{ name: 'Status', path: root_path }]) %>
+  </div>
   <div class="project-hero__actions">
     <% if @team_record.archived %>
       <span class="badge badge--archived" data-archived-badge>ARCHIVED</span>
