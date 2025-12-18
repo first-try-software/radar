@@ -1671,6 +1671,18 @@ input::placeholder {
   margin: 0 0 16px 0;
 }
 
+.section__title--inline {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.section--compact .project-list-v2 {
+  margin-top: 0;
+}
+
 .section__title-row {
   display: flex;
   align-items: flex-start;
@@ -3758,6 +3770,11 @@ input::placeholder {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Compact grid for home page (no contact column) */
+.team-item__grid--compact {
+  grid-template-columns: 18px minmax(120px, 1fr) 50px 60px 50px;
 }
 
 /* Updates Section */

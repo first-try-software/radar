@@ -106,10 +106,19 @@ class DashboardController < ApplicationController
       )
       trend_result = trend_service.call
 
+      leaf_projects = team.all_leaf_projects
+      active_leaves = leaf_projects.select { |p| [:in_progress, :blocked].include?(p.current_state) }
+      stale_count = active_leaves.count do |p|
+        latest = p.latest_health_update
+        latest.nil? || (Date.current - latest.date.to_date).to_i > 7
+      end
+
       data[team.name] = {
         trend_direction: trend_result[:trend_direction],
         confidence_level: trend_result[:confidence_level],
-        confidence_score: trend_result[:confidence_score]
+        confidence_score: trend_result[:confidence_score],
+        projects_count: leaf_projects.size,
+        stale_count: stale_count
       }
     end
   end
@@ -122,10 +131,19 @@ class DashboardController < ApplicationController
       )
       trend_result = trend_service.call
 
+      leaf_projects = initiative.leaf_projects
+      active_leaves = leaf_projects.select { |p| [:in_progress, :blocked].include?(p.current_state) }
+      stale_count = active_leaves.count do |p|
+        latest = p.latest_health_update
+        latest.nil? || (Date.current - latest.date.to_date).to_i > 7
+      end
+
       data[initiative.name] = {
         trend_direction: trend_result[:trend_direction],
         confidence_level: trend_result[:confidence_level],
-        confidence_score: trend_result[:confidence_score]
+        confidence_score: trend_result[:confidence_score],
+        projects_count: leaf_projects.size,
+        stale_count: stale_count
       }
     end
   end

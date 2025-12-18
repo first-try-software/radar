@@ -288,15 +288,45 @@
 
   <!-- Teams and Initiatives Columns -->
   <div class="sections">
-    <div class="section">
-      <h3 class="section__title">Teams</h3>
+    <div class="section section--compact">
       <% if @teams.any? %>
-        <ul class="section__list">
+        <ul class="project-list-v2">
+          <li class="project-item-v2 project-item-v2--header">
+            <div class="team-item__grid team-item__grid--compact team-item__grid--header">
+              <span class="team-item__col team-item__col--health section__title--inline">Teams</span>
+              <span class="team-item__col team-item__col--name"></span>
+              <span class="team-item__col team-item__col--trend team-item__header-label">Trend</span>
+              <span class="team-item__col team-item__col--projects team-item__header-label">Projects</span>
+              <span class="team-item__col team-item__col--stale team-item__header-label">Stale</span>
+            </div>
+          </li>
           <% @sorted_teams.each do |team| %>
-            <li class="section__item">
-              <a href="<%= team_path(TeamRecord.find_by(name: team.name)) %>" class="section__link">
-                <span class="project-item-v2__health project-item-v2__health--<%= team.health || :not_available %>"></span>
-                <span class="section__name"><%= team.name %></span>
+            <%
+              team_record = TeamRecord.find_by(name: team.name)
+              team_info = @team_data[team.name] || {}
+              trend = team_info[:trend_direction] || :stable
+              trend_arrow = case trend
+                when :up then '↑'
+                when :down then '↓'
+                else '→'
+              end
+              trend_class = "team-item__trend team-item__trend--#{trend}"
+              projects_count = team_info[:projects_count] || 0
+              stale_count = team_info[:stale_count] || 0
+            %>
+            <li class="project-item-v2">
+              <a href="<%= team_path(team_record) %>" class="project-item-v2__link">
+                <div class="team-item__grid team-item__grid--compact">
+                  <span class="team-item__col team-item__col--health">
+                    <span class="project-item-v2__health project-item-v2__health--<%= team.health || :not_available %>"></span>
+                  </span>
+                  <span class="team-item__col team-item__col--name"><%= team.name %></span>
+                  <span class="team-item__col team-item__col--trend">
+                    <span class="<%= trend_class %>"><%= trend_arrow %></span>
+                  </span>
+                  <span class="team-item__col team-item__col--projects"><%= projects_count %></span>
+                  <span class="team-item__col team-item__col--stale<%= ' team-item__col--stale-warning' if stale_count > 0 %>"><%= stale_count %></span>
+                </div>
               </a>
             </li>
           <% end %>
@@ -320,15 +350,45 @@
         </details>
       <% end %>
     </div>
-    <div class="section">
-      <h3 class="section__title">Initiatives</h3>
+    <div class="section section--compact">
       <% if @initiatives.any? %>
-        <ul class="section__list">
+        <ul class="project-list-v2">
+          <li class="project-item-v2 project-item-v2--header">
+            <div class="team-item__grid team-item__grid--compact team-item__grid--header">
+              <span class="team-item__col team-item__col--health section__title--inline">Initiatives</span>
+              <span class="team-item__col team-item__col--name"></span>
+              <span class="team-item__col team-item__col--trend team-item__header-label">Trend</span>
+              <span class="team-item__col team-item__col--projects team-item__header-label">Projects</span>
+              <span class="team-item__col team-item__col--stale team-item__header-label">Stale</span>
+            </div>
+          </li>
           <% @sorted_initiatives.each do |initiative| %>
-            <li class="section__item">
-              <a href="<%= initiative_path(InitiativeRecord.find_by(name: initiative.name)) %>" class="section__link">
-                <span class="project-item-v2__health project-item-v2__health--<%= initiative.health || :not_available %>"></span>
-                <span class="section__name"><%= initiative.name %></span>
+            <%
+              initiative_record = InitiativeRecord.find_by(name: initiative.name)
+              initiative_info = @initiative_data[initiative.name] || {}
+              trend = initiative_info[:trend_direction] || :stable
+              trend_arrow = case trend
+                when :up then '↑'
+                when :down then '↓'
+                else '→'
+              end
+              trend_class = "team-item__trend team-item__trend--#{trend}"
+              projects_count = initiative_info[:projects_count] || 0
+              stale_count = initiative_info[:stale_count] || 0
+            %>
+            <li class="project-item-v2">
+              <a href="<%= initiative_path(initiative_record) %>" class="project-item-v2__link">
+                <div class="team-item__grid team-item__grid--compact">
+                  <span class="team-item__col team-item__col--health">
+                    <span class="project-item-v2__health project-item-v2__health--<%= initiative.health || :not_available %>"></span>
+                  </span>
+                  <span class="team-item__col team-item__col--name"><%= initiative.name %></span>
+                  <span class="team-item__col team-item__col--trend">
+                    <span class="<%= trend_class %>"><%= trend_arrow %></span>
+                  </span>
+                  <span class="team-item__col team-item__col--projects"><%= projects_count %></span>
+                  <span class="team-item__col team-item__col--stale<%= ' team-item__col--stale-warning' if stale_count > 0 %>"><%= stale_count %></span>
+                </div>
               </a>
             </li>
           <% end %>
