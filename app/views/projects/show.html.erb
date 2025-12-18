@@ -304,6 +304,7 @@
   sorted_unhealthy = sort_projects_canonical(unhealthy)
 
   stale = leaf_descendants.select do |p|
+    next false unless [:in_progress, :blocked].include?(p.current_state)
     latest = p.latest_health_update
     latest.nil? || (Date.current - latest.date.to_date).to_i > 7
   end

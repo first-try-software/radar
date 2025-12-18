@@ -264,6 +264,7 @@
     leaf_projects = domain_team&.all_leaf_projects || []
     project_count = leaf_projects.size
     stale_count = leaf_projects.count do |p|
+      next false unless [:in_progress, :blocked].include?(p.current_state)
       latest = p.latest_health_update
       latest.nil? || (Date.current - latest.date.to_date).to_i > 7
     end
@@ -507,6 +508,7 @@
   sorted_unhealthy = sort_projects_canonical(unhealthy)
 
   stale = leaf_projects.select do |p|
+    next false unless [:in_progress, :blocked].include?(p.current_state)
     latest = p.latest_health_update
     latest.nil? || (Date.current - latest.date.to_date).to_i > 7
   end
