@@ -226,6 +226,17 @@ module ApplicationHelper
     render_breadcrumb(crumbs)
   end
 
+  def trend_arrow_svg(direction)
+    case direction
+    when :up
+      '<svg class="trend-arrow trend-arrow--up" viewBox="0 0 16 16" fill="currentColor"><path d="M8 3L14 11H2L8 3Z"/></svg>'.html_safe
+    when :down
+      '<svg class="trend-arrow trend-arrow--down" viewBox="0 0 16 16" fill="currentColor"><path d="M8 13L2 5H14L8 13Z"/></svg>'.html_safe
+    else
+      '<svg class="trend-arrow trend-arrow--stable" viewBox="0 0 16 16" fill="currentColor"><path d="M13 7L13 9L3 9L3 7L13 7Z"/></svg>'.html_safe
+    end
+  end
+
   private
 
   def project_health_value(project_like)

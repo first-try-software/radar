@@ -785,6 +785,35 @@ RSpec.describe ApplicationHelper, type: :helper do
     end
   end
 
+  describe '#trend_arrow_svg' do
+    it 'returns up arrow SVG for :up direction' do
+      result = helper.trend_arrow_svg(:up)
+
+      expect(result).to include('trend-arrow--up')
+      expect(result).to include('<svg')
+    end
+
+    it 'returns down arrow SVG for :down direction' do
+      result = helper.trend_arrow_svg(:down)
+
+      expect(result).to include('trend-arrow--down')
+      expect(result).to include('<svg')
+    end
+
+    it 'returns stable arrow SVG for :stable direction' do
+      result = helper.trend_arrow_svg(:stable)
+
+      expect(result).to include('trend-arrow--stable')
+      expect(result).to include('<svg')
+    end
+
+    it 'returns stable arrow SVG for unknown direction' do
+      result = helper.trend_arrow_svg(:unknown)
+
+      expect(result).to include('trend-arrow--stable')
+    end
+  end
+
   describe 'breadcrumb edge cases' do
     it 'handles team without respond_to parent_team in hierarchy' do
       team_record = TeamRecord.create!(name: 'NoParentMethod')

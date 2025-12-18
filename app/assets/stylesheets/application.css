@@ -3764,19 +3764,26 @@ input::placeholder {
 }
 
 .team-item__trend {
-  font-size: 16px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.team-item__trend--up {
+/* Trend Arrow SVGs */
+.trend-arrow {
+  width: 18px;
+  height: 18px;
+}
+
+.trend-arrow--up {
   color: #22c55e;
 }
 
-.team-item__trend--down {
+.trend-arrow--down {
   color: #ef4444;
 }
 
-.team-item__trend--stable {
+.trend-arrow--stable {
   color: var(--text-muted);
 }
 

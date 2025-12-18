@@ -342,14 +342,6 @@
           </div>
         </li>
         <% all_subteams.each do |team_data| %>
-          <%
-            trend_arrow = case team_data[:trend]
-              when :up then '↑'
-              when :down then '↓'
-              else '→'
-            end
-            trend_class = "team-item__trend team-item__trend--#{team_data[:trend]}"
-          %>
           <li class="project-item-v2">
             <a href="<%= team_path(team_data[:record]) %>" class="project-item-v2__link">
               <div class="team-item__grid">
@@ -358,7 +350,7 @@
                 </span>
                 <span class="team-item__col team-item__col--name"><%= team_data[:record].name %></span>
                 <span class="team-item__col team-item__col--trend">
-                  <span class="<%= trend_class %>"><%= trend_arrow %></span>
+                  <%= trend_arrow_svg(team_data[:trend]) %>
                 </span>
                 <span class="team-item__col team-item__col--projects"><%= team_data[:projects] %></span>
                 <span class="team-item__col team-item__col--stale<%= ' team-item__col--stale-warning' if team_data[:stale] > 0 %>"
@@ -389,14 +381,6 @@
           </div>
         </li>
         <% unhealthy_subteams.each do |team_data| %>
-          <%
-            trend_arrow = case team_data[:trend]
-              when :up then '↑'
-              when :down then '↓'
-              else '→'
-            end
-            trend_class = "team-item__trend team-item__trend--#{team_data[:trend]}"
-          %>
           <li class="project-item-v2">
             <a href="<%= team_path(team_data[:record]) %>" class="project-item-v2__link">
               <div class="team-item__grid">
@@ -405,7 +389,7 @@
                 </span>
                 <span class="team-item__col team-item__col--name"><%= team_data[:record].name %></span>
                 <span class="team-item__col team-item__col--trend">
-                  <span class="<%= trend_class %>"><%= trend_arrow %></span>
+                  <%= trend_arrow_svg(team_data[:trend]) %>
                 </span>
                 <span class="team-item__col team-item__col--projects"><%= team_data[:projects] %></span>
                 <span class="team-item__col team-item__col--stale<%= ' team-item__col--stale-warning' if team_data[:stale] > 0 %>"
@@ -436,14 +420,6 @@
           </div>
         </li>
         <% stale_subteams.each do |team_data| %>
-          <%
-            trend_arrow = case team_data[:trend]
-              when :up then '↑'
-              when :down then '↓'
-              else '→'
-            end
-            trend_class = "team-item__trend team-item__trend--#{team_data[:trend]}"
-          %>
           <li class="project-item-v2">
             <a href="<%= team_path(team_data[:record]) %>" class="project-item-v2__link">
               <div class="team-item__grid">
@@ -452,7 +428,7 @@
                 </span>
                 <span class="team-item__col team-item__col--name"><%= team_data[:record].name %></span>
                 <span class="team-item__col team-item__col--trend">
-                  <span class="<%= trend_class %>"><%= trend_arrow %></span>
+                  <%= trend_arrow_svg(team_data[:trend]) %>
                 </span>
                 <span class="team-item__col team-item__col--projects"><%= team_data[:projects] %></span>
                 <span class="team-item__col team-item__col--stale<%= ' team-item__col--stale-warning' if team_data[:stale] > 0 %>"

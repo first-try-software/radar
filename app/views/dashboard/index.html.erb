@@ -305,12 +305,6 @@
               team_record = TeamRecord.find_by(name: team.name)
               team_info = @team_data[team.name] || {}
               trend = team_info[:trend_direction] || :stable
-              trend_arrow = case trend
-                when :up then '↑'
-                when :down then '↓'
-                else '→'
-              end
-              trend_class = "team-item__trend team-item__trend--#{trend}"
               projects_count = team_info[:projects_count] || 0
               stale_count = team_info[:stale_count] || 0
             %>
@@ -322,7 +316,7 @@
                   </span>
                   <span class="team-item__col team-item__col--name"><%= team.name %></span>
                   <span class="team-item__col team-item__col--trend">
-                    <span class="<%= trend_class %>"><%= trend_arrow %></span>
+                    <%= trend_arrow_svg(trend) %>
                   </span>
                   <span class="team-item__col team-item__col--projects"><%= projects_count %></span>
                   <span class="team-item__col team-item__col--stale<%= ' team-item__col--stale-warning' if stale_count > 0 %>"><%= stale_count %></span>
@@ -367,12 +361,6 @@
               initiative_record = InitiativeRecord.find_by(name: initiative.name)
               initiative_info = @initiative_data[initiative.name] || {}
               trend = initiative_info[:trend_direction] || :stable
-              trend_arrow = case trend
-                when :up then '↑'
-                when :down then '↓'
-                else '→'
-              end
-              trend_class = "team-item__trend team-item__trend--#{trend}"
               projects_count = initiative_info[:projects_count] || 0
               stale_count = initiative_info[:stale_count] || 0
             %>
@@ -384,7 +372,7 @@
                   </span>
                   <span class="team-item__col team-item__col--name"><%= initiative.name %></span>
                   <span class="team-item__col team-item__col--trend">
-                    <span class="<%= trend_class %>"><%= trend_arrow %></span>
+                    <%= trend_arrow_svg(trend) %>
                   </span>
                   <span class="team-item__col team-item__col--projects"><%= projects_count %></span>
                   <span class="team-item__col team-item__col--stale<%= ' team-item__col--stale-warning' if stale_count > 0 %>"><%= stale_count %></span>
