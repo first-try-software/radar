@@ -78,8 +78,7 @@ RSpec.describe InitiativesController, type: :request do
       get "/initiatives/#{initiative.id}"
 
       expect(response).to have_http_status(:ok)
-      # Project should appear in Needs Update section with initiative ref
-      expect(response.body).to include(%(href="/projects/#{project.id}?ref=initiative%3A#{initiative.id}"))
+      expect(response.body).to include(%(href="/projects/#{project.id}"))
       expect(response.body).to include('Feature A')
     end
 

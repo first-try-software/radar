@@ -130,6 +130,10 @@ module ApplicationHelper
     state.to_s.tr('_', ' ').titleize
   end
 
+  def sort_projects_canonical(projects)
+    ProjectSorter.new(projects).sorted
+  end
+
   def project_sort_data(project_like)
     domain_project = if project_like.is_a?(Project)
                        project_like

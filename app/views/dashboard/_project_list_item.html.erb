@@ -1,11 +1,9 @@
 <% health_override = local_assigns.fetch(:health, nil) %>
-<% ref = local_assigns.fetch(:ref, 'dashboard') %>
 <% latest_update = project.latest_health_update %>
 <% last_update_date = latest_update&.date ? latest_update.date.strftime('%-m/%-d/%-y') : '—' %>
 <% last_update_comment = latest_update&.description.present? ? latest_update.description : '—' %>
 <% project_record = ProjectRecord.find_by(name: project.name) %>
-<% path_params = ref ? { ref: ref } : {} %>
-<% link_href = project_path(project_record, path_params) %>
+<% link_href = project_path(project_record) %>
 <% health_value = health_override || project.health || :not_available %>
 <% state_label = project.current_state.to_s.tr('_', ' ').titleize %>
 <% state_class = "project-item-v2__state project-item-v2__state--#{project.current_state}" %>

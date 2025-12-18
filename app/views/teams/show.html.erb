@@ -328,7 +328,7 @@
             trend_class = "team-item__trend team-item__trend--#{team_data[:trend]}"
           %>
           <li class="project-item-v2">
-            <a href="<%= team_path(team_data[:record], ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
+            <a href="<%= team_path(team_data[:record]) %>" class="project-item-v2__link">
               <div class="team-item__grid">
                 <span class="team-item__col team-item__col--health">
                   <span class="project-item-v2__health project-item-v2__health--<%= team_data[:health] %>"></span>
@@ -375,7 +375,7 @@
             trend_class = "team-item__trend team-item__trend--#{team_data[:trend]}"
           %>
           <li class="project-item-v2">
-            <a href="<%= team_path(team_data[:record], ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
+            <a href="<%= team_path(team_data[:record]) %>" class="project-item-v2__link">
               <div class="team-item__grid">
                 <span class="team-item__col team-item__col--health">
                   <span class="project-item-v2__health project-item-v2__health--<%= team_data[:health] %>"></span>
@@ -422,7 +422,7 @@
             trend_class = "team-item__trend team-item__trend--#{team_data[:trend]}"
           %>
           <li class="project-item-v2">
-            <a href="<%= team_path(team_data[:record], ref: "team:#{@team_record.id}") %>" class="project-item-v2__link">
+            <a href="<%= team_path(team_data[:record]) %>" class="project-item-v2__link">
               <div class="team-item__grid">
                 <span class="team-item__col team-item__col--health">
                   <span class="project-item-v2__health project-item-v2__health--<%= team_data[:health] %>"></span>
@@ -447,25 +447,25 @@
 <!-- Owned Projects Section -->
 <%
   leaf_projects = @team&.all_leaf_projects || []
-  sorted_projects = leaf_projects.sort_by { |p| [p.health == :off_track ? 0 : (p.health == :at_risk ? 1 : 2), p.name.downcase] }
+  sorted_projects = sort_projects_canonical(leaf_projects)
 
   unhealthy = leaf_projects.select { |p| [:off_track, :at_risk].include?(p.health) }
-  sorted_unhealthy = unhealthy.sort_by { |p| [p.health == :off_track ? 0 : 1, p.name.downcase] }
+  sorted_unhealthy = sort_projects_canonical(unhealthy)
 
   stale = leaf_projects.select do |p|
     latest = p.latest_health_update
     latest.nil? || (Date.current - latest.date.to_date).to_i > 7
   end
-  sorted_stale = stale.sort_by { |p| p.name.downcase }
+  sorted_stale = sort_projects_canonical(stale)
 
   active_states = [:new, :in_progress, :blocked]
   inactive_states = [:completed, :paused, :cancelled, :done, :on_hold, :todo]
 
   active_projects = leaf_projects.select { |p| active_states.include?(p.current_state) }
-  sorted_active = active_projects.sort_by { |p| [p.health == :off_track ? 0 : (p.health == :at_risk ? 1 : 2), p.name.downcase] }
+  sorted_active = sort_projects_canonical(active_projects)
 
   inactive_projects = leaf_projects.select { |p| inactive_states.include?(p.current_state) }
-  sorted_inactive = inactive_projects.sort_by { |p| p.name.downcase }
+  sorted_inactive = sort_projects_canonical(inactive_projects)
 %>
 <section class="section section--projects">
   <div class="section__title-row">
@@ -497,7 +497,7 @@
       <ul class="project-list-v2">
         <%= render 'dashboard/project_list_header' %>
         <% sorted_projects.each do |project| %>
-          <%= render 'dashboard/project_list_item', project: project, ref: "team:#{@team_record.id}" %>
+          <%= render 'dashboard/project_list_item', project: project %>
         <% end %>
       </ul>
     <% end %>
@@ -511,7 +511,7 @@
       <ul class="project-list-v2">
         <%= render 'dashboard/project_list_header' %>
         <% sorted_unhealthy.each do |project| %>
-          <%= render 'dashboard/project_list_item', project: project, ref: "team:#{@team_record.id}" %>
+          <%= render 'dashboard/project_list_item', project: project %>
         <% end %>
       </ul>
     <% end %>
@@ -525,7 +525,7 @@
       <ul class="project-list-v2">
         <%= render 'dashboard/project_list_header' %>
         <% sorted_stale.each do |project| %>
-          <%= render 'dashboard/project_list_item', project: project, ref: "team:#{@team_record.id}", tag_text: 'Stale', tag_modifier: 'stale' %>
+          <%= render 'dashboard/project_list_item', project: project, tag_text: 'Stale', tag_modifier: 'stale' %>
         <% end %>
       </ul>
     <% end %>
@@ -541,7 +541,7 @@
         <% sorted_active.each do |project| %>
           <% tag_text = project.current_state == :blocked ? 'Blocked' : nil %>
           <% tag_modifier = project.current_state == :blocked ? 'blocked' : nil %>
-          <%= render 'dashboard/project_list_item', project: project, ref: "team:#{@team_record.id}", tag_text: tag_text, tag_modifier: tag_modifier %>
+          <%= render 'dashboard/project_list_item', project: project, tag_text: tag_text, tag_modifier: tag_modifier %>
         <% end %>
       </ul>
     <% end %>
@@ -556,7 +556,7 @@
         <%= render 'dashboard/project_list_header' %>
         <% sorted_inactive.each do |project| %>
           <% tag_text = project.current_state.to_s.tr('_', ' ').titleize %>
-          <%= render 'dashboard/project_list_item', project: project, ref: "team:#{@team_record.id}", tag_text: tag_text, tag_modifier: 'inactive' %>
+          <%= render 'dashboard/project_list_item', project: project, tag_text: tag_text, tag_modifier: 'inactive' %>
         <% end %>
       </ul>
     <% end %>

@@ -290,25 +290,25 @@
 <% if @project && !@project.leaf? %>
 <%
   leaf_descendants = @project.leaf_descendants
-  sorted_descendants = leaf_descendants.sort_by { |p| [p.health == :off_track ? 0 : (p.health == :at_risk ? 1 : 2), p.name.downcase] }
+  sorted_descendants = sort_projects_canonical(leaf_descendants)
 
   unhealthy = leaf_descendants.select { |p| [:off_track, :at_risk].include?(p.health) }
-  sorted_unhealthy = unhealthy.sort_by { |p| [p.health == :off_track ? 0 : 1, p.name.downcase] }
+  sorted_unhealthy = sort_projects_canonical(unhealthy)
 
   stale = leaf_descendants.select do |p|
     latest = p.latest_health_update
     latest.nil? || (Date.current - latest.date.to_date).to_i > 7
   end
-  sorted_stale = stale.sort_by { |p| p.name.downcase }
+  sorted_stale = sort_projects_canonical(stale)
 
   active_states = [:new, :in_progress, :blocked]
   inactive_states = [:completed, :paused, :cancelled]
 
   active_projects = leaf_descendants.select { |p| active_states.include?(p.current_state) }
-  sorted_active = active_projects.sort_by { |p| [p.health == :off_track ? 0 : (p.health == :at_risk ? 1 : 2), p.name.downcase] }
+  sorted_active = sort_projects_canonical(active_projects)
 
   inactive_projects = leaf_descendants.select { |p| inactive_states.include?(p.current_state) }
-  sorted_inactive = inactive_projects.sort_by { |p| p.name.downcase }
+  sorted_inactive = sort_projects_canonical(inactive_projects)
 %>
 <section class="section section--projects">
   <div class="section__title-row">
@@ -340,7 +340,7 @@
       <ul class="project-list-v2">
         <%= render 'dashboard/project_list_header' %>
         <% sorted_descendants.each do |child_project| %>
-          <%= render 'dashboard/project_list_item', project: child_project, ref: nil %>
+          <%= render 'dashboard/project_list_item', project: child_project %>
         <% end %>
       </ul>
     <% end %>
@@ -354,7 +354,7 @@
       <ul class="project-list-v2">
         <%= render 'dashboard/project_list_header' %>
         <% sorted_unhealthy.each do |child_project| %>
-          <%= render 'dashboard/project_list_item', project: child_project, ref: nil %>
+          <%= render 'dashboard/project_list_item', project: child_project %>
         <% end %>
       </ul>
     <% end %>
@@ -368,7 +368,7 @@
       <ul class="project-list-v2">
         <%= render 'dashboard/project_list_header' %>
         <% sorted_stale.each do |child_project| %>
-          <%= render 'dashboard/project_list_item', project: child_project, ref: nil, tag_text: 'Stale', tag_modifier: 'stale' %>
+          <%= render 'dashboard/project_list_item', project: child_project, tag_text: 'Stale', tag_modifier: 'stale' %>
         <% end %>
       </ul>
     <% end %>
@@ -384,7 +384,7 @@
         <% sorted_active.each do |child_project| %>
           <% tag_text = child_project.current_state == :blocked ? 'Blocked' : nil %>
           <% tag_modifier = child_project.current_state == :blocked ? 'blocked' : nil %>
-          <%= render 'dashboard/project_list_item', project: child_project, ref: nil, tag_text: tag_text, tag_modifier: tag_modifier %>
+          <%= render 'dashboard/project_list_item', project: child_project, tag_text: tag_text, tag_modifier: tag_modifier %>
         <% end %>
       </ul>
     <% end %>
@@ -399,7 +399,7 @@
         <%= render 'dashboard/project_list_header' %>
         <% sorted_inactive.each do |child_project| %>
           <% tag_text = child_project.current_state.to_s.tr('_', ' ').titleize %>
-          <%= render 'dashboard/project_list_item', project: child_project, ref: nil, tag_text: tag_text, tag_modifier: 'inactive' %>
+          <%= render 'dashboard/project_list_item', project: child_project, tag_text: tag_text, tag_modifier: 'inactive' %>
         <% end %>
       </ul>
     <% end %>

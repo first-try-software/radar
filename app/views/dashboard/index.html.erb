@@ -361,9 +361,7 @@
         <ul class="project-list-v2">
           <%= render 'project_list_header' %>
           <% @sorted_all_projects.each do |project| %>
-            <%= render 'project_list_item',
-                      project: project,
-                      ref: 'dashboard' %>
+            <%= render 'project_list_item', project: project %>
           <% end %>
         </ul>
       <% end %>
@@ -383,8 +381,7 @@
               <%= render 'project_list_item',
                         project: project,
                         tag_text: tag_text,
-                        tag_modifier: tag_modifier,
-                        ref: 'dashboard' %>
+                        tag_modifier: tag_modifier %>
             <% end %>
           </ul>
         <% end %>
@@ -403,8 +400,7 @@
               <%= render 'project_list_item',
                         project: project,
                         tag_text: 'Stale',
-                        tag_modifier: 'stale',
-                        ref: 'dashboard' %>
+                        tag_modifier: 'stale' %>
             <% end %>
           </ul>
         <% end %>
@@ -415,8 +411,7 @@
               <%= render 'project_list_item',
                         project: project,
                         tag_text: 'Stale',
-                        tag_modifier: 'stale',
-                        ref: 'dashboard' %>
+                        tag_modifier: 'stale' %>
             <% end %>
           </ul>
         <% end %>
@@ -427,8 +422,7 @@
               <%= render 'project_list_item',
                         project: project,
                         tag_text: 'Stale',
-                        tag_modifier: 'stale',
-                        ref: 'dashboard' %>
+                        tag_modifier: 'stale' %>
             <% end %>
           </ul>
         <% end %>
@@ -475,7 +469,6 @@
                       project: project,
                       tag_text: tag_text,
                       tag_modifier: 'inactive',
-                      ref: 'dashboard',
                       health: project.health || :not_available %>
           <% end %>
         </ul>
@@ -490,7 +483,6 @@
           <% @sorted_orphan_projects.each do |project| %>
             <%= render 'project_list_item',
                       project: project,
-                      ref: nil,
                       health: project.health || :not_available %>
           <% end %>
         </ul>

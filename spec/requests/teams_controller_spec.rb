@@ -30,7 +30,7 @@ RSpec.describe TeamsController, type: :request do
       get "/teams/#{team.id}"
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include(%(href="/projects/#{project.id}?ref=team%3A#{team.id}"))
+      expect(response.body).to include(%(href="/projects/#{project.id}"))
       expect(response.body).to include('Feature A')
     end
 

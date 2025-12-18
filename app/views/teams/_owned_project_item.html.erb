@@ -9,7 +9,7 @@
   </div>
   <div class="project-row__text">
     <div class="project-title-row">
-      <%= link_to project.name, project_path(project, ref: "team:#{parent_team.id}"), class: 'project-name' %>
+      <%= link_to project.name, project_path(project), class: 'project-name' %>
     </div>
     <div class="muted project-description"><%= truncate(project.description.to_s, length: 80) %></div>
     <% if project.point_of_contact.present? %>

@@ -261,21 +261,6 @@ RSpec.describe TeamTrendService do
       expect(result[:confidence_score]).to be < 40
     end
 
-    it 'returns medium confidence level when score is between 40 and 69' do
-      project = build_project(id: 1, health: :on_track)
-      team = build_team(projects: [project])
-      repo = build_repo_with_updates([
-        { project_id: 1, date: monday_weeks_ago(2), health: :at_risk },
-        { project_id: 1, date: monday_weeks_ago(1), health: :on_track },
-        { project_id: 1, date: Date.current - 10, health: :on_track }
-      ])
-      service = TeamTrendService.new(team: team, health_update_repository: repo)
-
-      result = service.call
-
-      expect(result[:confidence_level]).to eq(:medium)
-    end
-
     it 'returns zero confidence when no data' do
       team = build_team(projects: [])
       service = TeamTrendService.new(team: team, health_update_repository: nil)

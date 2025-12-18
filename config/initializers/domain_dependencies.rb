@@ -11,6 +11,7 @@ Rails.application.config.to_prepare do
   require_dependency Rails.root.join('lib/domain/projects/create_subordinate_project')
   require_dependency Rails.root.join('lib/domain/projects/record_project_health_update')
   require_dependency Rails.root.join('lib/domain/projects/project_trend_service')
+  require_dependency Rails.root.join('lib/domain/projects/project_sorter')
   require_dependency Rails.root.join('lib/domain/initiatives/create_initiative')
   require_dependency Rails.root.join('lib/domain/initiatives/find_initiative')
   require_dependency Rails.root.join('lib/domain/initiatives/update_initiative')
