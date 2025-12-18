@@ -252,4 +252,64 @@ RSpec.describe ProjectRepository do
       expect(orphans).to be_empty
     end
   end
+
+  describe 'owning_team loading' do
+    it 'returns nil when project has no owning team and team_repository not set' do
+      record = ProjectRecord.create!(name: 'Orphan')
+
+      loaded = repository.find(record.id)
+
+      expect(loaded.owning_team).to be_nil
+    end
+
+    it 'returns nil when project has no owning team' do
+      team_repository = TeamRepository.new(project_repository: repository)
+      repository.team_repository = team_repository
+      record = ProjectRecord.create!(name: 'Orphan')
+
+      loaded = repository.find(record.id)
+
+      expect(loaded.owning_team).to be_nil
+    end
+
+    it 'lazy loads owning team via loader' do
+      team_repository = TeamRepository.new(project_repository: repository)
+      repository.team_repository = team_repository
+      team = TeamRecord.create!(name: 'Platform', point_of_contact: 'Alice')
+      project = ProjectRecord.create!(name: 'Feature A')
+      TeamsProjectRecord.create!(team: team, project: project, order: 0)
+
+      loaded = repository.find(project.id)
+
+      expect(loaded.owning_team.name).to eq('Platform')
+    end
+  end
+
+  describe 'effective_contact traversal' do
+    it 'inherits contact from owning team when project has no contact' do
+      team_repository = TeamRepository.new(project_repository: repository)
+      repository.team_repository = team_repository
+      team = TeamRecord.create!(name: 'Platform', point_of_contact: 'Alice')
+      project = ProjectRecord.create!(name: 'Feature A', point_of_contact: '')
+      TeamsProjectRecord.create!(team: team, project: project, order: 0)
+
+      loaded = repository.find(project.id)
+
+      expect(loaded.effective_contact).to eq('Alice')
+    end
+
+    it 'traverses project hierarchy before team hierarchy' do
+      team_repository = TeamRepository.new(project_repository: repository)
+      repository.team_repository = team_repository
+      team = TeamRecord.create!(name: 'Platform', point_of_contact: 'TeamContact')
+      parent = ProjectRecord.create!(name: 'Parent', point_of_contact: 'ParentContact')
+      child = ProjectRecord.create!(name: 'Child', point_of_contact: '')
+      ProjectsProjectRecord.create!(parent: parent, child: child, order: 0)
+      TeamsProjectRecord.create!(team: team, project: parent, order: 0)
+
+      loaded = repository.find(child.id)
+
+      expect(loaded.effective_contact).to eq('ParentContact')
+    end
+  end
 end

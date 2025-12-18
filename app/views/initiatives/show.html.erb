@@ -30,7 +30,11 @@
   </div>
   <h1 class="project-hero__title" data-project-title><%= @initiative_record.name %></h1>
   <p class="project-hero__tagline" data-project-tagline<%= ' hidden' if @initiative_record.description.blank? %>><%= @initiative_record.description %></p>
-  <p class="project-hero__contact" data-project-contact<%= ' hidden' if @initiative_record.point_of_contact.blank? %>>For more information, contact <span data-project-poc><%= @initiative_record.point_of_contact %></span>.</p>
+  <% if @initiative_record.point_of_contact.present? %>
+    <p class="project-hero__contact" data-project-contact>For more information, contact <span data-project-poc><%= @initiative_record.point_of_contact %></span>.</p>
+  <% else %>
+    <p class="project-hero__contact project-hero__contact--missing" data-project-contact>Psst! Do me a favor! Tell me who to call if this thing breaks!</p>
+  <% end %>
 </div>
 
 <!-- Metrics Row -->

@@ -173,4 +173,50 @@ RSpec.describe Team do
       expect(team.health_raw_score).to be_nil
     end
   end
+
+  describe '#parent_team' do
+    it 'returns nil when no loader provided' do
+      team = described_class.new(name: 'Platform')
+
+      expect(team.parent_team).to be_nil
+    end
+
+    it 'lazy loads parent team via the loader' do
+      parent = described_class.new(name: 'Parent')
+      loader = ->(_team) { parent }
+      team = described_class.new(name: 'Child', parent_team_loader: loader)
+
+      expect(team.parent_team).to eq(parent)
+    end
+  end
+
+  describe '#effective_contact' do
+    it 'returns own point_of_contact when present' do
+      team = described_class.new(name: 'Platform', point_of_contact: 'Alice')
+
+      expect(team.effective_contact).to eq('Alice')
+    end
+
+    it 'returns parent point_of_contact when own is blank' do
+      parent = described_class.new(name: 'Parent', point_of_contact: 'Bob')
+      team = described_class.new(name: 'Child', point_of_contact: '', parent_team_loader: ->(_t) { parent })
+
+      expect(team.effective_contact).to eq('Bob')
+    end
+
+    it 'traverses multiple levels to find contact' do
+      grandparent = described_class.new(name: 'Grandparent', point_of_contact: 'Carol')
+      parent = described_class.new(name: 'Parent', point_of_contact: '', parent_team_loader: ->(_t) { grandparent })
+      team = described_class.new(name: 'Child', point_of_contact: '', parent_team_loader: ->(_t) { parent })
+
+      expect(team.effective_contact).to eq('Carol')
+    end
+
+    it 'returns nil when no contact found in hierarchy' do
+      parent = described_class.new(name: 'Parent', point_of_contact: '')
+      team = described_class.new(name: 'Child', point_of_contact: '', parent_team_loader: ->(_t) { parent })
+
+      expect(team.effective_contact).to be_nil
+    end
+  end
 end

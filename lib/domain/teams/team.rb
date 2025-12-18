@@ -10,7 +10,8 @@ class Team
     point_of_contact: '',
     archived: false,
     owned_projects_loader: nil,
-    subordinate_teams_loader: nil
+    subordinate_teams_loader: nil,
+    parent_team_loader: nil
   )
     @name = name.to_s
     @mission = mission.to_s
@@ -19,8 +20,10 @@ class Team
     @archived = archived
     @owned_projects_loader = owned_projects_loader
     @subordinate_teams_loader = subordinate_teams_loader
+    @parent_team_loader = parent_team_loader
     @owned_projects = nil
     @subordinate_teams = nil
+    @parent_team = nil
   end
 
   def valid?
@@ -59,9 +62,20 @@ class Team
     @subordinate_teams ||= load_subordinate_teams
   end
 
+  def parent_team
+    @parent_team ||= load_parent_team
+  end
+
+  def effective_contact
+    return point_of_contact if point_of_contact.present?
+    return parent_team.effective_contact if parent_team
+
+    nil
+  end
+
   private
 
-  attr_reader :owned_projects_loader, :subordinate_teams_loader
+  attr_reader :owned_projects_loader, :subordinate_teams_loader, :parent_team_loader
 
   def load_owned_projects
     owned_projects_loader ? Array(owned_projects_loader.call(self)) : []
@@ -69,5 +83,9 @@ class Team
 
   def load_subordinate_teams
     subordinate_teams_loader ? Array(subordinate_teams_loader.call(self)) : []
+  end
+
+  def load_parent_team
+    parent_team_loader ? parent_team_loader.call(self) : nil
   end
 end

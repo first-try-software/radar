@@ -145,7 +145,8 @@ class TeamRepository
       point_of_contact: record.point_of_contact,
       archived: record.archived,
       owned_projects_loader: owned_projects_loader_for(record),
-      subordinate_teams_loader: subordinate_teams_loader_for(record)
+      subordinate_teams_loader: subordinate_teams_loader_for(record),
+      parent_team_loader: parent_team_loader_for(record)
     )
   end
 
@@ -166,6 +167,13 @@ class TeamRepository
         .order(:order)
         .includes(:child)
         .map { |rel| find(rel.child_id) }
+    end
+  end
+
+  def parent_team_loader_for(record)
+    lambda do |_team|
+      parent_rel = TeamsTeamRecord.find_by(child_id: record.id)
+      parent_rel ? find(parent_rel.parent_id) : nil
     end
   end
 end

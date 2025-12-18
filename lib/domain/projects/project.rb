@@ -34,6 +34,18 @@ class Project
   def leaf_descendants = hierarchy.leaf_descendants
   alias_method :subordinate_projects, :children
 
+  def owning_team
+    @owning_team ||= loaders.owning_team&.call(self)
+  end
+
+  def effective_contact
+    return point_of_contact if point_of_contact.present?
+    return parent.effective_contact if parent
+    return owning_team.effective_contact if owning_team
+
+    nil
+  end
+
   def current_state
     leaf? ? attributes.current_state : hierarchy.derived_state(STATE_PRIORITY)
   end

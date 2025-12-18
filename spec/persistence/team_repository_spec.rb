@@ -259,4 +259,48 @@ RSpec.describe TeamRepository do
       expect(result).to eq([])
     end
   end
+
+  describe 'parent_team loading' do
+    it 'lazy loads parent team via loader on the team entity' do
+      parent = TeamRecord.create!(name: 'Platform', point_of_contact: 'Alice')
+      child = TeamRecord.create!(name: 'Mobile')
+      TeamsTeamRecord.create!(parent: parent, child: child, order: 0)
+
+      loaded_child = repository.find(child.id)
+
+      expect(loaded_child.parent_team.name).to eq('Platform')
+    end
+
+    it 'returns nil when team has no parent' do
+      team = TeamRecord.create!(name: 'Root Team')
+
+      loaded_team = repository.find(team.id)
+
+      expect(loaded_team.parent_team).to be_nil
+    end
+  end
+
+  describe 'effective_contact traversal' do
+    it 'inherits contact from parent team when own is blank' do
+      parent = TeamRecord.create!(name: 'Platform', point_of_contact: 'Alice')
+      child = TeamRecord.create!(name: 'Mobile', point_of_contact: '')
+      TeamsTeamRecord.create!(parent: parent, child: child, order: 0)
+
+      loaded_child = repository.find(child.id)
+
+      expect(loaded_child.effective_contact).to eq('Alice')
+    end
+
+    it 'traverses multiple levels to find contact' do
+      grandparent = TeamRecord.create!(name: 'Engineering', point_of_contact: 'Carol')
+      parent = TeamRecord.create!(name: 'Platform', point_of_contact: '')
+      child = TeamRecord.create!(name: 'Mobile', point_of_contact: '')
+      TeamsTeamRecord.create!(parent: grandparent, child: parent, order: 0)
+      TeamsTeamRecord.create!(parent: parent, child: child, order: 0)
+
+      loaded_child = repository.find(child.id)
+
+      expect(loaded_child.effective_contact).to eq('Carol')
+    end
+  end
 end

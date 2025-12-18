@@ -1516,6 +1516,11 @@ input::placeholder {
   margin: 0;
 }
 
+.project-hero__contact--missing {
+  font-style: italic;
+  color: var(--warning);
+}
+
 /* Form fields for modals */
 .form-field {
   margin-bottom: 16px;

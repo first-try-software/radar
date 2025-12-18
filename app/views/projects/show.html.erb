@@ -24,7 +24,12 @@
   </div>
   <h1 class="project-hero__title" data-project-title><%= project.name %></h1>
   <p class="project-hero__tagline" data-project-tagline<%= ' hidden' if project.description.blank? %>><%= project.description %></p>
-  <p class="project-hero__contact" data-project-contact<%= ' hidden' if project.point_of_contact.blank? %>>For more information, contact <span data-project-poc><%= project.point_of_contact %></span>.</p>
+  <% effective_contact = @project&.effective_contact || project.point_of_contact %>
+  <% if effective_contact.present? %>
+    <p class="project-hero__contact" data-project-contact>For more information, contact <span data-project-poc><%= effective_contact %></span>.</p>
+  <% else %>
+    <p class="project-hero__contact project-hero__contact--missing" data-project-contact>Psst! Do me a favor! Tell me who to call if this thing breaks!</p>
+  <% end %>
 </div>
 
 <!-- Metrics Row -->

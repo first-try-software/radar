@@ -5,7 +5,8 @@ require 'domain/projects/project_loaders'
 
 RSpec.describe Project do
   def build_project(name:, description: '', point_of_contact: '', archived: false, current_state: :new,
-                    children_loader: nil, parent_loader: nil, health_updates_loader: nil, weekly_health_updates_loader: nil)
+                    children_loader: nil, parent_loader: nil, health_updates_loader: nil, weekly_health_updates_loader: nil,
+                    owning_team_loader: nil)
     attrs = ProjectAttributes.new(
       name: name,
       description: description,
@@ -17,7 +18,8 @@ RSpec.describe Project do
       children: children_loader,
       parent: parent_loader,
       health_updates: health_updates_loader,
-      weekly_health_updates: weekly_health_updates_loader
+      weekly_health_updates: weekly_health_updates_loader,
+      owning_team: owning_team_loader
     )
     described_class.new(attributes: attrs, loaders: loaders)
   end
@@ -749,6 +751,70 @@ RSpec.describe Project do
 
       expect(result.length).to eq(2)
       expect(result.map(&:name)).to eq(['Working', 'Done'])
+    end
+  end
+
+  describe '#owning_team' do
+    it 'returns nil when no loader provided' do
+      project = build_project(name: 'Status')
+
+      expect(project.owning_team).to be_nil
+    end
+
+    it 'lazy loads owning team via the loader' do
+      team = double('Team', name: 'Platform')
+      project = build_project(name: 'Status', owning_team_loader: ->(_p) { team })
+
+      expect(project.owning_team).to eq(team)
+    end
+  end
+
+  describe '#effective_contact' do
+    it 'returns own point_of_contact when present' do
+      project = build_project(name: 'Status', point_of_contact: 'Alice')
+
+      expect(project.effective_contact).to eq('Alice')
+    end
+
+    it 'returns parent point_of_contact when own is blank' do
+      parent = build_project(name: 'Parent', point_of_contact: 'Bob')
+      project = build_project(name: 'Child', point_of_contact: '', parent_loader: ->(_p) { parent })
+
+      expect(project.effective_contact).to eq('Bob')
+    end
+
+    it 'traverses project hierarchy to find contact' do
+      grandparent = build_project(name: 'Grandparent', point_of_contact: 'Carol')
+      parent = build_project(name: 'Parent', point_of_contact: '', parent_loader: ->(_p) { grandparent })
+      project = build_project(name: 'Child', point_of_contact: '', parent_loader: ->(_p) { parent })
+
+      expect(project.effective_contact).to eq('Carol')
+    end
+
+    it 'uses owning team contact when project hierarchy has no contact' do
+      team = double('Team', effective_contact: 'Dave')
+      project = build_project(name: 'Status', point_of_contact: '', owning_team_loader: ->(_p) { team })
+
+      expect(project.effective_contact).to eq('Dave')
+    end
+
+    it 'traverses project hierarchy before checking owning team' do
+      parent = build_project(name: 'Parent', point_of_contact: 'Eve')
+      team = double('Team', effective_contact: 'Frank')
+      project = build_project(
+        name: 'Child',
+        point_of_contact: '',
+        parent_loader: ->(_p) { parent },
+        owning_team_loader: ->(_p) { team }
+      )
+
+      expect(project.effective_contact).to eq('Eve')
+    end
+
+    it 'returns nil when no contact found anywhere' do
+      project = build_project(name: 'Status', point_of_contact: '')
+
+      expect(project.effective_contact).to be_nil
     end
   end
 end

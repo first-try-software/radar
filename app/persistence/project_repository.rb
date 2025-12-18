@@ -3,8 +3,11 @@ require_relative '../../lib/domain/projects/project_attributes'
 require_relative '../../lib/domain/projects/project_loaders'
 
 class ProjectRepository
+  attr_writer :team_repository
+
   def initialize(health_update_repository:)
     @health_update_repository = health_update_repository
+    @team_repository = nil
   end
 
   def find(id)
@@ -126,7 +129,7 @@ class ProjectRepository
 
   private
 
-  attr_reader :health_update_repository
+  attr_reader :health_update_repository, :team_repository
 
   def build_entity(record)
     attrs = ProjectAttributes.new(
@@ -141,7 +144,8 @@ class ProjectRepository
       health_updates: health_updates_loader_for(record),
       weekly_health_updates: weekly_health_updates_loader_for(record),
       children: children_loader_for(record),
-      parent: parent_loader_for(record)
+      parent: parent_loader_for(record),
+      owning_team: owning_team_loader_for(record)
     )
     Project.new(attributes: attrs, loaders: loaders)
   end
@@ -172,6 +176,15 @@ class ProjectRepository
     lambda do |_project|
       rel = ProjectsProjectRecord.find_by(child_id: record.id)
       rel ? build_entity(rel.parent) : nil
+    end
+  end
+
+  def owning_team_loader_for(record)
+    lambda do |_project|
+      return nil unless team_repository
+
+      owner_rel = TeamsProjectRecord.find_by(project_id: record.id)
+      owner_rel ? team_repository.find(owner_rel.team_id) : nil
     end
   end
 

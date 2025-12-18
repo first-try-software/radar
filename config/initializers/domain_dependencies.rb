@@ -58,6 +58,8 @@ Rails.application.config.to_prepare do
   Rails.application.config.x.team_repository = TeamRepository.new(
     project_repository: Rails.application.config.x.project_repository
   )
+  # Wire up team_repository to project_repository for owning_team lookups
+  Rails.application.config.x.project_repository.team_repository = Rails.application.config.x.team_repository
   Rails.application.config.x.team_actions = TeamActionsFactory.new(
     team_repository: Rails.application.config.x.team_repository,
     project_repository: Rails.application.config.x.project_repository
