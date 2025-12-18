@@ -699,7 +699,7 @@ RSpec.describe ApplicationHelper, type: :helper do
   end
 
   describe '#project_breadcrumb' do
-    it 'returns empty string when project has no parent or team' do
+    it 'returns Status breadcrumb when project has no parent or team' do
       project = double('Project', parent: nil, owning_team: nil)
       allow(project).to receive(:respond_to?).with(:owning_team).and_return(true)
       allow(project).to receive(:respond_to?).with(:parent).and_return(true)
@@ -707,7 +707,8 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.project_breadcrumb(project, project_record)
 
-      expect(result).to eq('')
+      expect(result).to include('Status')
+      expect(result).to include('breadcrumb__link')
     end
 
     it 'includes Home and parent project in breadcrumb' do
@@ -747,14 +748,15 @@ RSpec.describe ApplicationHelper, type: :helper do
   end
 
   describe '#team_breadcrumb' do
-    it 'returns empty string when team has no parent' do
+    it 'returns Status breadcrumb when team has no parent' do
       team = double('Team', parent_team: nil)
       allow(team).to receive(:respond_to?).with(:parent_team).and_return(true)
       team_record = TeamRecord.create!(name: 'Root Team')
 
       result = helper.team_breadcrumb(team, team_record)
 
-      expect(result).to eq('')
+      expect(result).to include('Status')
+      expect(result).to include('breadcrumb__link')
     end
 
     it 'includes Home and parent team in breadcrumb' do
@@ -775,13 +777,14 @@ RSpec.describe ApplicationHelper, type: :helper do
   end
 
   describe '#initiative_breadcrumb' do
-    it 'returns empty string for initiatives (only Home, which is skipped)' do
+    it 'returns breadcrumb with just Status for initiatives' do
       initiative = double('Initiative')
       initiative_record = InitiativeRecord.create!(name: 'Q1 Goals')
 
       result = helper.initiative_breadcrumb(initiative, initiative_record)
 
-      expect(result).to eq('')
+      expect(result).to include('Status')
+      expect(result).to include('breadcrumb__link')
     end
   end
 
@@ -815,6 +818,12 @@ RSpec.describe ApplicationHelper, type: :helper do
   end
 
   describe 'breadcrumb edge cases' do
+    it 'returns empty string when crumbs array is empty' do
+      result = helper.send(:render_breadcrumb, [])
+
+      expect(result).to eq('')
+    end
+
     it 'handles team without respond_to parent_team in hierarchy' do
       team_record = TeamRecord.create!(name: 'NoParentMethod')
 
@@ -824,7 +833,9 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.team_breadcrumb(team, team_record)
 
-      expect(result).to eq('')
+      # Should still include Status breadcrumb
+      expect(result).to include('Status')
+      expect(result).to include('breadcrumb__link')
     end
 
     it 'handles project without respond_to parent in hierarchy' do
@@ -836,7 +847,9 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.project_breadcrumb(project, project_record)
 
-      expect(result).to eq('')
+      # Should still include Status breadcrumb
+      expect(result).to include('Status')
+      expect(result).to include('breadcrumb__link')
     end
 
     it 'handles team hierarchy with missing team record' do
@@ -851,8 +864,9 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.team_breadcrumb(child, child_record)
 
-      # Should only include Home (parent record doesn't exist)
-      expect(result).to eq('')
+      # Should only include Status (parent record doesn't exist)
+      expect(result).to include('Status')
+      expect(result).to include('breadcrumb__link')
     end
 
     it 'handles project with parent that does not respond to parent' do
@@ -902,8 +916,9 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.project_breadcrumb(child, child_record)
 
-      # Parent record doesn't exist so it shouldn't appear, just Home
-      expect(result).to eq('')
+      # Parent record doesn't exist so it shouldn't appear, just Status
+      expect(result).to include('Status')
+      expect(result).to include('breadcrumb__link')
     end
   end
 end

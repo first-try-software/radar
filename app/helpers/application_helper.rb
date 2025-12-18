@@ -470,7 +470,7 @@ module ApplicationHelper
   end
 
   def render_breadcrumb(crumbs)
-    return ''.html_safe if crumbs.size <= 1
+    return ''.html_safe if crumbs.empty?
 
     links = crumbs.map do |crumb|
       link_to(crumb[:name], crumb[:path], class: 'breadcrumb__link')
