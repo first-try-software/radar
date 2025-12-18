@@ -3538,6 +3538,17 @@ input::placeholder {
   padding: 0;
 }
 
+.section__title--grid {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-left: -16px;
+  width: auto !important;
+  min-width: 0;
+}
+
 .project-item-v2__col--health {
   justify-self: center;
 }
