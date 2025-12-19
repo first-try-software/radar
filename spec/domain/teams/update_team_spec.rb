@@ -18,7 +18,7 @@ RSpec.describe UpdateTeam do
     repository.update(id: 'team-123', team: Team.new(name: 'Platform'))
     action = described_class.new(team_repository: repository)
 
-    action.perform(id: 'team-123', name: 'Platform 2', mission: 'New mission', point_of_contact: 'Casey')
+    action.perform(id: 'team-123', name: 'Platform 2', description: 'New description', point_of_contact: 'Casey')
 
     stored_team = repository.find('team-123')
     expect(stored_team.name).to eq('Platform 2')

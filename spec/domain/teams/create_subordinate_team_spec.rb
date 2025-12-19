@@ -58,8 +58,7 @@ RSpec.describe CreateSubordinateTeam do
     result = action.perform(
       parent_id: 'team-123',
       name: 'Child Team',
-      mission: 'Support',
-      vision: 'Clear',
+      description: 'Support',
       point_of_contact: 'Alex'
     )
 
@@ -77,7 +76,7 @@ RSpec.describe CreateSubordinateTeam do
     repository.link_subordinate_team(parent_id: 'team-123', child: Team.new(name: 'Existing'), order: 0)
     action = described_class.new(team_repository: repository)
 
-    action.perform(parent_id: 'team-123', name: 'Second Child', mission: 'Support')
+    action.perform(parent_id: 'team-123', name: 'Second Child', description: 'Support')
 
     expect(repository.subordinate_relationships_for(parent_id: 'team-123').last[:order]).to eq(1)
   end

@@ -15,8 +15,7 @@ class TeamRepository
   def save(team)
     TeamRecord.create!(
       name: team.name,
-      mission: team.mission,
-      vision: team.vision,
+      description: team.description,
       point_of_contact: team.point_of_contact,
       archived: team.archived?
     )
@@ -28,8 +27,7 @@ class TeamRepository
 
     record.update!(
       name: team.name,
-      mission: team.mission,
-      vision: team.vision,
+      description: team.description,
       point_of_contact: team.point_of_contact,
       archived: team.archived?
     )
@@ -140,8 +138,7 @@ class TeamRepository
   def build_entity(record)
     Team.new(
       name: record.name,
-      mission: record.mission,
-      vision: record.vision,
+      description: record.description,
       point_of_contact: record.point_of_contact,
       archived: record.archived,
       owned_projects_loader: owned_projects_loader_for(record),

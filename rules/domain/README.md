@@ -1,6 +1,16 @@
 # Status
 
-Status is a simple web application for gathering project status informaton and reporting that status by project, team, or initiative.
+At its core, Status is an application for gathering and reporting project status information by project, team, or initiative.
+
+The primary use cases are:
+
+1. Recording status information by project.
+
+    As the owner of a project
+    I want to quickly 
+
+* Reporting status information by project, team, and initiative
+* Briefing executives
 
 ## Entities
 
@@ -22,7 +32,7 @@ Projects with subordinate projects calculate their current health by averaging t
 
 ### Teams
 
-Teams provide a hierarchical organizing structure for projects. Each team has a name, vision, mission, and point of contact. Teams may be created, found, updated, and archived. And, teams contain subordinate teams as well as an ordered list of owned projects. Creating a project through a team appends it to that team's ordered list, keeping relationships explicit. 
+Teams provide a hierarchical organizing structure for projects. Each team has a name, description, and point of contact. Teams may be created, found, updated, and archived. And, teams contain subordinate teams as well as an ordered list of owned projects. Creating a project through a team appends it to that team's ordered list, keeping relationships explicit. 
 
 Teams have a current health that is derived from the average of the current health of all their `:in_progress` and `:blocked` projects. Projects in other states are excluded from the calculation.
 

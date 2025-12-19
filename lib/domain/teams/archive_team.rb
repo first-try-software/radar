@@ -26,8 +26,7 @@ class ArchiveTeam
   def archived_team
     @archived_team ||= Team.new(
       name: team.name,
-      mission: team.mission,
-      vision: team.vision,
+      description: team.description,
       point_of_contact: team.point_of_contact,
       archived: true
     )

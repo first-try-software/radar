@@ -8,28 +8,16 @@ RSpec.describe Team do
     expect(team.name).to eq('Platform')
   end
 
-  it 'returns its mission' do
-    team = described_class.new(name: 'Platform', mission: 'Enable delivery velocity')
+  it 'returns its description' do
+    team = described_class.new(name: 'Platform', description: 'Enable delivery velocity')
 
-    expect(team.mission).to eq('Enable delivery velocity')
+    expect(team.description).to eq('Enable delivery velocity')
   end
 
-  it 'returns its vision' do
-    team = described_class.new(name: 'Platform', vision: 'Create clarity')
-
-    expect(team.vision).to eq('Create clarity')
-  end
-
-  it 'defaults vision to an empty string' do
+  it 'defaults description to an empty string' do
     team = described_class.new(name: 'Platform')
 
-    expect(team.vision).to eq('')
-  end
-
-  it 'defaults mission to an empty string' do
-    team = described_class.new(name: 'Platform')
-
-    expect(team.mission).to eq('')
+    expect(team.description).to eq('')
   end
 
   it 'returns its point of contact' do

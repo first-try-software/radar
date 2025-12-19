@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_14_200016) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_19_051017) do
   create_table "health_updates", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.date "date", null: false
@@ -71,11 +71,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_14_200016) do
   create_table "teams", force: :cascade do |t|
     t.boolean "archived", default: false, null: false
     t.datetime "created_at", null: false
-    t.text "mission", default: "", null: false
+    t.text "description", default: "", null: false
     t.string "name", null: false
     t.string "point_of_contact", default: "", null: false
     t.datetime "updated_at", null: false
-    t.text "vision", default: "", null: false
     t.index ["name"], name: "index_teams_on_name", unique: true
   end
 

@@ -1,12 +1,11 @@
 require_relative '../support/health_rollup'
 
 class Team
-  attr_reader :name, :mission, :vision, :point_of_contact
+  attr_reader :name, :description, :point_of_contact
 
   def initialize(
     name:,
-    mission: '',
-    vision: '',
+    description: '',
     point_of_contact: '',
     archived: false,
     owned_projects_loader: nil,
@@ -14,8 +13,7 @@ class Team
     parent_team_loader: nil
   )
     @name = name.to_s
-    @mission = mission.to_s
-    @vision = vision.to_s
+    @description = description.to_s
     @point_of_contact = point_of_contact.to_s
     @archived = archived
     @owned_projects_loader = owned_projects_loader

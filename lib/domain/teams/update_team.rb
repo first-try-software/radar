@@ -6,9 +6,9 @@ class UpdateTeam
     @team_repository = team_repository
   end
 
-  def perform(id:, name:, mission: '', vision: '', point_of_contact: '', archived: false)
+  def perform(id:, name:, description: '', point_of_contact: '', archived: false)
     @id = id
-    @attributes = { name:, mission:, vision:, point_of_contact:, archived: }
+    @attributes = { name:, description:, point_of_contact:, archived: }
 
     return team_not_found_failure unless existing_team
     return invalid_team_failure unless updated_team.valid?

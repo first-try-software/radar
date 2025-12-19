@@ -8,7 +8,7 @@ RSpec.describe CreateTeam do
     repository = FakeTeamRepository.new
     action = described_class.new(team_repository: repository)
 
-    action.perform(name: 'Platform', mission: 'Enable delivery velocity', point_of_contact: 'Jordan')
+    action.perform(name: 'Platform', description: 'Enable delivery velocity', point_of_contact: 'Jordan')
 
     stored_team = repository.find('Platform')
     expect(stored_team.name).to eq('Platform')

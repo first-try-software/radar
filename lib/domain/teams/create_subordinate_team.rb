@@ -6,9 +6,9 @@ class CreateSubordinateTeam
     @team_repository = team_repository
   end
 
-  def perform(parent_id:, name:, mission: '', vision: '', point_of_contact: '')
+  def perform(parent_id:, name:, description: '', point_of_contact: '')
     @parent_id = parent_id
-    @attributes = { name:, mission:, vision:, point_of_contact: }
+    @attributes = { name:, description:, point_of_contact: }
 
     return parent_not_found_failure unless parent_team
     return parent_has_projects_failure if parent_has_projects?

@@ -44,13 +44,12 @@ RSpec.describe TeamsController, type: :request do
 
     it 'creates via HTML with all params' do
       post '/teams', params: {
-        team: { name: 'Full Team', mission: 'M', vision: 'V', point_of_contact: 'POC' }
+        team: { name: 'Full Team', description: 'D', point_of_contact: 'POC' }
       }
 
       expect(response).to have_http_status(:found)
       record = TeamRecord.find_by(name: 'Full Team')
-      expect(record.mission).to eq('M')
-      expect(record.vision).to eq('V')
+      expect(record.description).to eq('D')
       expect(record.point_of_contact).to eq('POC')
     end
 
@@ -159,13 +158,12 @@ RSpec.describe TeamsController, type: :request do
       parent = TeamRecord.create!(name: 'Platform Team')
 
       post "/teams/#{parent.id}/subordinate_teams", params: {
-        team: { name: 'Mobile Team', mission: 'Build apps', vision: 'Be mobile', point_of_contact: 'mobile@test.com' }
+        team: { name: 'Mobile Team', description: 'Build mobile apps', point_of_contact: 'mobile@test.com' }
       }
 
       expect(response).to have_http_status(:found)
       record = TeamRecord.find_by(name: 'Mobile Team')
-      expect(record.mission).to eq('Build apps')
-      expect(record.vision).to eq('Be mobile')
+      expect(record.description).to eq('Build mobile apps')
       expect(record.point_of_contact).to eq('mobile@test.com')
     end
 
@@ -204,7 +202,7 @@ RSpec.describe TeamsController, type: :request do
 
   describe 'POST /teams' do
     it 'creates a team' do
-      post '/teams', params: { team: { name: 'Platform Team', mission: 'Build', vision: 'Scale' } }, headers: json_headers
+      post '/teams', params: { team: { name: 'Platform Team', description: 'Build and Scale' } }, headers: json_headers
 
       expect(response).to have_http_status(:created)
       expect(response.parsed_body['name']).to eq('Platform Team')

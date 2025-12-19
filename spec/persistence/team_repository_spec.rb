@@ -43,13 +43,12 @@ RSpec.describe TeamRepository do
       expect(result.archived?).to be(true)
     end
 
-    it 'maps mission and vision correctly' do
-      record = TeamRecord.create!(name: 'Team', mission: 'Build stuff', vision: 'Be great')
+    it 'maps description correctly' do
+      record = TeamRecord.create!(name: 'Team', description: 'Build stuff')
 
       result = repository.find(record.id)
 
-      expect(result.mission).to eq('Build stuff')
-      expect(result.vision).to eq('Be great')
+      expect(result.description).to eq('Build stuff')
     end
   end
 
@@ -62,14 +61,13 @@ RSpec.describe TeamRepository do
       expect(repository.exists_with_name?('Platform Team')).to be(true)
     end
 
-    it 'saves mission, vision, and point_of_contact' do
-      team = Team.new(name: 'Team', mission: 'Mission', vision: 'Vision', point_of_contact: 'POC')
+    it 'saves description and point_of_contact' do
+      team = Team.new(name: 'Team', description: 'Description', point_of_contact: 'POC')
 
       repository.save(team)
 
       record = TeamRecord.find_by(name: 'Team')
-      expect(record.mission).to eq('Mission')
-      expect(record.vision).to eq('Vision')
+      expect(record.description).to eq('Description')
       expect(record.point_of_contact).to eq('POC')
     end
   end
@@ -77,13 +75,13 @@ RSpec.describe TeamRepository do
   describe '#update' do
     it 'updates teams by id' do
       record = TeamRecord.create!(name: 'Platform Team')
-      updated = Team.new(name: 'Infra Team', mission: 'Updated mission')
+      updated = Team.new(name: 'Infra Team', description: 'Updated description')
 
       repository.update(id: record.id, team: updated)
 
       result = repository.find(record.id)
       expect(result.name).to eq('Infra Team')
-      expect(result.mission).to eq('Updated mission')
+      expect(result.description).to eq('Updated description')
     end
 
     it 'returns nil when team not found' do

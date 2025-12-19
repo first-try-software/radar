@@ -37,8 +37,7 @@ class TeamsController < ApplicationController
     record = TeamRecord.find(params[:id])
     attrs = {
       name: record.name,
-      mission: record.mission,
-      vision: record.vision,
+      description: record.description,
       point_of_contact: record.point_of_contact
     }.merge(update_params.compact)
 
@@ -147,8 +146,7 @@ class TeamsController < ApplicationController
     result = team_actions.create_subordinate_team.perform(
       parent_id: params[:id],
       name: params.dig(:team, :name),
-      mission: params.dig(:team, :mission) || '',
-      vision: params.dig(:team, :vision) || '',
+      description: params.dig(:team, :description) || '',
       point_of_contact: params.dig(:team, :point_of_contact) || ''
     )
 
@@ -217,8 +215,7 @@ class TeamsController < ApplicationController
   def team_json_from_domain(team)
     {
       name: team.name,
-      mission: team.mission,
-      vision: team.vision,
+      description: team.description,
       point_of_contact: team.point_of_contact,
       archived: team.archived?
     }
@@ -235,16 +232,15 @@ class TeamsController < ApplicationController
   end
 
   def create_params
-    permitted = params.fetch(:team, {}).permit(:name, :mission, :vision, :point_of_contact).to_h.symbolize_keys
+    permitted = params.fetch(:team, {}).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
     permitted[:name] ||= ''
-    permitted[:mission] ||= ''
-    permitted[:vision] ||= ''
+    permitted[:description] ||= ''
     permitted[:point_of_contact] ||= ''
     permitted
   end
 
   def update_params
-    params.fetch(:team, {}).permit(:name, :mission, :vision, :point_of_contact).to_h.symbolize_keys
+    params.fetch(:team, {}).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
   end
 
   def populate_team_dashboard_data(team)

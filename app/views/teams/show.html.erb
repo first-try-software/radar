@@ -47,7 +47,7 @@
     <button type="button" class="project-hero__edit-btn" data-edit-toggle aria-label="Edit team">✎</button>
   </div>
   <h1 class="project-hero__title" data-project-title><%= @team_record.name %></h1>
-  <p class="project-hero__tagline" data-project-tagline<%= ' hidden' if @team_record.mission.blank? %>><%= @team_record.mission %></p>
+  <p class="project-hero__tagline" data-project-tagline<%= ' hidden' if @team_record.description.blank? %>><%= @team_record.description %></p>
   <% effective_contact = @team&.effective_contact || @team_record.point_of_contact %>
   <% if effective_contact.present? %>
     <p class="project-hero__contact" data-project-contact>For more information, contact <span data-project-poc><%= effective_contact %></span>.</p>
@@ -372,7 +372,7 @@
       <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
       <div class="inline-create-form__row">
         <input type="text" name="team[name]" class="inline-create-form__input" placeholder="Team Name (required)" required data-subteam-name>
-        <input type="text" name="team[mission]" class="inline-create-form__input" placeholder="Brief Mission (highly recommended)">
+        <input type="text" name="team[description]" class="inline-create-form__input" placeholder="Brief Description (highly recommended)">
         <input type="text" name="team[point_of_contact]" class="inline-create-form__input" placeholder="Contacts (highly recommended)">
         <button type="submit" class="btn btn--small" data-subteam-submit>Create Subteam</button>
       </div>
@@ -698,12 +698,8 @@
           <input type="text" id="team_name" name="team[name]" class="form-field__input" value="<%= @team_record.name %>" required data-input-name>
         </div>
         <div class="form-field">
-          <label for="team_mission" class="form-field__label">Mission</label>
-          <input type="text" id="team_mission" name="team[mission]" class="form-field__input" value="<%= @team_record.mission %>" data-input-mission>
-        </div>
-        <div class="form-field">
-          <label for="team_vision" class="form-field__label">Vision</label>
-          <input type="text" id="team_vision" name="team[vision]" class="form-field__input" value="<%= @team_record.vision %>" data-input-vision>
+          <label for="team_description" class="form-field__label">Description</label>
+          <input type="text" id="team_description" name="team[description]" class="form-field__input" value="<%= @team_record.description %>" data-input-description>
         </div>
         <div class="form-field">
           <label for="team_point_of_contact" class="form-field__label">Contact(s)</label>
@@ -810,15 +806,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let archivedBadge = document.querySelector('[data-archived-badge]');
 
         const name = formData.get('team[name]');
-        const mission = formData.get('team[mission]');
+        const description = formData.get('team[description]');
         const poc = formData.get('team[point_of_contact]');
         const archived = formData.get('team[archived]') === '1';
 
         if (titleEl) titleEl.textContent = name;
 
         if (taglineEl) {
-          taglineEl.textContent = mission;
-          taglineEl.hidden = !mission;
+          taglineEl.textContent = description;
+          taglineEl.hidden = !description;
         }
 
         if (contactEl && pocEl) {

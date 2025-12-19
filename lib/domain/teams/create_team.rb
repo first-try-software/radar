@@ -6,8 +6,8 @@ class CreateTeam
     @team_repository = team_repository
   end
 
-  def perform(name:, mission: '', vision: '', point_of_contact: '')
-    @attributes = { name:, mission:, vision:, point_of_contact: }
+  def perform(name:, description: '', point_of_contact: '')
+    @attributes = { name:, description:, point_of_contact: }
 
     return invalid_team_failure unless team.valid?
 

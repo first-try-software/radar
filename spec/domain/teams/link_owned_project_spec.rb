@@ -19,7 +19,7 @@ RSpec.describe LinkOwnedProject do
   end
 
   it 'returns failure when project is not found' do
-    team = Team.new(name: 'My Team', mission: '', vision: '', point_of_contact: '')
+    team = Team.new(name: 'My Team', description: '', point_of_contact: '')
     team_repository = FakeTeamRepository.new(teams: { '1' => team })
     project_repository = FakeProjectRepository.new
     action = LinkOwnedProject.new(team_repository: team_repository, project_repository: project_repository)
@@ -31,7 +31,7 @@ RSpec.describe LinkOwnedProject do
   end
 
   it 'returns failure when team has subordinate teams' do
-    team = Team.new(name: 'My Team', mission: '', vision: '', point_of_contact: '')
+    team = Team.new(name: 'My Team', description: '', point_of_contact: '')
     child_team = Team.new(name: 'Child Team')
     project = Project.new(attributes: ProjectAttributes.new(name: 'My Project', description: '', point_of_contact: ''))
     team_repository = FakeTeamRepository.new(teams: { '1' => team, 'child' => child_team })
@@ -46,7 +46,7 @@ RSpec.describe LinkOwnedProject do
   end
 
   it 'links an existing project to the team' do
-    team = Team.new(name: 'My Team', mission: '', vision: '', point_of_contact: '')
+    team = Team.new(name: 'My Team', description: '', point_of_contact: '')
     project = Project.new(attributes: ProjectAttributes.new(name: 'My Project', description: '', point_of_contact: ''))
     team_repository = FakeTeamRepository.new(teams: { '1' => team })
     project_repository = FakeProjectRepository.new(projects: { '99' => project })
@@ -59,7 +59,7 @@ RSpec.describe LinkOwnedProject do
   end
 
   it 'creates the relationship in the repository' do
-    team = Team.new(name: 'My Team', mission: '', vision: '', point_of_contact: '')
+    team = Team.new(name: 'My Team', description: '', point_of_contact: '')
     project = Project.new(attributes: ProjectAttributes.new(name: 'My Project', description: '', point_of_contact: ''))
     team_repository = FakeTeamRepository.new(teams: { '1' => team })
     project_repository = FakeProjectRepository.new(projects: { '99' => project })
@@ -74,7 +74,7 @@ RSpec.describe LinkOwnedProject do
   end
 
   it 'assigns the next order value when linking' do
-    team = Team.new(name: 'My Team', mission: '', vision: '', point_of_contact: '')
+    team = Team.new(name: 'My Team', description: '', point_of_contact: '')
     first_project = Project.new(attributes: ProjectAttributes.new(name: 'First Project', description: '', point_of_contact: ''))
     second_project = Project.new(attributes: ProjectAttributes.new(name: 'Second Project', description: '', point_of_contact: ''))
     team_repository = FakeTeamRepository.new(teams: { '1' => team })
