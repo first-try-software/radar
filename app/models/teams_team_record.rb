@@ -8,3 +8,5 @@ class TeamsTeamRecord < ApplicationRecord
   validates :parent_id, uniqueness: { scope: :child_id }
   validates :child_id, uniqueness: true # A team can only have one parent
 end
+
+

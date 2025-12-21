@@ -7,3 +7,5 @@ class TeamsProjectRecord < ApplicationRecord
   validates :order, presence: true
   validates :project_id, uniqueness: true # A project can only be owned by one team
 end
+
+
