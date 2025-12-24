@@ -1,0 +1,27 @@
+<%= turbo_stream.remove "update-#{@health_update.date.strftime('%Y-%m-%d')}" %>
+
+<%= turbo_stream.prepend "updates-container" do %>
+  <%= render "projects/update_row", update: @health_update %>
+<% end %>
+
+<%= turbo_stream.update "updates-header" do %>
+  <div class="updates-header">
+    <span class="updates-header__col updates-header__col--date">Date</span>
+    <span class="updates-header__col updates-header__col--health">Health</span>
+    <span class="updates-header__col updates-header__col--description">Description</span>
+  </div>
+<% end %>
+
+<%= turbo_stream.remove "updates-empty" %>
+
+<%= turbo_stream.replace "health-widget" do %>
+  <%= render "projects/health_widget", project: @project, project_health: @project_health, health_summary: @health_summary %>
+<% end %>
+
+<%= turbo_stream.replace "trend-widget" do %>
+  <%= render "projects/trend_widget", weeks_of_data: @weeks_of_data, trend_direction: @trend_direction, trend_delta: @trend_delta, trend_data: @trend_data %>
+<% end %>
+
+<%= turbo_stream.replace "confidence-widget" do %>
+  <%= render "projects/confidence_widget", confidence_score: @confidence_score, confidence_level: @confidence_level, confidence_factors: @confidence_factors %>
+<% end %>

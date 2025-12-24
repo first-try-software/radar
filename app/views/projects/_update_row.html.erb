@@ -1,0 +1,8 @@
+<div class="update-row" id="update-<%= update.date.strftime('%Y-%m-%d') %>">
+  <span class="update-row__date"><%= update.date.strftime('%-m/%-d/%-y') %></span>
+  <span class="update-row__health">
+    <span class="health-indicator health-indicator--<%= update.health %>"></span>
+    <span class="health-text"><%= update.health.to_s.tr('_', ' ').titleize %></span>
+  </span>
+  <span class="update-row__description"><%= update.description.presence || '—' %></span>
+</div>

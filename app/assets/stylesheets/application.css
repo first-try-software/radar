@@ -2151,6 +2151,13 @@ input::placeholder {
   margin-bottom: 16px;
 }
 
+.global-search__no-results-message {
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 16px;
+  margin: 0;
+}
+
 .global-search__form-card {
   padding: 16px;
   background: rgba(106, 167, 255, 0.06);
@@ -2499,8 +2506,8 @@ input::placeholder {
 }
 
 .stat-card--at-risk {
-  border-color: var(--warning);
-  background: linear-gradient(135deg, rgba(255, 209, 102, 0.1), var(--card));
+  border-color: var(--health-at-risk);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), var(--card));
 }
 
 .stat-card--off-track {
@@ -2522,7 +2529,7 @@ input::placeholder {
 
 .stat-card--total .stat-value { color: var(--accent); }
 .stat-card--on-track .stat-value { color: var(--success); }
-.stat-card--at-risk .stat-value { color: var(--warning); }
+.stat-card--at-risk .stat-value { color: var(--health-at-risk); }
 .stat-card--off-track .stat-value { color: var(--danger); }
 .stat-card--not_available .stat-value { color: var(--muted); }
 
@@ -3180,7 +3187,7 @@ input::placeholder {
 .metric-widget__dot--on-track { background: var(--success); }
 
 .metric-widget__dot--at-risk {
-  background: var(--warning);
+  background: var(--health-at-risk);
   border-radius: 0;
   clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
 }
@@ -3193,7 +3200,7 @@ input::placeholder {
 .metric-widget__dot--not-available { background: var(--text-muted); }
 
 .metric-widget__label--on-track { color: var(--success); }
-.metric-widget__label--at-risk { color: var(--warning); }
+.metric-widget__label--at-risk { color: var(--health-at-risk); }
 .metric-widget__label--off-track { color: var(--danger); }
 .metric-widget__label--not-available { color: var(--text-muted); }
 
@@ -3272,7 +3279,7 @@ input::placeholder {
 }
 
 .trend-point-v2--on_track { stroke: var(--success); }
-.trend-point-v2--at_risk { stroke: var(--warning); }
+.trend-point-v2--at_risk { stroke: var(--health-at-risk); }
 .trend-point-v2--off_track { stroke: var(--danger); }
 
 /* Confidence Widget Gradients */
@@ -3635,7 +3642,7 @@ input::placeholder {
 }
 
 .project-item-v2__health--at_risk {
-  background: var(--warning);
+  background: var(--health-at-risk);
   border-radius: 0;
   clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
 }

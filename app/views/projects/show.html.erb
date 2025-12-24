@@ -2,6 +2,8 @@
 <% allowed_states = SetProjectState::SETTABLE_STATES %>
 <% project = @project || @project_record %>
 
+<div data-controller="edit-form" data-edit-form-url-value="<%= project_path(@project_record) %>">
+
 <!-- Sticky Header -->
 <div class="sticky-header" data-sticky-header>
   <div class="sticky-header__container">
@@ -20,9 +22,9 @@
           <span class="badge badge--archived">ARCHIVED</span>
         <% end %>
         <div class="sticky-header__badge">
-          <span class="badge state state--<%= project.current_state.to_s.tr('_', '-') %>"><%= project.current_state.to_s.tr('_', ' ').upcase %></span>
+          <span class="badge state state--<%= project.current_state.to_s.tr('_', '-') %>" data-state-badge><%= project.current_state.to_s.tr('_', ' ').upcase %></span>
         </div>
-        <button type="button" class="sticky-header__edit-btn" data-sticky-edit-toggle aria-label="Edit project">✎</button>
+        <button type="button" class="sticky-header__edit-btn" data-action="edit-form#open" aria-label="Edit project">✎</button>
       </div>
       <% sticky_contact = @project&.effective_contact || project.point_of_contact %>
       <% if sticky_contact.present? %>
@@ -42,15 +44,17 @@
     <% if project.archived? %>
       <span class="badge badge--archived" data-archived-badge>ARCHIVED</span>
     <% end %>
-    <div class="state-pill-dropdown" data-state-dropdown>
-      <button class="state-pill-toggle" type="button" data-state-toggle>
+    <div class="state-pill-dropdown"
+         data-controller="state-dropdown"
+         data-state-dropdown-url-value="<%= state_project_path(@project_record) %>">
+      <button class="state-pill-toggle" type="button" data-action="state-dropdown#toggle">
         <span class="state-pill state-pill--<%= project.current_state.to_s.tr('_', '-') %>" data-state-badge><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
         <span class="state-pill-arrow">▾</span>
       </button>
-      <div class="state-pill-menu state-pill-menu--down" data-state-menu>
+      <div class="state-pill-menu state-pill-menu--down" data-state-dropdown-target="menu">
         <% if allowed_states.any? %>
           <% allowed_states.each do |state| %>
-            <button type="button" class="state-pill-option" data-state="<%= state %>">
+            <button type="button" class="state-pill-option" data-state="<%= state %>" data-action="state-dropdown#select">
               <span class="state-pill state-pill--<%= state.to_s.tr('_', '-') %>"><%= state.to_s.tr('_', ' ').titleize %></span>
             </button>
           <% end %>
@@ -59,7 +63,7 @@
         <% end %>
       </div>
     </div>
-    <button type="button" class="project-hero__edit-btn" data-edit-toggle aria-label="Edit project">✎</button>
+    <button type="button" class="project-hero__edit-btn" data-action="edit-form#open" aria-label="Edit project">✎</button>
   </div>
   <h1 class="project-hero__title" data-project-title><%= project.name %></h1>
   <p class="project-hero__tagline" data-project-tagline<%= ' hidden' if project.description.blank? %>><%= project.description %></p>
@@ -96,10 +100,11 @@
     active_count = active_children.size
   end
 %>
+<turbo-frame id="metrics-row">
 <div class="initiative-dashboard-v2">
   <div class="metrics-row-v2">
     <!-- Health Widget -->
-    <div class="metric-widget metric-widget--health metric-widget--<%= health_class %>">
+    <div id="health-widget" class="metric-widget metric-widget--health metric-widget--<%= health_class %>">
       <div class="metric-widget__title-row">
         <span class="metric-widget__title">Current Health</span>
         <div class="widget-info">
@@ -132,7 +137,7 @@
 
     <!-- Trend Widget -->
     <% trend_class = @weeks_of_data >= 2 ? "trend-#{@trend_direction}" : 'trend-insufficient' %>
-    <div class="metric-widget metric-widget--trend metric-widget--<%= trend_class %>">
+    <div id="trend-widget" class="metric-widget metric-widget--trend metric-widget--<%= trend_class %>">
       <div class="metric-widget__header">
         <span class="metric-widget__title">6-Week Trend</span>
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -195,7 +200,7 @@
         nil
       end
     %>
-    <div class="metric-widget metric-widget--confidence metric-widget--confidence-<%= @confidence_level %>">
+    <div id="confidence-widget" class="metric-widget metric-widget--confidence metric-widget--confidence-<%= @confidence_level %>">
       <div class="metric-widget__title-row">
         <span class="metric-widget__title">Confidence</span>
         <div class="widget-info">
@@ -234,6 +239,7 @@
     </div>
   </div>
 </div>
+</turbo-frame>
 <% end %>
 
 <!-- Toast Container -->
@@ -262,14 +268,18 @@
     { entity: proj, type: :project, record: ProjectRecord.find_by(name: proj.name) }
   end
 %>
-<div class="global-search">
-  <input type="text" class="global-search__input" placeholder="Find or create what you are looking for..." data-global-search>
-  <div class="global-search__results-container" data-global-search-container>
+<div class="global-search" data-controller="search">
+  <input type="text"
+         class="global-search__input"
+         placeholder="<%= @project&.leaf? ? 'Find what you are looking for...' : 'Find or create what you are looking for...' %>"
+         data-search-target="input"
+         data-action="input->search#search keydown->search#escape">
+  <div class="global-search__results-container" data-search-target="container">
     <div class="section section--search-results">
-      <h3 class="section__title" data-results-header>Results</h3>
-      <div class="section__columns" data-global-search-results>
+      <h3 class="section__title" data-search-target="resultsHeader">Results</h3>
+      <div class="section__columns" data-search-target="resultsGrid">
         <!-- Teams Column -->
-        <div class="section__column" data-results-column="teams">
+        <div class="section__column" data-search-target="column" data-results-column="teams">
           <h4 class="section__subtitle">Teams</h4>
           <ul class="section__list">
             <% all_teams_flat.each do |entry| %>
@@ -287,7 +297,7 @@
         </div>
 
         <!-- Initiatives Column -->
-        <div class="section__column" data-results-column="initiatives">
+        <div class="section__column" data-search-target="column" data-results-column="initiatives">
           <h4 class="section__subtitle">Initiatives</h4>
           <ul class="section__list">
             <% all_initiatives_flat.each do |entry| %>
@@ -305,7 +315,7 @@
         </div>
 
         <!-- Projects Column -->
-        <div class="section__column" data-results-column="projects">
+        <div class="section__column" data-search-target="column" data-results-column="projects">
           <h4 class="section__subtitle">Projects</h4>
           <ul class="section__list">
             <% all_projects_flat.each do |entry| %>
@@ -323,20 +333,23 @@
         </div>
       </div>
 
-      <!-- No Results / Create Child -->
-      <div class="global-search__no-results" data-no-results hidden>
-        <h3 class="section__title">Create Child Project</h3>
-        <div class="global-search__form-card">
-          <form action="<%= subordinates_project_path(@project_record) %>" method="post" class="global-search__create-form" data-create-form>
-            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-            <div class="global-search__form-fields-inline">
-              <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-create-name required>
-              <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
-              <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
-              <button type="submit" class="global-search__create-btn">Create Child Project</button>
-            </div>
-          </form>
-        </div>
+      <!-- No Results -->
+      <div class="global-search__no-results" data-search-target="noResults" hidden>
+        <% if @project&.leaf? %>
+          <p class="global-search__no-results-message">No matching results. This project tracks health updates directly and cannot have child projects.</p>
+        <% else %>
+          <h3 class="section__title">Create Child Project</h3>
+          <div class="global-search__form-card">
+            <%= form_with url: subordinates_project_path(@project_record), method: :post, local: false, class: "global-search__create-form" do |f| %>
+              <div class="global-search__form-fields-inline">
+                <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-search-target="createName" required>
+                <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
+                <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
+                <button type="submit" class="global-search__create-btn">Create Child Project</button>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
       </div>
     </div>
   </div>
@@ -370,128 +383,130 @@
   inactive_projects = direct_children.select { |p| inactive_states.include?(p.current_state) }
   sorted_inactive = sort_projects_canonical(inactive_projects)
 %>
-<section class="section section--projects">
+<section class="section section--projects" data-controller="tabs inline-form" data-tabs-active-value="all">
   <div class="section__title-row">
     <h3 class="section__title">Child Projects</h3>
     <div class="dashboard-tabs-v2">
-      <button class="dashboard-tab-v2 active" data-child-tab="all">
+      <button class="dashboard-tab-v2 active" data-tabs-target="tab" data-tabs-name="all" data-action="tabs#switch">
         All <span class="dashboard-tab-v2__count"><%= direct_children.size %></span>
       </button>
-      <button class="dashboard-tab-v2" data-child-tab="unhealthy">
+      <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="unhealthy" data-action="tabs#switch">
         Unhealthy <span class="dashboard-tab-v2__count"><%= unhealthy.size %></span>
       </button>
-      <button class="dashboard-tab-v2" data-child-tab="stale">
+      <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="stale" data-action="tabs#switch">
         Stale <span class="dashboard-tab-v2__count"><%= stale.size %></span>
       </button>
-      <button class="dashboard-tab-v2" data-child-tab="active">
+      <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="active" data-action="tabs#switch">
         Active <span class="dashboard-tab-v2__count"><%= active_projects.size %></span>
       </button>
-      <button class="dashboard-tab-v2" data-child-tab="inactive">
+      <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="inactive" data-action="tabs#switch">
         Inactive <span class="dashboard-tab-v2__count"><%= inactive_projects.size %></span>
       </button>
       <% if archived_projects.any? %>
-        <button class="dashboard-tab-v2" data-child-tab="archived">
+        <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="archived" data-action="tabs#switch">
           Archived <span class="dashboard-tab-v2__count"><%= archived_projects.size %></span>
         </button>
       <% end %>
-      <button class="dashboard-tab-v2 dashboard-tab-v2--add" data-toggle-create-child aria-label="Create child project">+</button>
+      <button class="dashboard-tab-v2 dashboard-tab-v2--add"
+              data-inline-form-target="toggle"
+              data-action="inline-form#toggle"
+              aria-label="Create child project">+</button>
     </div>
   </div>
 
   <!-- Create Child Project Form (inline) -->
-  <div class="inline-create-section" data-create-child-section hidden>
-    <form action="<%= subordinates_project_path(@project_record) %>" method="post" class="inline-create-form" data-create-child-form>
-      <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+  <div class="inline-create-section" data-inline-form-target="section" hidden>
+    <%= form_with url: subordinates_project_path(@project_record), method: :post, local: false, class: "inline-create-form" do |f| %>
       <div class="inline-create-form__row">
-        <input type="text" name="project[name]" class="inline-create-form__input" placeholder="Project Name (required)" required data-child-name>
+        <input type="text" name="project[name]" class="inline-create-form__input" placeholder="Project Name (required)" required>
         <input type="text" name="project[description]" class="inline-create-form__input" placeholder="Brief Description (highly recommended)">
         <input type="text" name="project[point_of_contact]" class="inline-create-form__input" placeholder="Contacts (highly recommended)">
-        <button type="submit" class="btn btn--small" data-child-submit>Create Child Project</button>
+        <button type="submit" class="btn btn--small">Create Child Project</button>
       </div>
-    </form>
+    <% end %>
   </div>
 
   <!-- Tab Content: All -->
-  <div class="tab-content-v2 active" data-child-tab-content="all">
-    <% if direct_children.empty? %>
-      <div class="tab-empty-v2">No child projects</div>
-    <% else %>
-      <ul class="project-list-v2">
-        <%= render 'dashboard/project_list_header' %>
-        <% sorted_descendants.each do |child_project| %>
-          <%= render 'dashboard/project_list_item', project: child_project %>
-        <% end %>
-      </ul>
-    <% end %>
-  </div>
+  <div class="tab-content-v2 active" data-tabs-target="content" data-tabs-name="all">
+      <% if direct_children.empty? %>
+        <div class="tab-empty-v2">No child projects</div>
+      <% else %>
+        <ul class="project-list-v2">
+          <%= render 'dashboard/project_list_header' %>
+          <% sorted_descendants.each do |child_project| %>
+            <%= render 'dashboard/project_list_item', project: child_project %>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
 
-  <!-- Tab Content: Unhealthy -->
-  <div class="tab-content-v2" data-child-tab-content="unhealthy">
-    <% if unhealthy.empty? %>
-      <div class="tab-empty-v2">All child projects are healthy!</div>
-    <% else %>
-      <ul class="project-list-v2">
-        <%= render 'dashboard/project_list_header' %>
-        <% sorted_unhealthy.each do |child_project| %>
-          <%= render 'dashboard/project_list_item', project: child_project %>
-        <% end %>
-      </ul>
-    <% end %>
-  </div>
+    <!-- Tab Content: Unhealthy -->
+    <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="unhealthy">
+      <% if unhealthy.empty? %>
+        <div class="tab-empty-v2">All child projects are healthy!</div>
+      <% else %>
+        <ul class="project-list-v2">
+          <%= render 'dashboard/project_list_header' %>
+          <% sorted_unhealthy.each do |child_project| %>
+            <%= render 'dashboard/project_list_item', project: child_project %>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
 
-  <!-- Tab Content: Stale -->
-  <div class="tab-content-v2" data-child-tab-content="stale">
-    <% if stale.empty? %>
-      <div class="tab-empty-v2">All child projects are up to date!</div>
-    <% else %>
-      <ul class="project-list-v2">
-        <%= render 'dashboard/project_list_header' %>
-        <% sorted_stale.each do |child_project| %>
-          <%= render 'dashboard/project_list_item', project: child_project, tag_text: 'Stale', tag_modifier: 'stale' %>
-        <% end %>
-      </ul>
-    <% end %>
-  </div>
+    <!-- Tab Content: Stale -->
+    <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="stale">
+      <% if stale.empty? %>
+        <div class="tab-empty-v2">All child projects are up to date!</div>
+      <% else %>
+        <ul class="project-list-v2">
+          <%= render 'dashboard/project_list_header' %>
+          <% sorted_stale.each do |child_project| %>
+            <%= render 'dashboard/project_list_item', project: child_project, tag_text: 'Stale', tag_modifier: 'stale' %>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
 
-  <!-- Tab Content: Active -->
-  <div class="tab-content-v2" data-child-tab-content="active">
-    <% if active_projects.empty? %>
-      <div class="tab-empty-v2">No active child projects</div>
-    <% else %>
-      <ul class="project-list-v2">
-        <%= render 'dashboard/project_list_header' %>
-        <% sorted_active.each do |child_project| %>
-          <% tag_text = child_project.current_state == :blocked ? 'Blocked' : nil %>
-          <% tag_modifier = child_project.current_state == :blocked ? 'blocked' : nil %>
-          <%= render 'dashboard/project_list_item', project: child_project, tag_text: tag_text, tag_modifier: tag_modifier %>
-        <% end %>
-      </ul>
-    <% end %>
-  </div>
+    <!-- Tab Content: Active -->
+    <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="active">
+      <% if active_projects.empty? %>
+        <div class="tab-empty-v2">No active child projects</div>
+      <% else %>
+        <ul class="project-list-v2">
+          <%= render 'dashboard/project_list_header' %>
+          <% sorted_active.each do |child_project| %>
+            <% tag_text = child_project.current_state == :blocked ? 'Blocked' : nil %>
+            <% tag_modifier = child_project.current_state == :blocked ? 'blocked' : nil %>
+            <%= render 'dashboard/project_list_item', project: child_project, tag_text: tag_text, tag_modifier: tag_modifier %>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
 
-  <!-- Tab Content: Inactive -->
-  <div class="tab-content-v2" data-child-tab-content="inactive">
-    <% if inactive_projects.empty? %>
-      <div class="tab-empty-v2">No inactive child projects</div>
-    <% else %>
-      <ul class="project-list-v2">
-        <%= render 'dashboard/project_list_header' %>
-        <% sorted_inactive.each do |child_project| %>
-          <% tag_text = child_project.current_state.to_s.tr('_', ' ').titleize %>
-          <%= render 'dashboard/project_list_item', project: child_project, tag_text: tag_text, tag_modifier: 'inactive' %>
-        <% end %>
-      </ul>
-    <% end %>
-  </div>
+    <!-- Tab Content: Inactive -->
+    <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="inactive">
+      <% if inactive_projects.empty? %>
+        <div class="tab-empty-v2">No inactive child projects</div>
+      <% else %>
+        <ul class="project-list-v2">
+          <%= render 'dashboard/project_list_header' %>
+          <% sorted_inactive.each do |child_project| %>
+            <% tag_text = child_project.current_state.to_s.tr('_', ' ').titleize %>
+            <%= render 'dashboard/project_list_item', project: child_project, tag_text: tag_text, tag_modifier: 'inactive' %>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
 
-  <!-- Tab Content: Archived -->
-  <% if archived_projects.any? %>
-    <div class="tab-content-v2" data-child-tab-content="archived">
-      <ul class="project-list-v2">
-        <%= render 'dashboard/project_list_header' %>
-        <% sorted_archived.each do |child_project| %>
-          <%= render 'dashboard/project_list_item', project: child_project, tag_text: 'Archived', tag_modifier: 'archived' %>
-        <% end %>
+    <!-- Tab Content: Archived -->
+    <% if archived_projects.any? %>
+      <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="archived">
+        <ul class="project-list-v2">
+          <%= render 'dashboard/project_list_header' %>
+          <% sorted_archived.each do |child_project| %>
+            <%= render 'dashboard/project_list_item', project: child_project, tag_text: 'Archived', tag_modifier: 'archived' %>
+          <% end %>
       </ul>
     </div>
   <% end %>
@@ -500,115 +515,154 @@
 
 <!-- Updates Section (only for leaf projects) -->
 <% if @project&.leaf? %>
+<turbo-frame id="updates-section">
 <section class="section section--updates">
   <h3 class="section__title">Updates</h3>
 
   <!-- Create Update Form -->
-  <div class="inline-create-section">
-    <form class="update-form" data-update-form action="<%= health_updates_project_path(@project_record) %>" method="post">
-      <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-      <input type="hidden" name="health_update[health]" value="" data-health-input>
+  <div class="inline-create-section"
+       data-controller="health-update-form"
+       data-health-update-form-state-url-value="<%= state_project_path(@project_record) %>"
+       data-action="health-picker:selected->health-update-form#healthSelected health-picker:reset->health-update-form#healthReset">
+    <%= form_with url: health_updates_project_path(@project_record),
+                  method: :post,
+                  local: false,
+                  class: "update-form",
+                  data: { health_update_form_target: "form", action: "submit->health-update-form#submit" } do |f| %>
       <input type="hidden" name="health_update[date]" value="<%= Date.current.strftime('%Y-%m-%d') %>">
+      <input type="hidden" name="health_update[health]" value="" data-health-update-form-target="healthInput">
       <div class="inline-create-form__row">
-        <div class="health-picker" data-health-picker>
-          <button type="button" class="health-picker__btn health-picker__btn--on_track" data-health-value="on_track" title="On Track">
+        <div class="health-picker" data-controller="health-picker">
+          <button type="button"
+                  class="health-picker__btn health-picker__btn--on_track"
+                  data-health-picker-target="button"
+                  data-health-picker-value="on_track"
+                  data-action="health-picker#select"
+                  title="On Track">
             <span class="health-picker__dot"></span>
           </button>
-          <button type="button" class="health-picker__btn health-picker__btn--at_risk" data-health-value="at_risk" title="At Risk">
+          <button type="button"
+                  class="health-picker__btn health-picker__btn--at_risk"
+                  data-health-picker-target="button"
+                  data-health-picker-value="at_risk"
+                  data-action="health-picker#select"
+                  title="At Risk">
             <span class="health-picker__dot"></span>
           </button>
-          <button type="button" class="health-picker__btn health-picker__btn--off_track" data-health-value="off_track" title="Off Track">
+          <button type="button"
+                  class="health-picker__btn health-picker__btn--off_track"
+                  data-health-picker-target="button"
+                  data-health-picker-value="off_track"
+                  data-action="health-picker#select"
+                  title="Off Track">
             <span class="health-picker__dot"></span>
           </button>
         </div>
-        <textarea name="health_update[description]" class="inline-create-form__textarea" placeholder="What's the current status? Any blockers?" data-update-description></textarea>
-        <div class="state-pill-dropdown" data-state-pill-dropdown>
-          <button type="button" class="state-pill-toggle" data-state-pill-toggle>
-            <span class="state-pill state-pill--<%= project.current_state.to_s.tr('_', '-') %>" data-state-pill-display><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
+        <input type="text"
+               name="health_update[description]"
+               class="inline-create-form__input"
+               placeholder="What's the current status? Any blockers?"
+               data-health-update-form-target="description"
+               data-action="keydown->health-update-form#handleInputKeydown">
+        <div class="state-pill-dropdown" data-health-update-form-target="stateDropdown">
+          <button type="button" class="state-pill-toggle" data-action="health-update-form#toggleStateDropdown">
+            <span class="state-pill state-pill--<%= project.current_state.to_s.tr('_', '-') %>" data-health-update-form-target="stateDisplay"><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
             <span class="state-pill-arrow">▾</span>
           </button>
-          <input type="hidden" name="project_state" value="" data-state-pill-input>
-          <div class="state-pill-menu" data-state-pill-menu>
+          <input type="hidden" name="project_state" value="" data-health-update-form-target="stateInput">
+          <div class="state-pill-menu">
             <% allowed_states.each do |state| %>
-              <button type="button" class="state-pill-option" data-state-value="<%= state %>">
+              <button type="button" class="state-pill-option" data-state-value="<%= state %>" data-action="health-update-form#selectState">
                 <span class="state-pill state-pill--<%= state.to_s.tr('_', '-') %>"><%= state.to_s.tr('_', ' ').titleize %></span>
               </button>
             <% end %>
           </div>
         </div>
-        <button type="submit" class="btn btn--small btn--disabled" data-update-submit disabled>Update</button>
+        <button type="submit"
+                class="btn btn--small btn--disabled"
+                data-health-update-form-target="submit"
+                disabled>Update</button>
       </div>
-    </form>
+    <% end %>
   </div>
 
-  <div class="updates-list" data-updates-list>
-
+  <div class="updates-list">
     <!-- Existing Updates Header -->
-    <div class="updates-header" data-updates-header<%= ' hidden' unless @health_updates&.any? %>>
+    <div class="updates-header" data-health-update-form-target="updatesHeader"<%= ' hidden' unless @health_updates&.any? %>>
       <span class="updates-header__col updates-header__col--date">Date</span>
       <span class="updates-header__col updates-header__col--health">Health</span>
       <span class="updates-header__col updates-header__col--description">Description</span>
     </div>
 
     <!-- Existing Updates Container -->
-    <div data-updates-container>
+    <div id="updates-container" data-health-update-form-target="updatesContainer">
       <% if @health_updates&.any? %>
         <% @health_updates.each do |update| %>
-          <div class="update-row" data-update-row>
-            <span class="update-row__date"><%= update.date.strftime('%-m/%-d/%-y') %></span>
-            <span class="update-row__health">
-              <span class="health-indicator health-indicator--<%= update.health %>"></span>
-              <span class="health-text"><%= update.health.to_s.tr('_', ' ').titleize %></span>
-            </span>
-            <span class="update-row__description"><%= update.description.presence || '—' %></span>
-          </div>
+          <%= render "projects/update_row", update: update %>
         <% end %>
       <% end %>
     </div>
 
     <!-- Empty State -->
-    <div class="updates-empty" data-updates-empty<%= ' hidden' if @health_updates&.any? %>>No updates yet. Add your first update above!</div>
+    <div class="updates-empty" data-health-update-form-target="updatesEmpty"<%= ' hidden' if @health_updates&.any? %>>No updates yet. Add your first update above!</div>
   </div>
 </section>
+</turbo-frame>
 <% end %>
 
 <!-- Edit Modal -->
-<div class="modal-overlay" data-edit-modal hidden>
+<div class="modal-overlay"
+     data-edit-form-target="modal"
+     data-action="click->edit-form#closeOnBackdrop keydown.escape@document->edit-form#close"
+     hidden>
   <div class="modal">
     <div class="modal__header">
       <h3>Edit Project</h3>
     </div>
-    <form class="edit-project-form" data-edit-form>
+    <%= form_with model: @project_record,
+                  url: project_path(@project_record),
+                  method: :patch,
+                  local: false,
+                  class: "edit-project-form",
+                  data: { edit_form_target: "form", action: "submit->edit-form#submit" } do |f| %>
       <div class="modal__body">
         <div class="form-field">
           <label for="project_name" class="form-field__label">Name</label>
-          <input type="text" id="project_name" name="project[name]" class="form-field__input" value="<%= @project_record.name %>" required data-input-name>
+          <input type="text" id="project_name" name="project[name]" class="form-field__input" value="<%= @project_record.name %>" required>
         </div>
         <div class="form-field">
           <label for="project_description" class="form-field__label">Brief Description</label>
-          <input type="text" id="project_description" name="project[description]" class="form-field__input" value="<%= @project_record.description %>" data-input-description>
+          <input type="text" id="project_description" name="project[description]" class="form-field__input" value="<%= @project_record.description %>">
         </div>
         <div class="form-field">
           <label for="project_point_of_contact" class="form-field__label">Contact(s)</label>
-          <input type="text" id="project_point_of_contact" name="project[point_of_contact]" class="form-field__input" value="<%= @project_record.point_of_contact %>" data-input-poc>
+          <input type="text" id="project_point_of_contact" name="project[point_of_contact]" class="form-field__input" value="<%= @project_record.point_of_contact %>">
         </div>
         <div class="form-field form-field--archive">
           <span class="form-field__label">Archive this project and remove it from view?</span>
           <label class="checkbox-field">
             <input type="hidden" name="project[archived]" value="0">
-            <input type="checkbox" name="project[archived]" value="1" class="checkbox-field__input" <%= 'checked' if @project_record.archived %> data-archive-checkbox>
+            <input type="checkbox"
+                   name="project[archived]"
+                   value="1"
+                   class="checkbox-field__input"
+                   <%= 'checked' if @project_record.archived %>
+                   data-edit-form-target="archiveCheckbox"
+                   data-action="change->edit-form#updateArchiveLabel">
             <span class="checkbox-field__box"></span>
-            <span class="checkbox-field__label" data-archive-label><%= @project_record.archived ? 'This project is archived and hidden.' : 'Click checkbox to archive' %></span>
+            <span class="checkbox-field__label" data-edit-form-target="archiveLabel"><%= @project_record.archived ? 'This project is archived and hidden.' : 'Click checkbox to archive' %></span>
           </label>
         </div>
       </div>
       <div class="modal__actions">
-        <button type="button" class="btn secondary" data-edit-cancel>Cancel</button>
-        <button type="submit" class="btn" data-edit-save>Save</button>
+        <button type="button" class="btn secondary" data-action="edit-form#close">Cancel</button>
+        <button type="submit" class="btn" data-edit-form-target="saveButton">Save</button>
       </div>
-    </form>
+    <% end %>
   </div>
 </div>
+
+</div><!-- end edit-form controller wrapper -->
 
 <% if defined?(@errors) && @errors.present? %>
   <div class="errors">
@@ -619,590 +673,3 @@
     </ul>
   </div>
 <% end %>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const token = document.querySelector('meta[name="csrf-token"]')?.content;
-
-  // State dropdown (header)
-  const stateDropdown = document.querySelector('[data-state-dropdown]');
-  const stateToggle = document.querySelector('[data-state-toggle]');
-  const stateMenu = document.querySelector('[data-state-menu]');
-
-  if (stateDropdown && stateToggle && stateMenu) {
-    stateToggle.addEventListener('click', () => {
-      stateDropdown.classList.toggle('open');
-    });
-
-    stateMenu.querySelectorAll('button[data-state]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const state = btn.dataset.state;
-        stateDropdown.classList.remove('open');
-
-        fetch('<%= state_project_path(@project_record) %>', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-Token': token
-          },
-          body: JSON.stringify({ state })
-        }).then((resp) => {
-          if (resp.ok) {
-            window.location.reload();
-          }
-        }).catch((err) => console.error(err));
-      });
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!stateDropdown.contains(e.target)) {
-        stateDropdown.classList.remove('open');
-      }
-    });
-  }
-
-  // Edit modal
-  const editToggle = document.querySelector('[data-edit-toggle]');
-  const editModal = document.querySelector('[data-edit-modal]');
-  const editCancel = document.querySelector('[data-edit-cancel]');
-  const editForm = document.querySelector('[data-edit-form]');
-
-  const showEditModal = () => {
-    editModal.hidden = false;
-  };
-
-  const hideEditModal = () => {
-    editModal.hidden = true;
-  };
-
-  editToggle?.addEventListener('click', showEditModal);
-  editCancel?.addEventListener('click', hideEditModal);
-
-  editModal?.addEventListener('click', (e) => {
-    if (e.target === editModal) hideEditModal();
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && editModal && !editModal.hidden) {
-      hideEditModal();
-    }
-  });
-
-  // Dynamic archive checkbox label
-  const archiveCheckbox = document.querySelector('[data-archive-checkbox]');
-  const archiveLabel = document.querySelector('[data-archive-label]');
-
-  archiveCheckbox?.addEventListener('change', () => {
-    archiveLabel.textContent = archiveCheckbox.checked
-      ? 'This project is archived and hidden.'
-      : 'Click checkbox to archive';
-  });
-
-  // AJAX form submission
-  editForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const formData = new FormData(editForm);
-    const saveBtn = editForm.querySelector('[data-edit-save]');
-    const originalText = saveBtn.textContent;
-    saveBtn.textContent = 'Saving...';
-    saveBtn.disabled = true;
-
-    try {
-      const response = await fetch('<%= project_path(@project_record) %>', {
-        method: 'PATCH',
-        headers: {
-          'Accept': 'application/json',
-          'X-CSRF-Token': token
-        },
-        body: formData
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Update hero section
-        const titleEl = document.querySelector('[data-project-title]');
-        const taglineEl = document.querySelector('[data-project-tagline]');
-        const contactEl = document.querySelector('[data-project-contact]');
-        const pocEl = document.querySelector('[data-project-poc]');
-        const actionsEl = document.querySelector('.project-hero__actions');
-        let archivedBadge = document.querySelector('[data-archived-badge]');
-
-        const name = formData.get('project[name]');
-        const description = formData.get('project[description]');
-        const poc = formData.get('project[point_of_contact]');
-        const archived = formData.get('project[archived]') === '1';
-
-        if (titleEl) titleEl.textContent = name;
-
-        if (taglineEl) {
-          taglineEl.textContent = description;
-          taglineEl.hidden = !description;
-        }
-
-        if (contactEl && pocEl) {
-          pocEl.textContent = poc;
-          contactEl.hidden = !poc;
-        }
-
-        // Handle archived badge
-        if (archived && !archivedBadge) {
-          archivedBadge = document.createElement('span');
-          archivedBadge.className = 'badge badge--archived';
-          archivedBadge.setAttribute('data-archived-badge', '');
-          archivedBadge.textContent = 'ARCHIVED';
-          actionsEl.insertBefore(archivedBadge, actionsEl.firstChild);
-        } else if (!archived && archivedBadge) {
-          archivedBadge.remove();
-        }
-
-        hideEditModal();
-      } else {
-        const errorMsg = data.errors ? data.errors.join(', ') : 'Failed to save';
-        alert(errorMsg);
-      }
-    } catch (error) {
-      console.error(error);
-      alert('An error occurred. Please try again.');
-    } finally {
-      saveBtn.textContent = originalText;
-      saveBtn.disabled = false;
-    }
-  });
-
-  // Global search functionality
-  const globalSearch = document.querySelector('[data-global-search]');
-  const searchContainer = document.querySelector('[data-global-search-container]');
-  const searchResultsBox = document.querySelector('.section--search-results');
-
-  if (globalSearch && searchContainer && searchResultsBox) {
-    const columns = searchResultsBox.querySelectorAll('[data-results-column]');
-    const noResultsEl = searchResultsBox.querySelector('[data-no-results]');
-    const createNameInput = searchResultsBox.querySelector('[data-create-name]');
-    const resultsGrid = searchResultsBox.querySelector('.section__columns');
-    const resultsHeader = searchResultsBox.querySelector('[data-results-header]');
-
-    globalSearch.addEventListener('input', (e) => {
-      const query = e.target.value.trim();
-      const queryLower = query.toLowerCase();
-
-      if (query === '') {
-        searchContainer.classList.remove('open');
-        return;
-      }
-
-      searchContainer.classList.add('open');
-
-      let totalVisible = 0;
-
-      columns.forEach((column) => {
-        const items = column.querySelectorAll('.section__item--searchable');
-        let columnVisible = 0;
-
-        items.forEach((item) => {
-          const name = item.dataset.searchName || '';
-          const poc = item.dataset.searchPoc || '';
-          const matches = name.includes(queryLower) || poc.includes(queryLower);
-          item.hidden = !matches;
-          if (matches) columnVisible++;
-        });
-
-        column.hidden = columnVisible === 0;
-        totalVisible += columnVisible;
-      });
-
-      if (noResultsEl) {
-        noResultsEl.hidden = totalVisible > 0;
-        const capitalizedQuery = query.charAt(0).toUpperCase() + query.slice(1);
-        if (createNameInput) createNameInput.value = capitalizedQuery;
-      }
-
-      if (resultsGrid) resultsGrid.hidden = totalVisible === 0;
-      if (resultsHeader) resultsHeader.hidden = totalVisible === 0;
-    });
-
-    document.addEventListener('click', (e) => {
-      const globalSearchEl = document.querySelector('.global-search');
-      if (globalSearchEl && !globalSearchEl.contains(e.target)) {
-        searchContainer.classList.remove('open');
-        globalSearch.value = '';
-      }
-    });
-
-    globalSearch.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        searchContainer.classList.remove('open');
-        globalSearch.value = '';
-        globalSearch.blur();
-      }
-    });
-
-    const createForm = searchResultsBox.querySelector('[data-create-form]');
-    if (createForm) {
-      createForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(createForm);
-        const submitBtn = createForm.querySelector('.global-search__create-btn');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Creating...';
-        submitBtn.disabled = true;
-
-        try {
-          const response = await fetch(createForm.action, {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'X-CSRF-Token': formData.get('authenticity_token')
-            },
-            body: formData
-          });
-
-          const data = await response.json();
-
-          if (response.ok) {
-            showToast(`<a href="${data.url}">"${data.name}"</a> created as child project!`, 'success');
-            searchContainer.classList.remove('open');
-            globalSearch.value = '';
-            createForm.reset();
-          } else {
-            const errorMsg = data.errors ? data.errors.join(', ') : 'Failed to create child project';
-            showToast(errorMsg, 'error');
-          }
-        } catch (error) {
-          showToast('An error occurred. Please try again.', 'error');
-        } finally {
-          submitBtn.textContent = originalText;
-          submitBtn.disabled = false;
-        }
-      });
-    }
-  }
-
-  // Child projects tab switching
-  const childTabs = document.querySelectorAll('[data-child-tab]');
-  const childTabContents = document.querySelectorAll('[data-child-tab-content]');
-
-  childTabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      const tabName = tab.dataset.childTab;
-
-      childTabs.forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
-
-      childTabContents.forEach((content) => {
-        content.classList.toggle('active', content.dataset.childTabContent === tabName);
-      });
-    });
-  });
-
-  // Health picker buttons
-  const healthPicker = document.querySelector('[data-health-picker]');
-  const healthInput = document.querySelector('[data-health-input]');
-  const updateSubmit = document.querySelector('[data-update-submit]');
-
-  const selectHealth = (value) => {
-    if (!healthPicker) return;
-
-    const btn = healthPicker.querySelector(`[data-health-value="${value}"]`);
-    if (!btn) return;
-
-    // Deselect all, select this one
-    healthPicker.querySelectorAll('.health-picker__btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-
-    // Update hidden input
-    healthInput.value = value;
-
-    // Enable submit button
-    if (updateSubmit) {
-      updateSubmit.disabled = false;
-      updateSubmit.classList.remove('btn--disabled');
-    }
-  };
-
-  if (healthPicker) {
-    healthPicker.querySelectorAll('[data-health-value]').forEach((btn) => {
-      btn.addEventListener('click', () => selectHealth(btn.dataset.healthValue));
-    });
-
-    // Keyboard shortcuts: 1 = On Track, 2 = At Risk, 3 = Off Track
-    document.addEventListener('keydown', (e) => {
-      // Don't trigger if typing in an input/textarea
-      if (e.target.matches('input, textarea')) return;
-
-      switch (e.key) {
-        case '1':
-          selectHealth('on_track');
-          break;
-        case '2':
-          selectHealth('at_risk');
-          break;
-        case '3':
-          selectHealth('off_track');
-          break;
-      }
-    });
-  }
-
-  // State pill dropdown
-  const statePillDropdown = document.querySelector('[data-state-pill-dropdown]');
-  const statePillToggle = document.querySelector('[data-state-pill-toggle]');
-  const statePillMenu = document.querySelector('[data-state-pill-menu]');
-  const statePillInput = document.querySelector('[data-state-pill-input]');
-  const statePillDisplay = document.querySelector('[data-state-pill-display]');
-
-  if (statePillDropdown && statePillToggle && statePillMenu) {
-    statePillToggle.addEventListener('click', () => {
-      statePillDropdown.classList.toggle('open');
-    });
-
-    statePillMenu.querySelectorAll('[data-state-value]').forEach((option) => {
-      option.addEventListener('click', () => {
-        const value = option.dataset.stateValue;
-        const label = value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        const cssClass = value.replace(/_/g, '-');
-
-        statePillInput.value = value;
-        statePillDisplay.textContent = label;
-        statePillDisplay.className = `state-pill state-pill--${cssClass}`;
-        statePillDropdown.classList.remove('open');
-      });
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!statePillDropdown.contains(e.target)) {
-        statePillDropdown.classList.remove('open');
-      }
-    });
-  }
-
-  // Health update form AJAX submission
-  const updateForm = document.querySelector('[data-update-form]');
-  if (updateForm) {
-    updateForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const formData = new FormData(updateForm);
-      const submitBtn = updateForm.querySelector('[data-update-submit]');
-      const originalText = submitBtn.textContent;
-      submitBtn.textContent = 'Adding...';
-      submitBtn.disabled = true;
-
-      try {
-        const response = await fetch(updateForm.action, {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'X-CSRF-Token': token
-          },
-          body: formData
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          // Get form values before reset
-          const healthValue = healthInput.value;
-          const descInput = updateForm.querySelector('[data-update-description]');
-          const descValue = descInput.value || '—';
-
-          // Format today's date for display
-          const now = new Date();
-          const displayDate = `${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(2)}`;
-
-          // Create new update row
-          const newRow = document.createElement('div');
-          newRow.className = 'update-row';
-          newRow.setAttribute('data-update-row', '');
-          const healthLabelText = healthValue.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-          newRow.innerHTML = `
-            <span class="update-row__date">${displayDate}</span>
-            <span class="update-row__health">
-              <span class="health-indicator health-indicator--${healthValue}"></span>
-              <span class="health-text">${healthLabelText}</span>
-            </span>
-            <span class="update-row__description">${descValue}</span>
-          `;
-
-          // Show header, hide empty state
-          const header = document.querySelector('[data-updates-header]');
-          const emptyState = document.querySelector('[data-updates-empty]');
-          const container = document.querySelector('[data-updates-container]');
-
-          if (header) header.hidden = false;
-          if (emptyState) emptyState.hidden = true;
-
-          // Prepend new row
-          if (container) {
-            container.insertBefore(newRow, container.firstChild);
-          }
-
-          // Reset form (clear description, deselect health, disable button)
-          descInput.value = '';
-          healthInput.value = '';
-          healthPicker.querySelectorAll('.health-picker__btn').forEach(b => b.classList.remove('selected'));
-          submitBtn.classList.add('btn--disabled');
-
-          // Update metrics if health changed
-          if (data.health) {
-            const healthDotMetric = document.querySelector('.metric-widget__dot');
-            const healthLabelMetric = document.querySelector('.metric-widget--health .metric-widget__label');
-            if (healthDotMetric && healthLabelMetric) {
-              const newHealthClass = data.health.replace(/_/g, '-');
-              healthDotMetric.className = `metric-widget__dot metric-widget__dot--${newHealthClass}`;
-              healthLabelMetric.className = `metric-widget__label metric-widget__label--${newHealthClass}`;
-              healthLabelMetric.textContent = data.health.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-            }
-          }
-
-          // Update project state if changed
-          const newState = statePillInput?.value;
-          if (newState) {
-            try {
-              await fetch('<%= state_project_path(@project_record) %>', {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json',
-                  'X-CSRF-Token': token
-                },
-                body: JSON.stringify({ state: newState })
-              });
-
-              // Update state badges in UI
-              const stateBadges = document.querySelectorAll('[data-state-badge]');
-              const newStateLabel = newState.replace(/_/g, ' ').toUpperCase();
-              const newStateCss = newState.replace(/_/g, '-');
-              stateBadges.forEach(badge => {
-                badge.className = `badge state state--${newStateCss}`;
-                badge.textContent = newStateLabel;
-              });
-
-              // Reset the pill dropdown
-              statePillInput.value = '';
-            } catch (stateError) {
-              console.error('Failed to update state:', stateError);
-            }
-          }
-
-          showToast('Update added!', 'success');
-        } else {
-          const errorMsg = data.errors ? data.errors.join(', ') : 'Failed to add update';
-          showToast(errorMsg, 'error');
-        }
-      } catch (error) {
-        console.error(error);
-        showToast('An error occurred. Please try again.', 'error');
-      } finally {
-        submitBtn.textContent = originalText;
-        // Only re-enable if a health is still selected (for error cases)
-        if (healthInput.value) {
-          submitBtn.disabled = false;
-          submitBtn.classList.remove('btn--disabled');
-        }
-      }
-    });
-  }
-
-  // Toast notification function
-  function showToast(message, type = 'success') {
-    const container = document.querySelector('[data-toast-container]');
-    if (!container) return;
-
-    const toast = document.createElement('div');
-    toast.className = `toast toast--${type}`;
-    toast.innerHTML = message;
-
-    container.appendChild(toast);
-
-    requestAnimationFrame(() => {
-      toast.classList.add('toast--visible');
-    });
-
-    setTimeout(() => {
-      toast.classList.remove('toast--visible');
-      setTimeout(() => toast.remove(), 300);
-    }, 10000);
-
-    toast.addEventListener('click', (e) => {
-      if (e.target.tagName !== 'A') {
-        toast.classList.remove('toast--visible');
-        setTimeout(() => toast.remove(), 300);
-      }
-    });
-  }
-
-  // Toggle create child project section
-  const createChildToggle = document.querySelector('[data-toggle-create-child]');
-  const createChildSection = document.querySelector('[data-create-child-section]');
-
-  const showCreateChildForm = () => {
-    if (createChildSection && createChildToggle) {
-      createChildSection.hidden = false;
-      createChildToggle.classList.add('active');
-      createChildToggle.textContent = '×';
-      createChildSection.querySelector('input[name="project[name]"]')?.focus();
-    }
-  };
-
-  const hideCreateChildForm = () => {
-    if (createChildSection && createChildToggle) {
-      createChildSection.hidden = true;
-      createChildToggle.classList.remove('active');
-      createChildToggle.textContent = '+';
-    }
-  };
-
-  if (createChildToggle && createChildSection) {
-    createChildToggle.addEventListener('click', () => {
-      if (createChildSection.hidden) {
-        showCreateChildForm();
-      } else {
-        hideCreateChildForm();
-      }
-    });
-
-    // Handle form submission via AJAX
-    const createChildForm = document.querySelector('[data-create-child-form]');
-    if (createChildForm) {
-      createChildForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(createChildForm);
-        const submitBtn = createChildForm.querySelector('[data-child-submit]');
-        const originalText = submitBtn.textContent;
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Creating...';
-
-        try {
-          const response = await fetch(createChildForm.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'Accept': 'application/json'
-            }
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            showToast(`Created child project: <a href="${data.url}">${data.name}</a>`);
-            createChildForm.reset();
-            // Reload to show the new project
-            setTimeout(() => window.location.reload(), 1000);
-          } else {
-            const error = await response.json();
-            showToast(error.message || 'Failed to create project', 'error');
-          }
-        } catch (err) {
-          showToast('An error occurred', 'error');
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.textContent = originalText;
-        }
-      });
-    }
-  }
-});
-</script>

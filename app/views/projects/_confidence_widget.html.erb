@@ -1,0 +1,55 @@
+<%
+  confidence_score = local_assigns[:confidence_score] || 0
+  confidence_level = local_assigns[:confidence_level] || :low
+  confidence_factors = local_assigns[:confidence_factors] || {}
+
+  confidence_hint = case confidence_factors&.dig(:biggest_drag)
+  when :variance
+    "Volatile health trend"
+  when :staleness
+    "Data growing stale"
+  when :coverage
+    "Update coverage is uneven"
+  when :insufficient_data
+    "Building history..."
+  else
+    nil
+  end
+%>
+<div id="confidence-widget" class="metric-widget metric-widget--confidence metric-widget--confidence-<%= confidence_level %>">
+  <div class="metric-widget__title-row">
+    <span class="metric-widget__title">Confidence</span>
+    <div class="widget-info">
+      <span class="widget-info__icon">i</span>
+      <div class="widget-info__tooltip">
+        <div class="widget-info__methodology">Based on trend consistency and data freshness.</div>
+        <div class="widget-info__range">
+          <div>Range: 0–100</div>
+          <div>High ≥70</div>
+          <div>Medium ≥40</div>
+          <div>Low &lt;40</div>
+        </div>
+        <div class="widget-info__score">Score: <%= confidence_score %></div>
+      </div>
+    </div>
+  </div>
+  <div class="metric-widget__content">
+    <div class="confidence-ring">
+      <svg viewBox="0 0 44 44">
+        <circle class="confidence-ring__bg" cx="22" cy="22" r="18" />
+        <% circumference = 2 * Math::PI * 18 %>
+        <% offset = circumference - (confidence_score / 100.0 * circumference) %>
+        <circle class="confidence-ring__fill confidence-ring__fill--<%= confidence_level %>"
+                cx="22" cy="22" r="18"
+                stroke-dasharray="<%= circumference.round(1) %>"
+                stroke-dashoffset="<%= offset.round(1) %>" />
+      </svg>
+    </div>
+    <div class="metric-widget__text">
+      <div class="metric-widget__label confidence-label--<%= confidence_level %>"><%= confidence_level.to_s.titleize %></div>
+      <% if confidence_hint && confidence_level != :high %>
+        <span class="metric-widget__hint"><%= confidence_hint %></span>
+      <% end %>
+    </div>
+  </div>
+</div>

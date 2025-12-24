@@ -23,15 +23,16 @@
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
   </head>
 
   <body>
     <div class="page">
 
       <% flash.each do |_, message| %>
-        <div class="flash">
+        <div class="flash" data-controller="flash">
           <span class="flash__message"><%= message %></span>
-          <button type="button" class="flash__close" aria-label="Dismiss" data-dismiss-flash>&times;</button>
+          <button type="button" class="flash__close" aria-label="Dismiss" data-action="flash#dismiss">&times;</button>
         </div>
       <% end %>
 

@@ -208,6 +208,21 @@ class ProjectsController < ApplicationController
     )
 
     respond_to do |format|
+      format.turbo_stream do
+        if result.success?
+          @health_update = result.value
+          @project_record = ProjectRecord.find(params[:id])
+          @project = project_actions.find_project.perform(id: params[:id]).value
+          prepare_trend_data(project: @project)
+          render :create_health_update
+        else
+          render turbo_stream: turbo_stream.replace(
+            "updates-section",
+            partial: "projects/health_update_errors",
+            locals: { errors: result.errors }
+          )
+        end
+      end
       format.json { render_health_update_result(result) }
       format.html do
         if result.success?
