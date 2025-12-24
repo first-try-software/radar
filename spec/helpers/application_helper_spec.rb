@@ -699,7 +699,7 @@ RSpec.describe ApplicationHelper, type: :helper do
   end
 
   describe '#project_breadcrumb' do
-    it 'returns Status breadcrumb when project has no parent or team' do
+    it 'returns Radar breadcrumb when project has no parent or team' do
       project = double('Project', parent: nil, owning_team: nil)
       allow(project).to receive(:respond_to?).with(:owning_team).and_return(true)
       allow(project).to receive(:respond_to?).with(:parent).and_return(true)
@@ -707,7 +707,7 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.project_breadcrumb(project, project_record)
 
-      expect(result).to include('Status')
+      expect(result).to include('Radar')
       expect(result).to include('breadcrumb__link')
     end
 
@@ -725,7 +725,7 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.project_breadcrumb(child, child_record)
 
-      expect(result).to include('Status')
+      expect(result).to include('Radar')
       expect(result).to include('Parent Project')
     end
 
@@ -742,20 +742,20 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.project_breadcrumb(project, project_record)
 
-      expect(result).to include('Status')
+      expect(result).to include('Radar')
       expect(result).to include('Platform')
     end
   end
 
   describe '#team_breadcrumb' do
-    it 'returns Status breadcrumb when team has no parent' do
+    it 'returns Radar breadcrumb when team has no parent' do
       team = double('Team', parent_team: nil)
       allow(team).to receive(:respond_to?).with(:parent_team).and_return(true)
       team_record = TeamRecord.create!(name: 'Root Team')
 
       result = helper.team_breadcrumb(team, team_record)
 
-      expect(result).to include('Status')
+      expect(result).to include('Radar')
       expect(result).to include('breadcrumb__link')
     end
 
@@ -771,19 +771,19 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.team_breadcrumb(child, child_record)
 
-      expect(result).to include('Status')
+      expect(result).to include('Radar')
       expect(result).to include('Engineering')
     end
   end
 
   describe '#initiative_breadcrumb' do
-    it 'returns breadcrumb with just Status for initiatives' do
+    it 'returns breadcrumb with just Radar for initiatives' do
       initiative = double('Initiative')
       initiative_record = InitiativeRecord.create!(name: 'Q1 Goals')
 
       result = helper.initiative_breadcrumb(initiative, initiative_record)
 
-      expect(result).to include('Status')
+      expect(result).to include('Radar')
       expect(result).to include('breadcrumb__link')
     end
   end
@@ -833,8 +833,8 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.team_breadcrumb(team, team_record)
 
-      # Should still include Status breadcrumb
-      expect(result).to include('Status')
+      # Should still include Radar breadcrumb
+      expect(result).to include('Radar')
       expect(result).to include('breadcrumb__link')
     end
 
@@ -847,8 +847,8 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.project_breadcrumb(project, project_record)
 
-      # Should still include Status breadcrumb
-      expect(result).to include('Status')
+      # Should still include Radar breadcrumb
+      expect(result).to include('Radar')
       expect(result).to include('breadcrumb__link')
     end
 
@@ -864,8 +864,8 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.team_breadcrumb(child, child_record)
 
-      # Should only include Status (parent record doesn't exist)
-      expect(result).to include('Status')
+      # Should only include Radar (parent record doesn't exist)
+      expect(result).to include('Radar')
       expect(result).to include('breadcrumb__link')
     end
 
@@ -883,7 +883,7 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.project_breadcrumb(child, child_record)
 
-      expect(result).to include('Status')
+      expect(result).to include('Radar')
       expect(result).to include('ParentNoMethod')
     end
 
@@ -899,7 +899,7 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.team_breadcrumb(child, child_record)
 
-      expect(result).to include('Status')
+      expect(result).to include('Radar')
       expect(result).to include('ParentTeam')
     end
 
@@ -916,8 +916,8 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       result = helper.project_breadcrumb(child, child_record)
 
-      # Parent record doesn't exist so it shouldn't appear, just Status
-      expect(result).to include('Status')
+      # Parent record doesn't exist so it shouldn't appear, just Radar
+      expect(result).to include('Radar')
       expect(result).to include('breadcrumb__link')
     end
   end

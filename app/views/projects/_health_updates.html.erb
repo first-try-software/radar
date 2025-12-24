@@ -1,0 +1,103 @@
+<%
+  project = local_assigns[:project]
+  project_record = local_assigns[:project_record]
+  health_updates = local_assigns[:health_updates] || []
+  allowed_states = local_assigns[:allowed_states] || SetProjectState::SETTABLE_STATES
+
+  is_leaf = project.respond_to?(:leaf?) ? project.leaf? : false
+  return unless is_leaf
+%>
+
+<turbo-frame id="updates-section">
+<section class="section section--updates">
+  <h3 class="section__title">Updates</h3>
+
+  <!-- Create Update Form -->
+  <div class="inline-create-section"
+       data-controller="health-update-form"
+       data-health-update-form-state-url-value="<%= state_project_path(project_record) %>"
+       data-action="health-picker:selected->health-update-form#healthSelected health-picker:reset->health-update-form#healthReset">
+    <%= form_with url: health_updates_project_path(project_record),
+                  method: :post,
+                  local: false,
+                  class: "update-form",
+                  data: { health_update_form_target: "form", action: "submit->health-update-form#submit" } do |f| %>
+      <input type="hidden" name="health_update[date]" value="<%= Date.current.strftime('%Y-%m-%d') %>">
+      <input type="hidden" name="health_update[health]" value="" data-health-update-form-target="healthInput">
+      <div class="inline-create-form__row">
+        <div class="health-picker" data-controller="health-picker">
+          <button type="button"
+                  class="health-picker__btn health-picker__btn--on_track"
+                  data-health-picker-target="button"
+                  data-health-picker-value="on_track"
+                  data-action="health-picker#select"
+                  title="On Track">
+            <span class="health-picker__dot"></span>
+          </button>
+          <button type="button"
+                  class="health-picker__btn health-picker__btn--at_risk"
+                  data-health-picker-target="button"
+                  data-health-picker-value="at_risk"
+                  data-action="health-picker#select"
+                  title="At Risk">
+            <span class="health-picker__dot"></span>
+          </button>
+          <button type="button"
+                  class="health-picker__btn health-picker__btn--off_track"
+                  data-health-picker-target="button"
+                  data-health-picker-value="off_track"
+                  data-action="health-picker#select"
+                  title="Off Track">
+            <span class="health-picker__dot"></span>
+          </button>
+        </div>
+        <input type="text"
+               name="health_update[description]"
+               class="inline-create-form__input"
+               placeholder="What's the current status? Any blockers?"
+               data-health-update-form-target="description"
+               data-action="keydown->health-update-form#handleInputKeydown">
+        <div class="state-pill-dropdown" data-health-update-form-target="stateDropdown">
+          <button type="button" class="state-pill-toggle" data-action="health-update-form#toggleStateDropdown">
+            <span class="state-pill state-pill--<%= project.current_state.to_s.tr('_', '-') %>" data-health-update-form-target="stateDisplay"><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
+            <span class="state-pill-arrow">▾</span>
+          </button>
+          <input type="hidden" name="project_state" value="" data-health-update-form-target="stateInput">
+          <div class="state-pill-menu">
+            <% allowed_states.each do |state| %>
+              <button type="button" class="state-pill-option" data-state-value="<%= state %>" data-action="health-update-form#selectState">
+                <span class="state-pill state-pill--<%= state.to_s.tr('_', '-') %>"><%= state.to_s.tr('_', ' ').titleize %></span>
+              </button>
+            <% end %>
+          </div>
+        </div>
+        <button type="submit"
+                class="btn btn--small btn--disabled"
+                data-health-update-form-target="submit"
+                disabled>Update</button>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="updates-list">
+    <!-- Existing Updates Header -->
+    <div class="updates-header" data-health-update-form-target="updatesHeader"<%= ' hidden' unless health_updates.any? %>>
+      <span class="updates-header__col updates-header__col--date">Date</span>
+      <span class="updates-header__col updates-header__col--health">Health</span>
+      <span class="updates-header__col updates-header__col--description">Description</span>
+    </div>
+
+    <!-- Existing Updates Container -->
+    <div id="updates-container" data-health-update-form-target="updatesContainer">
+      <% if health_updates.any? %>
+        <% health_updates.each do |update| %>
+          <%= render "projects/update_row", update: update %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Empty State -->
+    <div class="updates-empty" data-health-update-form-target="updatesEmpty"<%= ' hidden' if health_updates.any? %>>No updates yet. Add your first update above!</div>
+  </div>
+</section>
+</turbo-frame>
