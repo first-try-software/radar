@@ -22,20 +22,20 @@
 <div id="health-widget" class="metric-widget metric-widget--health metric-widget--<%= health_class %>">
   <div class="metric-widget__title-row">
     <span class="metric-widget__title">Current Health</span>
-    <div class="widget-info">
-      <span class="widget-info__icon">i</span>
-      <div class="widget-info__tooltip">
+    <div class="info-tooltip">
+      <span class="info-tooltip__icon">i</span>
+      <div class="info-tooltip__tooltip">
         <% if is_leaf %>
-          <div class="widget-info__methodology">Based on the most recent health update for this project.</div>
+          <div class="info-tooltip__methodology">Based on the most recent health update for this project.</div>
         <% else %>
-          <div class="widget-info__methodology">Average of all leaf-node project health scores.</div>
+          <div class="info-tooltip__methodology">Average of all leaf-node project health scores.</div>
         <% end %>
-        <div class="widget-info__range">
+        <div class="info-tooltip__range">
           <div>On Track = +1</div>
           <div>At Risk = 0</div>
           <div>Off Track = −1</div>
         </div>
-        <div class="widget-info__score">Score: <%= raw_score_display %></div>
+        <div class="info-tooltip__score">Score: <%= raw_score_display %></div>
       </div>
     </div>
   </div>

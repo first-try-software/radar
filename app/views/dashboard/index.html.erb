@@ -56,16 +56,16 @@
     <div class="metric-widget metric-widget--health metric-widget--<%= health_class %>">
       <div class="metric-widget__title-row">
         <span class="metric-widget__title">Current Health</span>
-        <div class="widget-info">
-          <span class="widget-info__icon">i</span>
-            <div class="widget-info__tooltip">
-              <div class="widget-info__methodology">Average of team and initiative health scores, equally weighted.</div>
-              <div class="widget-info__range">
+        <div class="info-tooltip">
+          <span class="info-tooltip__icon">i</span>
+            <div class="info-tooltip__tooltip">
+              <div class="info-tooltip__methodology">Average of team and initiative health scores, equally weighted.</div>
+              <div class="info-tooltip__range">
                 <div>On Track = +1</div>
                 <div>At Risk = 0</div>
                 <div>Off Track = −1</div>
               </div>
-              <div class="widget-info__score">Score: <%= raw_score_display %></div>
+              <div class="info-tooltip__score">Score: <%= raw_score_display %></div>
             </div>
         </div>
       </div>
@@ -86,12 +86,12 @@
       <div class="metric-widget__header">
         <span class="metric-widget__title">6-Week Trend</span>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <div class="widget-info">
-            <span class="widget-info__icon">i</span>
-            <div class="widget-info__tooltip">
-              <div class="widget-info__methodology">Weekly average health scores over the past 6 weeks from oldest to newest.</div>
-              <div class="widget-info__range">Range: −1.0 to +1.0 per week</div>
-              <div class="widget-info__score">Delta: <%= @trend_delta >= 0 ? '+' : '' %><%= @trend_delta.round(2) %> (<%= @weeks_of_data %> weeks)</div>
+          <div class="info-tooltip">
+            <span class="info-tooltip__icon">i</span>
+            <div class="info-tooltip__tooltip">
+              <div class="info-tooltip__methodology">Weekly average health scores over the past 6 weeks from oldest to newest.</div>
+              <div class="info-tooltip__range">Range: −1.0 to +1.0 per week</div>
+              <div class="info-tooltip__score">Delta: <%= @trend_delta >= 0 ? '+' : '' %><%= @trend_delta.round(2) %> (<%= @weeks_of_data %> weeks)</div>
             </div>
           </div>
         </div>
@@ -150,17 +150,17 @@
     <div class="metric-widget metric-widget--confidence metric-widget--confidence-<%= @confidence_level %>">
       <div class="metric-widget__title-row">
         <span class="metric-widget__title">Confidence</span>
-        <div class="widget-info">
-          <span class="widget-info__icon">i</span>
-            <div class="widget-info__tooltip">
-              <div class="widget-info__methodology">Based on trend consistency, data freshness, and project coverage. Lower variance and recent updates increase confidence.</div>
-              <div class="widget-info__range">
+        <div class="info-tooltip">
+          <span class="info-tooltip__icon">i</span>
+            <div class="info-tooltip__tooltip">
+              <div class="info-tooltip__methodology">Based on trend consistency, data freshness, and project coverage. Lower variance and recent updates increase confidence.</div>
+              <div class="info-tooltip__range">
                 <div>Range: 0–100</div>
                 <div>High ≥70</div>
                 <div>Medium ≥40</div>
                 <div>Low &lt;40</div>
               </div>
-              <div class="widget-info__score">Score: <%= @confidence_score %></div>
+              <div class="info-tooltip__score">Score: <%= @confidence_score %></div>
             </div>
         </div>
       </div>

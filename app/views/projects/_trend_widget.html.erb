@@ -10,12 +10,12 @@
   <div class="metric-widget__header">
     <span class="metric-widget__title">6-Week Trend</span>
     <div style="display: flex; align-items: center; gap: 8px;">
-      <div class="widget-info">
-        <span class="widget-info__icon">i</span>
-        <div class="widget-info__tooltip">
-          <div class="widget-info__methodology">Weekly average health scores over the past 6 weeks.</div>
-          <div class="widget-info__range">Range: −1.0 to +1.0 per week</div>
-          <div class="widget-info__score">Delta: <%= trend_delta >= 0 ? '+' : '' %><%= trend_delta.round(2) %> (<%= weeks_of_data %> weeks)</div>
+      <div class="info-tooltip">
+        <span class="info-tooltip__icon">i</span>
+        <div class="info-tooltip__tooltip">
+          <div class="info-tooltip__methodology">Weekly average health scores over the past 6 weeks.</div>
+          <div class="info-tooltip__range">Range: −1.0 to +1.0 per week</div>
+          <div class="info-tooltip__score">Delta: <%= trend_delta >= 0 ? '+' : '' %><%= trend_delta.round(2) %> (<%= weeks_of_data %> weeks)</div>
         </div>
       </div>
     </div>
