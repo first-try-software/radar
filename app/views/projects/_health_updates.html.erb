@@ -10,7 +10,20 @@
 
 <turbo-frame id="updates-section">
 <section class="section section--updates">
-  <h3 class="section__title">Updates</h3>
+  <div class="section__header">
+    <h3 class="section__title">Health Updates</h3>
+    <div class="widget-info">
+      <span class="widget-info__icon">i</span>
+      <div class="widget-info__tooltip widget-info__tooltip--left">
+        <div class="widget-info__methodology">Health updates track your project's status over time. They feed the Health, Trend, and Confidence widgets above.</div>
+        <div class="widget-info__range">
+          <div>• One update per day maximum</div>
+          <div>• Latest update for a day replaces earlier ones</div>
+          <div>• Use 1, 2, 3 keys to quickly select health</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Create Update Form -->
   <div class="inline-create-section"
@@ -72,9 +85,8 @@
           </div>
         </div>
         <button type="submit"
-                class="btn btn--small btn--disabled"
-                data-health-update-form-target="submit"
-                disabled>Update</button>
+                class="btn btn--small"
+                data-health-update-form-target="submit">Add</button>
       </div>
     <% end %>
   </div>

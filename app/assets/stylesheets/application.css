@@ -1841,6 +1841,23 @@ input::placeholder {
   margin: 0 0 16px 0;
 }
 
+.section__title--with-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.section__header .section__title {
+  margin: 0;
+}
+
 .section__title--inline {
   font-size: 14px;
   font-weight: 600;
@@ -2086,6 +2103,17 @@ input::placeholder {
   margin: 0 0 8px 0;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--card-border);
+}
+
+.section__title .section__subtitle {
+  font-size: 0.65em;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-muted);
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 
 .section__item--searchable {
@@ -3410,6 +3438,16 @@ input::placeholder {
 .widget-info:hover .widget-info__tooltip {
   opacity: 1;
   visibility: visible;
+}
+
+.widget-info__tooltip--left {
+  right: auto;
+  left: 0;
+}
+
+.widget-info__tooltip--left::before {
+  right: auto;
+  left: 8px;
 }
 
 .widget-info__methodology {

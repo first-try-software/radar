@@ -24,10 +24,6 @@ export default class extends Controller {
     if (this.hasHealthInputTarget) {
       this.healthInputTarget.value = value
     }
-    if (this.hasSubmitTarget) {
-      this.submitTarget.disabled = false
-      this.submitTarget.classList.remove("btn--disabled")
-    }
   }
 
   // Called when health picker dispatches "reset" event
@@ -35,20 +31,13 @@ export default class extends Controller {
     if (this.hasHealthInputTarget) {
       this.healthInputTarget.value = ""
     }
-    if (this.hasSubmitTarget) {
-      this.submitTarget.disabled = true
-      this.submitTarget.classList.add("btn--disabled")
-    }
   }
 
   // Handle Enter key in input - submit form
   handleInputKeydown(event) {
     if (event.key === "Enter") {
       event.preventDefault()
-      // Only submit if form is valid (health selected)
-      if (this.hasHealthInputTarget && this.healthInputTarget.value && this.hasFormTarget) {
-        this.performSubmit()
-      }
+      this.performSubmit()
     }
   }
 
@@ -88,9 +77,15 @@ export default class extends Controller {
     this.performSubmit()
   }
 
-  // Core submit logic - called by both submit() and handleTextareaKeydown()
+  // Core submit logic - called by both submit() and handleInputKeydown()
   async performSubmit() {
     if (!this.hasFormTarget) return
+
+    // Validate health is selected
+    if (!this.hasHealthInputTarget || !this.healthInputTarget.value) {
+      this.showToast("Please select a health status first", "error")
+      return
+    }
 
     const form = this.formTarget
     const formData = new FormData(form)
@@ -133,12 +128,8 @@ export default class extends Controller {
       console.error(error)
       this.showToast("An error occurred. Please try again.", "error")
     } finally {
-      this.submitTarget.textContent = "Update"
-      // Only re-enable if health is selected
-      if (this.hasHealthInputTarget && this.healthInputTarget.value) {
-        this.submitTarget.disabled = false
-        this.submitTarget.classList.remove("btn--disabled")
-      }
+      this.submitTarget.textContent = "Add"
+      this.submitTarget.disabled = false
     }
   }
 
@@ -230,11 +221,6 @@ export default class extends Controller {
     const picker = this.element.querySelector("[data-controller*='health-picker']")
     if (picker) {
       picker.querySelectorAll(".health-picker__btn").forEach(btn => btn.classList.remove("selected"))
-    }
-
-    if (this.hasSubmitTarget) {
-      this.submitTarget.disabled = true
-      this.submitTarget.classList.add("btn--disabled")
     }
   }
 

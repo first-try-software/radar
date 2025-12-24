@@ -9,167 +9,26 @@
   confidence_score = local_assigns[:confidence_score] || 0
   confidence_level = local_assigns[:confidence_level] || :low
   confidence_factors = local_assigns[:confidence_factors] || {}
-
-  health = project_health || :not_available
-  health_class = health.to_s.tr('_', '-')
-
-  total = health_summary[:on_track] + health_summary[:at_risk] + health_summary[:off_track]
-  raw_score = if total > 0
-    (health_summary[:on_track] * 1 + health_summary[:at_risk] * 0 + health_summary[:off_track] * -1).to_f / total
-  else
-    nil
-  end
-  raw_score_display = raw_score ? raw_score.round(2) : 'N/A'
-  is_leaf = project.leaf?
-
-  # Calculate off-track and active counts from direct children
-  unless is_leaf
-    children = project.respond_to?(:children) ? project.children : []
-    active_states = [:in_progress, :blocked]
-    active_children = children.select { |p| active_states.include?(p.current_state) }
-    off_track_active = active_children.select { |p| p.health == :off_track }
-    off_track_count = off_track_active.size
-    active_count = active_children.size
-  end
-
-  trend_class = weeks_of_data >= 2 ? "trend-#{trend_direction}" : 'trend-insufficient'
-
-  confidence_hint = case confidence_factors&.dig(:biggest_drag)
-  when :variance
-    "Volatile health trend"
-  when :staleness
-    "Data growing stale"
-  when :coverage
-    "Update coverage is uneven"
-  when :insufficient_data
-    "Building history..."
-  else
-    nil
-  end
 %>
 
 <turbo-frame id="metrics-row">
 <div class="initiative-dashboard-v2">
   <div class="metrics-row-v2">
-    <!-- Health Widget -->
-    <div id="health-widget" class="metric-widget metric-widget--health metric-widget--<%= health_class %>">
-      <div class="metric-widget__title-row">
-        <span class="metric-widget__title">Current Health</span>
-        <div class="widget-info">
-          <span class="widget-info__icon">i</span>
-          <div class="widget-info__tooltip">
-            <% if is_leaf %>
-              <div class="widget-info__methodology">Based on the most recent health update for this project.</div>
-            <% else %>
-              <div class="widget-info__methodology">Average of all leaf-node project health scores.</div>
-            <% end %>
-            <div class="widget-info__range">
-              <div>On Track = +1</div>
-              <div>At Risk = 0</div>
-              <div>Off Track = −1</div>
-            </div>
-            <div class="widget-info__score">Score: <%= raw_score_display %></div>
-          </div>
-        </div>
-      </div>
-      <div class="metric-widget__content">
-        <span class="metric-widget__dot metric-widget__dot--<%= health_class %>"></span>
-        <div class="metric-widget__text">
-          <div class="metric-widget__label metric-widget__label--<%= health_class %>"><%= health.to_s.tr('_', ' ').titleize %></div>
-          <% if !is_leaf && off_track_count && off_track_count > 0 %>
-            <div class="metric-widget__detail"><%= off_track_count %> of <%= active_count %> child <%= 'project'.pluralize(active_count) %> off-track</div>
-          <% end %>
-        </div>
-      </div>
-    </div>
+    <%= render "projects/health_widget",
+        project: project,
+        project_health: project_health,
+        health_summary: health_summary %>
 
-    <!-- Trend Widget -->
-    <div id="trend-widget" class="metric-widget metric-widget--trend metric-widget--<%= trend_class %>">
-      <div class="metric-widget__header">
-        <span class="metric-widget__title">6-Week Trend</span>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div class="widget-info">
-            <span class="widget-info__icon">i</span>
-            <div class="widget-info__tooltip">
-              <div class="widget-info__methodology">Weekly average health scores over the past 6 weeks.</div>
-              <div class="widget-info__range">Range: −1.0 to +1.0 per week</div>
-              <div class="widget-info__score">Delta: <%= trend_delta >= 0 ? '+' : '' %><%= trend_delta.round(2) %> (<%= weeks_of_data %> weeks)</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="metric-widget__chart">
-        <% if weeks_of_data >= 2 %>
-          <svg viewBox="0 0 200 50" preserveAspectRatio="none" class="trend-svg">
-            <defs>
-              <linearGradient id="project-trend-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <% trend_data.each_with_index do |point, i| %>
-                  <% offset = (i.to_f / [trend_data.length - 1, 1].max * 100).round %>
-                  <% color = point[:health] == :on_track ? '#22c55e' : (point[:health] == :off_track ? '#ef4444' : '#f59e0b') %>
-                  <stop offset="<%= offset %>%" stop-color="<%= color %>" />
-                <% end %>
-              </linearGradient>
-            </defs>
-            <%
-              points = trend_data.each_with_index.map do |point, i|
-                x = (i.to_f / [trend_data.length - 1, 1].max * 180) + 10
-                y = 45 - ((point[:score] + 1) / 2.0 * 40)
-                [x, y]
-              end
-              points_str = points.map { |p| "#{p[0].round(1)},#{p[1].round(1)}" }.join(' ')
-            %>
-            <polyline class="trend-line-v2" stroke="url(#project-trend-gradient)" points="<%= points_str %>" />
-            <% points.each_with_index do |p, i| %>
-              <% pt_health = trend_data[i][:health] %>
-              <circle cx="<%= p[0].round(1) %>" cy="<%= p[1].round(1) %>" r="4" class="trend-point-v2 trend-point-v2--<%= pt_health %>" />
-            <% end %>
-          </svg>
-        <% elsif weeks_of_data == 1 %>
-          <div class="metric-widget__no-data">1 week of data</div>
-        <% else %>
-          <div class="metric-widget__no-data">Insufficient data</div>
-        <% end %>
-      </div>
-    </div>
+    <%= render "projects/trend_widget",
+        weeks_of_data: weeks_of_data,
+        trend_direction: trend_direction,
+        trend_delta: trend_delta,
+        trend_data: trend_data %>
 
-    <!-- Confidence Widget -->
-    <div id="confidence-widget" class="metric-widget metric-widget--confidence metric-widget--confidence-<%= confidence_level %>">
-      <div class="metric-widget__title-row">
-        <span class="metric-widget__title">Confidence</span>
-        <div class="widget-info">
-          <span class="widget-info__icon">i</span>
-          <div class="widget-info__tooltip">
-            <div class="widget-info__methodology">Based on trend consistency and data freshness.</div>
-            <div class="widget-info__range">
-              <div>Range: 0–100</div>
-              <div>High ≥70</div>
-              <div>Medium ≥40</div>
-              <div>Low &lt;40</div>
-            </div>
-            <div class="widget-info__score">Score: <%= confidence_score %></div>
-          </div>
-        </div>
-      </div>
-      <div class="metric-widget__content">
-        <div class="confidence-ring">
-          <svg viewBox="0 0 44 44">
-            <circle class="confidence-ring__bg" cx="22" cy="22" r="18" />
-            <% circumference = 2 * Math::PI * 18 %>
-            <% offset = circumference - (confidence_score / 100.0 * circumference) %>
-            <circle class="confidence-ring__fill confidence-ring__fill--<%= confidence_level %>"
-                    cx="22" cy="22" r="18"
-                    stroke-dasharray="<%= circumference.round(1) %>"
-                    stroke-dashoffset="<%= offset.round(1) %>" />
-          </svg>
-        </div>
-        <div class="metric-widget__text">
-          <div class="metric-widget__label confidence-label--<%= confidence_level %>"><%= confidence_level.to_s.titleize %></div>
-          <% if confidence_hint && confidence_level != :high %>
-            <span class="metric-widget__hint"><%= confidence_hint %></span>
-          <% end %>
-        </div>
-      </div>
-    </div>
+    <%= render "projects/confidence_widget",
+        confidence_score: confidence_score,
+        confidence_level: confidence_level,
+        confidence_factors: confidence_factors %>
   </div>
 </div>
 </turbo-frame>
