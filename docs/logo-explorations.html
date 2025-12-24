@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Status Logo Explorations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1021;
+      --card: #111833;
+      --card-border: #1f2a4d;
+      --text: #e7ecff;
+      --muted: #9fb0d6;
+      --accent: #6aa7ff;
+      --accent-strong: #4c8dff;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --navy: #1a1f3c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Montserrat", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 60px 40px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+
+    h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 60px 0 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--muted);
+      margin: 32px 0 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    p {
+      color: var(--muted);
+      margin-bottom: 16px;
+      max-width: 700px;
+    }
+
+    .intro {
+      font-size: 20px;
+      margin-bottom: 40px;
+    }
+
+    .logo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+
+    .logo-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 280px;
+    }
+
+    .logo-card--light {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+
+    .logo-card svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .logo-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .logo-card--light .logo-label {
+      color: #64748b;
+    }
+
+    .logo-description {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 8px;
+      max-width: 220px;
+    }
+
+    .lockup-row {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 24px 0;
+      padding: 40px;
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+    }
+
+    .lockup-row--light {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+
+    /* Radar animation */
+    @keyframes radar-sweep {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .radar-sweep {
+      transform-origin: center;
+      animation: radar-sweep 3s linear infinite;
+    }
+
+    .radar-sweep--slow {
+      animation-duration: 4s;
+    }
+
+    /* Pulse animation for dots */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .pulse-dot {
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .pulse-dot--delay-1 { animation-delay: 0.3s; }
+    .pulse-dot--delay-2 { animation-delay: 0.6s; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Logo Explorations</h1>
+    <p class="intro">
+      Additional concepts exploring horizontal icon arrangements and radar-inspired designs 
+      that connect to "The Bridge" navigation theme.
+    </p>
+
+    <!-- HORIZONTAL ICONS -->
+    <h2>Concept A: Horizontal Icons</h2>
+    <p>
+      The three health status shapes arranged horizontally within the circle, 
+      creating a clean, scannable status bar feel.
+    </p>
+
+    <div class="logo-grid">
+      <!-- A1: Simple horizontal row -->
+      <div class="logo-card">
+        <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+          <!-- Three shapes in a row, centered -->
+          <circle cx="50" cy="90" r="14" fill="#22c55e"/>
+          <path d="M90 76 L102 102 L78 102 Z" fill="#f59e0b"/>
+          <rect x="116" y="76" width="26" height="26" rx="4" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">A1: Horizontal Row</span>
+        <span class="logo-description">Clean, minimal status bar arrangement</span>
+      </div>
+
+      <!-- A2: Horizontal with connecting line -->
+      <div class="logo-card">
+        <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+          <!-- Connecting line -->
+          <line x1="50" y1="90" x2="130" y2="90" stroke="#3d5a99" stroke-width="4" stroke-linecap="round"/>
+          <!-- Three shapes -->
+          <circle cx="50" cy="90" r="14" fill="#22c55e"/>
+          <path d="M90 76 L102 102 L78 102 Z" fill="#f59e0b"/>
+          <rect x="116" y="76" width="26" height="26" rx="4" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">A2: Connected Flow</span>
+        <span class="logo-description">Visual progression from good to bad</span>
+      </div>
+
+      <!-- A3: Horizontal with gradient background -->
+      <div class="logo-card">
+        <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="statusGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#22c55e" stop-opacity="0.2"/>
+              <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.2"/>
+              <stop offset="100%" stop-color="#ef4444" stop-opacity="0.2"/>
+            </linearGradient>
+          </defs>
+          <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+          <!-- Gradient bar behind icons -->
+          <rect x="35" y="78" rx="12" width="110" height="24" fill="url(#statusGradient)"/>
+          <!-- Three shapes -->
+          <circle cx="50" cy="90" r="12" fill="#22c55e"/>
+          <path d="M90 78 L100 100 L80 100 Z" fill="#f59e0b"/>
+          <rect x="118" y="78" width="22" height="22" rx="3" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">A3: Spectrum Bar</span>
+        <span class="logo-description">Health spectrum visualization</span>
+      </div>
+
+      <!-- A4: Stacked horizontal with "S" letterform hint -->
+      <div class="logo-card">
+        <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+          <!-- Three shapes offset to suggest "S" flow -->
+          <circle cx="55" cy="55" r="14" fill="#22c55e"/>
+          <path d="M90 78 L102 104 L78 104 Z" fill="#f59e0b"/>
+          <rect x="111" y="111" width="24" height="24" rx="4" fill="#ef4444"/>
+          <!-- Connecting curve (subtle S) -->
+          <path d="M55 69 Q90 69 90 90 Q90 111 123 111" stroke="#3d5a99" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.4"/>
+        </svg>
+        <span class="logo-label">A4: S-Flow Diagonal</span>
+        <span class="logo-description">Icons flow in S-curve path</span>
+      </div>
+    </div>
+
+    <!-- RADAR CONCEPTS -->
+    <h2>Concept B: Radar</h2>
+    <p>
+      Inspired by ship's radar on the bridge—the sweeping arm locates and tracks projects.
+      The health indicators appear as "blips" detected by the scan.
+    </p>
+
+    <div class="logo-grid">
+      <!-- B1: Classic radar with sweep -->
+      <div class="logo-card">
+        <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+          <!-- Radar rings -->
+          <circle cx="90" cy="90" r="60" stroke="#3d5a99" stroke-width="1" fill="none" opacity="0.3"/>
+          <circle cx="90" cy="90" r="40" stroke="#3d5a99" stroke-width="1" fill="none" opacity="0.3"/>
+          <circle cx="90" cy="90" r="20" stroke="#3d5a99" stroke-width="1" fill="none" opacity="0.3"/>
+          <!-- Crosshairs -->
+          <line x1="90" y1="25" x2="90" y2="155" stroke="#3d5a99" stroke-width="1" opacity="0.2"/>
+          <line x1="25" y1="90" x2="155" y2="90" stroke="#3d5a99" stroke-width="1" opacity="0.2"/>
+          <!-- Radar sweep - gradient trails BEHIND the line -->
+          <g class="radar-sweep">
+            <defs>
+              <linearGradient id="sweepGradient" gradientUnits="userSpaceOnUse" x1="90" y1="90" x2="45" y2="50">
+                <stop offset="0%" stop-color="#6aa7ff" stop-opacity="0"/>
+                <stop offset="100%" stop-color="#6aa7ff" stop-opacity="0.5"/>
+              </linearGradient>
+            </defs>
+            <!-- Wedge trails behind (counterclockwise from the line) -->
+            <path d="M90 90 L90 25 A65 65 0 0 0 45 50 Z" fill="url(#sweepGradient)"/>
+            <!-- The leading edge / sweep line -->
+            <line x1="90" y1="90" x2="90" y2="25" stroke="#6aa7ff" stroke-width="2"/>
+          </g>
+          <!-- Status blips -->
+          <circle cx="60" cy="55" r="8" fill="#22c55e" class="pulse-dot"/>
+          <path d="M110 70 L118 86 L102 86 Z" fill="#f59e0b" class="pulse-dot pulse-dot--delay-1"/>
+          <rect x="115" y="105" width="14" height="14" rx="2" fill="#ef4444" class="pulse-dot pulse-dot--delay-2"/>
+        </svg>
+        <span class="logo-label">B1: Radar Sweep ⭐</span>
+        <span class="logo-description">Animated sweep detects project status</span>
+      </div>
+
+      <!-- B2: Static radar (no animation) -->
+      <div class="logo-card">
+        <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+          <!-- Radar rings -->
+          <circle cx="90" cy="90" r="60" stroke="#3d5a99" stroke-width="1.5" fill="none" opacity="0.4"/>
+          <circle cx="90" cy="90" r="40" stroke="#3d5a99" stroke-width="1.5" fill="none" opacity="0.4"/>
+          <!-- Static sweep wedge -->
+          <path d="M90 90 L90 30 A60 60 0 0 1 138 60 Z" fill="#6aa7ff" opacity="0.15"/>
+          <line x1="90" y1="90" x2="90" y2="30" stroke="#6aa7ff" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="90" y1="90" x2="138" y2="60" stroke="#6aa7ff" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+          <!-- Center dot -->
+          <circle cx="90" cy="90" r="4" fill="#6aa7ff"/>
+          <!-- Status blips -->
+          <circle cx="55" cy="65" r="10" fill="#22c55e"/>
+          <path d="M120 85 L130 105 L110 105 Z" fill="#f59e0b"/>
+          <rect x="65" y="115" width="18" height="18" rx="3" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">B2: Static Radar</span>
+        <span class="logo-description">For print and static applications</span>
+      </div>
+
+      <!-- B3: Minimal radar - just sweep line and blips -->
+      <div class="logo-card">
+        <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+          <!-- Single ring -->
+          <circle cx="90" cy="90" r="55" stroke="#3d5a99" stroke-width="2" fill="none" opacity="0.5"/>
+          <!-- Sweep arm from center -->
+          <line x1="90" y1="90" x2="140" y2="60" stroke="#6aa7ff" stroke-width="3" stroke-linecap="round"/>
+          <!-- Small center -->
+          <circle cx="90" cy="90" r="5" fill="#6aa7ff"/>
+          <!-- Three blips arranged around -->
+          <circle cx="50" cy="70" r="12" fill="#22c55e"/>
+          <path d="M115 45 L126 69 L104 69 Z" fill="#f59e0b"/>
+          <rect x="108" y="108" width="20" height="20" rx="3" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">B3: Minimal Radar</span>
+        <span class="logo-description">Clean, focused design</span>
+      </div>
+
+      <!-- B4: Radar with concentric status rings -->
+      <div class="logo-card">
+        <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+          <!-- Status-colored rings -->
+          <circle cx="90" cy="90" r="65" stroke="#ef4444" stroke-width="2" fill="none" opacity="0.4"/>
+          <circle cx="90" cy="90" r="45" stroke="#f59e0b" stroke-width="2" fill="none" opacity="0.4"/>
+          <circle cx="90" cy="90" r="25" stroke="#22c55e" stroke-width="2" fill="none" opacity="0.4"/>
+          <!-- Center glow -->
+          <circle cx="90" cy="90" r="8" fill="#22c55e"/>
+          <!-- Sweep arm -->
+          <g class="radar-sweep radar-sweep--slow">
+            <line x1="90" y1="90" x2="90" y2="25" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+          </g>
+          <!-- Blips on appropriate rings -->
+          <circle cx="90" cy="65" r="6" fill="#22c55e"/>
+          <path d="M125 90 L133 106 L117 106 Z" fill="#f59e0b"/>
+          <rect x="42" y="120" width="14" height="14" rx="2" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">B4: Status Rings</span>
+        <span class="logo-description">Rings indicate health zones</span>
+      </div>
+    </div>
+
+    <!-- RADAR + HORIZONTAL COMBO -->
+    <h2>Concept C: Hybrid Approaches</h2>
+    <p>
+      Combining elements from both explorations—radar aesthetics with clear icon presentation.
+    </p>
+
+    <div class="logo-grid">
+      <!-- C1: Radar frame with horizontal icons -->
+      <div class="logo-card">
+        <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+          <!-- Outer radar ring -->
+          <circle cx="90" cy="90" r="70" stroke="#3d5a99" stroke-width="2" fill="none" opacity="0.4"/>
+          <!-- Tick marks around edge -->
+          <g opacity="0.3" stroke="#6aa7ff" stroke-width="1.5">
+            <line x1="90" y1="20" x2="90" y2="28"/>
+            <line x1="160" y1="90" x2="152" y2="90"/>
+            <line x1="90" y1="160" x2="90" y2="152"/>
+            <line x1="20" y1="90" x2="28" y2="90"/>
+          </g>
+          <!-- Horizontal icons -->
+          <circle cx="50" cy="90" r="14" fill="#22c55e"/>
+          <path d="M90 76 L102 102 L78 102 Z" fill="#f59e0b"/>
+          <rect x="116" y="76" width="26" height="26" rx="4" fill="#ef4444"/>
+          <!-- Subtle sweep hint -->
+          <line x1="90" y1="90" x2="145" y2="50" stroke="#6aa7ff" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+        </svg>
+        <span class="logo-label">C1: Radar Frame</span>
+        <span class="logo-description">Radar styling, horizontal icons</span>
+      </div>
+
+      <!-- C2: Sonar ping / expanding rings from icons -->
+      <div class="logo-card">
+        <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+          <!-- Ping rings emanating from center -->
+          <circle cx="90" cy="90" r="60" stroke="#6aa7ff" stroke-width="1" fill="none" opacity="0.15"/>
+          <circle cx="90" cy="90" r="45" stroke="#6aa7ff" stroke-width="1" fill="none" opacity="0.25"/>
+          <circle cx="90" cy="90" r="30" stroke="#6aa7ff" stroke-width="1" fill="none" opacity="0.35"/>
+          <!-- Three icons in triangular arrangement -->
+          <circle cx="90" cy="50" r="14" fill="#22c55e"/>
+          <path d="M55 110 L67 134 L43 134 Z" fill="#f59e0b"/>
+          <rect x="113" y="108" width="24" height="24" rx="4" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">C2: Sonar Ping</span>
+        <span class="logo-description">Detecting projects in the field</span>
+      </div>
+
+      <!-- C3: Crosshair/target with icons -->
+      <div class="logo-card">
+        <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+          <!-- Crosshair lines (broken) -->
+          <g stroke="#3d5a99" stroke-width="2" opacity="0.4">
+            <line x1="90" y1="20" x2="90" y2="55"/>
+            <line x1="90" y1="125" x2="90" y2="160"/>
+            <line x1="20" y1="90" x2="55" y2="90"/>
+            <line x1="125" y1="90" x2="160" y2="90"/>
+          </g>
+          <!-- Center reticle -->
+          <circle cx="90" cy="90" r="35" stroke="#6aa7ff" stroke-width="2" fill="none" opacity="0.5"/>
+          <!-- Corner brackets -->
+          <path d="M55 55 L55 70 M55 55 L70 55" stroke="#6aa7ff" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+          <path d="M125 55 L125 70 M125 55 L110 55" stroke="#6aa7ff" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+          <path d="M55 125 L55 110 M55 125 L70 125" stroke="#6aa7ff" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+          <path d="M125 125 L125 110 M125 125 L110 125" stroke="#6aa7ff" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+          <!-- Three icons -->
+          <circle cx="70" cy="80" r="10" fill="#22c55e"/>
+          <path d="M95 78 L103 94 L87 94 Z" fill="#f59e0b"/>
+          <rect x="105" y="95" width="16" height="16" rx="2" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">C3: Target Reticle</span>
+        <span class="logo-description">Zeroing in on project health</span>
+      </div>
+
+      <!-- C4: Compass rose + status -->
+      <div class="logo-card">
+        <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+          <!-- Compass points -->
+          <g fill="#3d5a99" opacity="0.6">
+            <path d="M90 20 L95 35 L85 35 Z"/>
+            <path d="M160 90 L145 95 L145 85 Z"/>
+            <path d="M90 160 L85 145 L95 145 Z"/>
+            <path d="M20 90 L35 85 L35 95 Z"/>
+          </g>
+          <!-- Inner ring -->
+          <circle cx="90" cy="90" r="50" stroke="#3d5a99" stroke-width="1.5" fill="none" opacity="0.4"/>
+          <!-- Compass needle pointing to "on track" -->
+          <path d="M90 90 L75 50 L90 60 L105 50 Z" fill="#6aa7ff" opacity="0.8"/>
+          <path d="M90 90 L75 130 L90 120 L105 130 Z" fill="#3d5a99" opacity="0.5"/>
+          <!-- Status indicators at cardinal points -->
+          <circle cx="90" cy="45" r="10" fill="#22c55e"/>
+          <path d="M130 90 L140 106 L120 106 Z" fill="#f59e0b"/>
+          <rect x="80" y="125" width="18" height="18" rx="3" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">C4: Compass Rose</span>
+        <span class="logo-description">Navigation meets status</span>
+      </div>
+    </div>
+
+    <!-- LOCKUPS -->
+    <h2>Horizontal Lockups</h2>
+    <p>Preferred variations shown with the wordmark.</p>
+
+    <h3>Radar Lockup (B3)</h3>
+    <div class="lockup-row">
+      <svg width="360" height="80" viewBox="0 0 360 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Minimal radar icon -->
+        <circle cx="40" cy="40" r="38" fill="#1a1f3c"/>
+        <circle cx="40" cy="40" r="28" stroke="#3d5a99" stroke-width="1.5" fill="none" opacity="0.5"/>
+        <line x1="40" y1="40" x2="62" y2="22" stroke="#6aa7ff" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="40" cy="40" r="3" fill="#6aa7ff"/>
+        <circle cx="22" cy="30" r="7" fill="#22c55e"/>
+        <path d="M55 20 L61 32 L49 32 Z" fill="#f59e0b"/>
+        <rect x="50" y="50" width="12" height="12" rx="2" fill="#ef4444"/>
+        <!-- Wordmark -->
+        <text x="95" y="54" font-family="Montserrat, sans-serif" font-weight="700" font-size="42" fill="#e7ecff" letter-spacing="-1.5">status</text>
+      </svg>
+    </div>
+
+    <h3>Horizontal Icons Lockup (A1)</h3>
+    <div class="lockup-row">
+      <svg width="360" height="80" viewBox="0 0 360 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Horizontal icons -->
+        <circle cx="40" cy="40" r="38" fill="#1a1f3c"/>
+        <circle cx="24" cy="40" r="8" fill="#22c55e"/>
+        <path d="M40 32 L47 48 L33 48 Z" fill="#f59e0b"/>
+        <rect x="50" y="32" width="14" height="14" rx="2" fill="#ef4444"/>
+        <!-- Wordmark -->
+        <text x="95" y="54" font-family="Montserrat, sans-serif" font-weight="700" font-size="42" fill="#e7ecff" letter-spacing="-1.5">status</text>
+      </svg>
+    </div>
+
+    <h3>Target Lockup (C3)</h3>
+    <div class="lockup-row">
+      <svg width="360" height="80" viewBox="0 0 360 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Target reticle mini -->
+        <circle cx="40" cy="40" r="38" fill="#1a1f3c"/>
+        <!-- Crosshair -->
+        <line x1="40" y1="8" x2="40" y2="24" stroke="#3d5a99" stroke-width="1.5" opacity="0.4"/>
+        <line x1="40" y1="56" x2="40" y2="72" stroke="#3d5a99" stroke-width="1.5" opacity="0.4"/>
+        <line x1="8" y1="40" x2="24" y2="40" stroke="#3d5a99" stroke-width="1.5" opacity="0.4"/>
+        <line x1="56" y1="40" x2="72" y2="40" stroke="#3d5a99" stroke-width="1.5" opacity="0.4"/>
+        <circle cx="40" cy="40" r="18" stroke="#6aa7ff" stroke-width="1.5" fill="none" opacity="0.5"/>
+        <!-- Icons -->
+        <circle cx="32" cy="35" r="6" fill="#22c55e"/>
+        <path d="M42 34 L47 44 L37 44 Z" fill="#f59e0b"/>
+        <rect x="48" y="42" width="10" height="10" rx="1.5" fill="#ef4444"/>
+        <!-- Wordmark -->
+        <text x="95" y="54" font-family="Montserrat, sans-serif" font-weight="700" font-size="42" fill="#e7ecff" letter-spacing="-1.5">status</text>
+      </svg>
+    </div>
+
+    <!-- FAVICONS -->
+    <h2>Favicon Variations</h2>
+    
+    <div class="logo-grid">
+      <div class="logo-card">
+        <div style="display: flex; gap: 24px; align-items: flex-end;">
+          <!-- Horizontal 32px -->
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="7" fill="#1a1f3c"/>
+            <circle cx="9" cy="16" r="4" fill="#22c55e"/>
+            <path d="M16 12 L20 20 L12 20 Z" fill="#f59e0b"/>
+            <rect x="21" y="12" width="6" height="6" rx="1" fill="#ef4444"/>
+          </svg>
+          <!-- Radar 32px -->
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="7" fill="#1a1f3c"/>
+            <circle cx="16" cy="16" r="11" stroke="#3d5a99" stroke-width="1" fill="none" opacity="0.5"/>
+            <line x1="16" y1="16" x2="24" y2="10" stroke="#6aa7ff" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="16" cy="16" r="2" fill="#6aa7ff"/>
+            <circle cx="9" cy="11" r="3" fill="#22c55e"/>
+            <path d="M22 12 L25 18 L19 18 Z" fill="#f59e0b"/>
+            <rect x="20" y="20" width="5" height="5" rx="1" fill="#ef4444"/>
+          </svg>
+          <!-- Target 32px -->
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="7" fill="#1a1f3c"/>
+            <circle cx="16" cy="16" r="8" stroke="#6aa7ff" stroke-width="1" fill="none" opacity="0.5"/>
+            <line x1="16" y1="4" x2="16" y2="10" stroke="#3d5a99" stroke-width="1" opacity="0.4"/>
+            <line x1="16" y1="22" x2="16" y2="28" stroke="#3d5a99" stroke-width="1" opacity="0.4"/>
+            <circle cx="12" cy="14" r="3" fill="#22c55e"/>
+            <path d="M18 13 L21 19 L15 19 Z" fill="#f59e0b"/>
+            <rect x="18" y="19" width="5" height="5" rx="1" fill="#ef4444"/>
+          </svg>
+        </div>
+        <span class="logo-label">Favicon variants: Horizontal, Radar, Target</span>
+      </div>
+    </div>
+
+    <!-- RECOMMENDATION -->
+    <h2>Recommendation</h2>
+    <p>
+      <strong>B3 (Minimal Radar)</strong> or <strong>C3 (Target Reticle)</strong> best balance:
+    </p>
+    <ul style="color: var(--muted); margin: 16px 0 16px 24px;">
+      <li>The "zeroing in" concept you mentioned</li>
+      <li>Connection to The Bridge's nautical/navigation theme</li>
+      <li>Clear visibility of the three health status shapes</li>
+      <li>Works at small sizes (favicon)</li>
+      <li>Distinctive and memorable</li>
+    </ul>
+    <p>
+      The <strong>horizontal arrangement (A1)</strong> is cleanest for pure simplicity, 
+      but lacks the conceptual depth of the radar/target options.
+    </p>
+
+  </div>
+</body>
+</html>
+

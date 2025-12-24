@@ -1,0 +1,9 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Status Logo - Horizontal Icons (A1) -->
+  <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+  <!-- Three shapes in a row, centered -->
+  <circle cx="50" cy="90" r="14" fill="#22c55e"/>
+  <path d="M90 76 L102 102 L78 102 Z" fill="#f59e0b"/>
+  <rect x="116" y="76" width="26" height="26" rx="4" fill="#ef4444"/>
+</svg>
+

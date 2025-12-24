@@ -16,6 +16,7 @@
   --health-off-track: #ef4444;
   --health-not-available: #6b7280;
   --bg-hover: rgba(255, 255, 255, 0.05);
+  --navy: #1a1f3c;
 }
 
 /* Base */
@@ -672,7 +673,8 @@ input::placeholder {
   min-width: 140px;
   background: var(--card);
   border: 1px solid var(--card-border);
-  border-radius: 10px;
+  border-radius: 8px;
+  padding: 4px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   display: none;
   z-index: 100;
@@ -684,16 +686,15 @@ input::placeholder {
 }
 
 .state-menu button {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: block;
   width: 100%;
-  padding: 10px 14px;
+  padding: 6px 8px;
   background: transparent;
   border: none;
-  color: var(--text);
-  font-size: 0.9rem;
   text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: inherit;
   cursor: pointer;
   transition: background 100ms ease;
 }
@@ -1422,23 +1423,38 @@ input::placeholder {
   padding: 60px 24px 80px;
 }
 
+.home-hero__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.home-hero__logo {
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+}
+
 .home-hero__title {
-  font-family: "Montserrat", sans-serif;
-  font-size: 140px;
+  font-family: "Sansation", sans-serif;
+  font-size: 132px;
   font-weight: 700;
   color: var(--text);
-  margin: 0 0 24px 0;
-  line-height: 1;
+  margin: 0;
+  line-height: 0.8;
   letter-spacing: -2px;
+  text-transform: lowercase;
 }
 
 .home-hero__tagline {
   font-family: "Montserrat", sans-serif;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 400;
   color: var(--text-muted);
-  margin: 0 0 24px 0;
-  line-height: 1.2;
+  margin: 0;
+  line-height: 1;
   letter-spacing: -1px;
 }
 
@@ -1607,6 +1623,18 @@ input::placeholder {
   color: var(--text-muted);
   opacity: 0.6;
   margin: 0 4px;
+}
+
+.sticky-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sticky-header__logo {
+  height: 26px;
+  width: 26px;
+  flex-shrink: 0;
 }
 
 .sticky-header__title {
@@ -4211,6 +4239,226 @@ input.inline-create-form__input--date {
 
 .health-dropdown__option:last-child {
   border-radius: 0 0 6px 6px;
+}
+
+/* Health Picker Buttons */
+.health-picker {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.health-picker__btn {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--card-border);
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.health-picker__btn:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--bg-hover);
+}
+
+.health-picker__btn.selected {
+  border-width: 3px;
+}
+
+.health-picker__btn--on_track.selected {
+  border-color: var(--health-on-track);
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.health-picker__btn--at_risk.selected {
+  border-color: var(--health-at-risk);
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.health-picker__btn--off_track.selected {
+  border-color: var(--health-off-track);
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.health-picker__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.health-picker__btn--on_track .health-picker__dot {
+  background: var(--health-on-track);
+}
+
+.health-picker__btn--at_risk .health-picker__dot {
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 12px solid var(--health-at-risk);
+  border-radius: 0;
+  background: transparent;
+}
+
+.health-picker__btn--off_track .health-picker__dot {
+  background: var(--health-off-track);
+}
+
+/* Inline create form textarea */
+.inline-create-form__textarea {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  resize: none;
+  height: 40px;
+  transition: border-color 0.15s;
+}
+
+.inline-create-form__textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.inline-create-form__textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Disabled button state */
+.btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--disabled:hover {
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+/* State Pill Dropdown */
+.state-pill-dropdown {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.state-pill-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.state-pill-toggle:hover .state-pill {
+  filter: brightness(1.1);
+}
+
+.state-pill-arrow {
+  color: var(--muted);
+  font-size: 10px;
+  transition: transform 0.15s;
+}
+
+.state-pill-dropdown.open .state-pill-arrow {
+  transform: rotate(180deg);
+}
+
+.state-pill-menu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 4px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 4px;
+  display: none;
+  z-index: 100;
+  min-width: 140px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.state-pill-menu--down {
+  bottom: auto;
+  top: 100%;
+  margin-bottom: 0;
+  margin-top: 4px;
+}
+
+.state-pill-dropdown.open .state-pill-menu {
+  display: block;
+}
+
+.state-pill-option {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  text-align: left;
+  font-family: inherit;
+}
+
+.state-pill-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.state-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.state-pill--todo {
+  background: rgba(107, 114, 128, 0.2);
+  color: #9ca3af;
+}
+
+.state-pill--in-progress {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--health-on-track);
+}
+
+.state-pill--blocked {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--health-off-track);
+}
+
+.state-pill--on-hold,
+.state-pill--paused {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--health-at-risk);
+}
+
+.state-pill--done,
+.state-pill--completed {
+  background: rgba(106, 167, 255, 0.15);
+  color: var(--accent);
+}
+
+.state-pill--cancelled {
+  background: rgba(107, 114, 128, 0.2);
+  color: #6b7280;
 }
 
 /* Single-column search results */

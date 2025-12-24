@@ -1,4 +1,4 @@
-<% content_for(:title) { "#{@project_record.name} - Status" } %>
+<% content_for(:title) { "#{@project_record.name} - Radar" } %>
 <% allowed_states = SetProjectState::SETTABLE_STATES %>
 <% project = @project || @project_record %>
 
@@ -7,9 +7,12 @@
   <div class="sticky-header__container">
     <div class="sticky-header__left">
       <div class="sticky-header__breadcrumb">
-        <%= @project ? project_breadcrumb(@project, @project_record) : render_breadcrumb([{ name: 'Status', path: root_path }]) %>
+        <%= @project ? project_breadcrumb(@project, @project_record) : render_breadcrumb([{ name: 'Radar', path: root_path }]) %>
       </div>
-      <h2 class="sticky-header__title"><%= project.name %></h2>
+      <div class="sticky-header__title-row">
+        <img src="/logo-radar-animated-loop-v8.svg" alt="" class="sticky-header__logo">
+        <h2 class="sticky-header__title"><%= project.name %></h2>
+      </div>
     </div>
     <div class="sticky-header__right">
       <div class="sticky-header__actions">
@@ -33,20 +36,23 @@
 
 <div class="project-hero" data-project-hero>
   <div class="project-hero__breadcrumb" data-hero-breadcrumb>
-    <%= @project ? project_breadcrumb(@project, @project_record) : render_breadcrumb([{ name: 'Status', path: root_path }]) %>
+    <%= @project ? project_breadcrumb(@project, @project_record) : render_breadcrumb([{ name: 'Radar', path: root_path }]) %>
   </div>
   <div class="project-hero__actions">
     <% if project.archived? %>
       <span class="badge badge--archived" data-archived-badge>ARCHIVED</span>
     <% end %>
-    <div class="state-dropdown" data-state-dropdown>
-      <button class="state-toggle" type="button" data-state-toggle>
-        <span class="badge state state--<%= project.current_state.to_s.tr('_', '-') %>" data-state-badge><%= project.current_state.to_s.tr('_', ' ').upcase %></span>
+    <div class="state-pill-dropdown" data-state-dropdown>
+      <button class="state-pill-toggle" type="button" data-state-toggle>
+        <span class="state-pill state-pill--<%= project.current_state.to_s.tr('_', '-') %>" data-state-badge><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
+        <span class="state-pill-arrow">▾</span>
       </button>
-      <div class="state-menu" data-state-menu>
+      <div class="state-pill-menu state-pill-menu--down" data-state-menu>
         <% if allowed_states.any? %>
           <% allowed_states.each do |state| %>
-            <button type="button" data-state="<%= state %>"><%= state.to_s.tr('_', ' ').titleize %></button>
+            <button type="button" class="state-pill-option" data-state="<%= state %>">
+              <span class="state-pill state-pill--<%= state.to_s.tr('_', '-') %>"><%= state.to_s.tr('_', ' ').titleize %></span>
+            </button>
           <% end %>
         <% else %>
           <div class="empty">No further transitions</div>
@@ -501,26 +507,36 @@
   <div class="inline-create-section">
     <form class="update-form" data-update-form action="<%= health_updates_project_path(@project_record) %>" method="post">
       <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-      <input type="hidden" name="health_update[health]" value="<%= @selected_health %>" data-health-input>
+      <input type="hidden" name="health_update[health]" value="" data-health-input>
+      <input type="hidden" name="health_update[date]" value="<%= Date.current.strftime('%Y-%m-%d') %>">
       <div class="inline-create-form__row">
-        <input type="date" name="health_update[date]" class="inline-create-form__input inline-create-form__input--date" value="<%= Date.current.strftime('%Y-%m-%d') %>" required data-update-date>
-        <div class="health-dropdown" data-health-dropdown>
-          <button type="button" class="health-dropdown__toggle" data-health-toggle>
-            <span class="health-dropdown__indicator health-dropdown__indicator--<%= @selected_health %>" data-health-indicator></span>
-            <span class="health-dropdown__label" data-health-label><%= @selected_health.to_s.tr('_', ' ').titleize %></span>
-            <span class="health-dropdown__arrow">▾</span>
+        <div class="health-picker" data-health-picker>
+          <button type="button" class="health-picker__btn health-picker__btn--on_track" data-health-value="on_track" title="On Track">
+            <span class="health-picker__dot"></span>
           </button>
-          <div class="health-dropdown__menu" data-health-menu>
-            <% @health_options.each do |health_opt| %>
-              <button type="button" class="health-dropdown__option" data-health-value="<%= health_opt %>">
-                <span class="health-dropdown__indicator health-dropdown__indicator--<%= health_opt %>"></span>
-                <span><%= health_opt.to_s.tr('_', ' ').titleize %></span>
+          <button type="button" class="health-picker__btn health-picker__btn--at_risk" data-health-value="at_risk" title="At Risk">
+            <span class="health-picker__dot"></span>
+          </button>
+          <button type="button" class="health-picker__btn health-picker__btn--off_track" data-health-value="off_track" title="Off Track">
+            <span class="health-picker__dot"></span>
+          </button>
+        </div>
+        <textarea name="health_update[description]" class="inline-create-form__textarea" placeholder="What's the current status? Any blockers?" data-update-description></textarea>
+        <div class="state-pill-dropdown" data-state-pill-dropdown>
+          <button type="button" class="state-pill-toggle" data-state-pill-toggle>
+            <span class="state-pill state-pill--<%= project.current_state.to_s.tr('_', '-') %>" data-state-pill-display><%= project.current_state.to_s.tr('_', ' ').titleize %></span>
+            <span class="state-pill-arrow">▾</span>
+          </button>
+          <input type="hidden" name="project_state" value="" data-state-pill-input>
+          <div class="state-pill-menu" data-state-pill-menu>
+            <% allowed_states.each do |state| %>
+              <button type="button" class="state-pill-option" data-state-value="<%= state %>">
+                <span class="state-pill state-pill--<%= state.to_s.tr('_', '-') %>"><%= state.to_s.tr('_', ' ').titleize %></span>
               </button>
             <% end %>
           </div>
         </div>
-        <input type="text" name="health_update[description]" class="inline-create-form__input" placeholder="What changed since the last update?" data-update-description>
-        <button type="submit" class="btn btn--small" data-update-submit>Add Update</button>
+        <button type="submit" class="btn btn--small btn--disabled" data-update-submit disabled>Update</button>
       </div>
     </form>
   </div>
@@ -608,20 +624,20 @@
 document.addEventListener('DOMContentLoaded', () => {
   const token = document.querySelector('meta[name="csrf-token"]')?.content;
 
-  // State dropdown
+  // State dropdown (header)
   const stateDropdown = document.querySelector('[data-state-dropdown]');
   const stateToggle = document.querySelector('[data-state-toggle]');
   const stateMenu = document.querySelector('[data-state-menu]');
 
   if (stateDropdown && stateToggle && stateMenu) {
     stateToggle.addEventListener('click', () => {
-      stateMenu.classList.toggle('open');
+      stateDropdown.classList.toggle('open');
     });
 
     stateMenu.querySelectorAll('button[data-state]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const state = btn.dataset.state;
-        stateMenu.classList.remove('open');
+        stateDropdown.classList.remove('open');
 
         fetch('<%= state_project_path(@project_record) %>', {
           method: 'PATCH',
@@ -641,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('click', (e) => {
       if (!stateDropdown.contains(e.target)) {
-        stateMenu.classList.remove('open');
+        stateDropdown.classList.remove('open');
       }
     });
   }
@@ -882,34 +898,83 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Health dropdown
-  const healthDropdown = document.querySelector('[data-health-dropdown]');
-  const healthToggle = document.querySelector('[data-health-toggle]');
-  const healthMenu = document.querySelector('[data-health-menu]');
+  // Health picker buttons
+  const healthPicker = document.querySelector('[data-health-picker]');
   const healthInput = document.querySelector('[data-health-input]');
-  const healthIndicator = document.querySelector('[data-health-indicator]');
-  const healthLabel = document.querySelector('[data-health-label]');
+  const updateSubmit = document.querySelector('[data-update-submit]');
 
-  if (healthDropdown && healthToggle && healthMenu) {
-    healthToggle.addEventListener('click', () => {
-      healthMenu.classList.toggle('open');
+  const selectHealth = (value) => {
+    if (!healthPicker) return;
+
+    const btn = healthPicker.querySelector(`[data-health-value="${value}"]`);
+    if (!btn) return;
+
+    // Deselect all, select this one
+    healthPicker.querySelectorAll('.health-picker__btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+
+    // Update hidden input
+    healthInput.value = value;
+
+    // Enable submit button
+    if (updateSubmit) {
+      updateSubmit.disabled = false;
+      updateSubmit.classList.remove('btn--disabled');
+    }
+  };
+
+  if (healthPicker) {
+    healthPicker.querySelectorAll('[data-health-value]').forEach((btn) => {
+      btn.addEventListener('click', () => selectHealth(btn.dataset.healthValue));
     });
 
-    healthMenu.querySelectorAll('[data-health-value]').forEach((option) => {
-      option.addEventListener('click', () => {
-        const value = option.dataset.healthValue;
-        const label = value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    // Keyboard shortcuts: 1 = On Track, 2 = At Risk, 3 = Off Track
+    document.addEventListener('keydown', (e) => {
+      // Don't trigger if typing in an input/textarea
+      if (e.target.matches('input, textarea')) return;
 
-        healthInput.value = value;
-        healthLabel.textContent = label;
-        healthIndicator.className = `health-dropdown__indicator health-dropdown__indicator--${value}`;
-        healthMenu.classList.remove('open');
+      switch (e.key) {
+        case '1':
+          selectHealth('on_track');
+          break;
+        case '2':
+          selectHealth('at_risk');
+          break;
+        case '3':
+          selectHealth('off_track');
+          break;
+      }
+    });
+  }
+
+  // State pill dropdown
+  const statePillDropdown = document.querySelector('[data-state-pill-dropdown]');
+  const statePillToggle = document.querySelector('[data-state-pill-toggle]');
+  const statePillMenu = document.querySelector('[data-state-pill-menu]');
+  const statePillInput = document.querySelector('[data-state-pill-input]');
+  const statePillDisplay = document.querySelector('[data-state-pill-display]');
+
+  if (statePillDropdown && statePillToggle && statePillMenu) {
+    statePillToggle.addEventListener('click', () => {
+      statePillDropdown.classList.toggle('open');
+    });
+
+    statePillMenu.querySelectorAll('[data-state-value]').forEach((option) => {
+      option.addEventListener('click', () => {
+        const value = option.dataset.stateValue;
+        const label = value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const cssClass = value.replace(/_/g, '-');
+
+        statePillInput.value = value;
+        statePillDisplay.textContent = label;
+        statePillDisplay.className = `state-pill state-pill--${cssClass}`;
+        statePillDropdown.classList.remove('open');
       });
     });
 
     document.addEventListener('click', (e) => {
-      if (!healthDropdown.contains(e.target)) {
-        healthMenu.classList.remove('open');
+      if (!statePillDropdown.contains(e.target)) {
+        statePillDropdown.classList.remove('open');
       }
     });
   }
@@ -940,15 +1005,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (response.ok) {
           // Get form values before reset
-          const dateInput = updateForm.querySelector('[data-update-date]');
-          const dateValue = dateInput.value;
           const healthValue = healthInput.value;
           const descInput = updateForm.querySelector('[data-update-description]');
           const descValue = descInput.value || '—';
 
-          // Format date for display
-          const dateParts = dateValue.split('-');
-          const displayDate = `${parseInt(dateParts[1])}/${parseInt(dateParts[2])}/${dateParts[0].slice(2)}`;
+          // Format today's date for display
+          const now = new Date();
+          const displayDate = `${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(2)}`;
 
           // Create new update row
           const newRow = document.createElement('div');
@@ -977,8 +1040,11 @@ document.addEventListener('DOMContentLoaded', () => {
             container.insertBefore(newRow, container.firstChild);
           }
 
-          // Reset description only (keep date and health for convenience)
+          // Reset form (clear description, deselect health, disable button)
           descInput.value = '';
+          healthInput.value = '';
+          healthPicker.querySelectorAll('.health-picker__btn').forEach(b => b.classList.remove('selected'));
+          submitBtn.classList.add('btn--disabled');
 
           // Update metrics if health changed
           if (data.health) {
@@ -992,6 +1058,36 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
 
+          // Update project state if changed
+          const newState = statePillInput?.value;
+          if (newState) {
+            try {
+              await fetch('<%= state_project_path(@project_record) %>', {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  'X-CSRF-Token': token
+                },
+                body: JSON.stringify({ state: newState })
+              });
+
+              // Update state badges in UI
+              const stateBadges = document.querySelectorAll('[data-state-badge]');
+              const newStateLabel = newState.replace(/_/g, ' ').toUpperCase();
+              const newStateCss = newState.replace(/_/g, '-');
+              stateBadges.forEach(badge => {
+                badge.className = `badge state state--${newStateCss}`;
+                badge.textContent = newStateLabel;
+              });
+
+              // Reset the pill dropdown
+              statePillInput.value = '';
+            } catch (stateError) {
+              console.error('Failed to update state:', stateError);
+            }
+          }
+
           showToast('Update added!', 'success');
         } else {
           const errorMsg = data.errors ? data.errors.join(', ') : 'Failed to add update';
@@ -1002,7 +1098,11 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('An error occurred. Please try again.', 'error');
       } finally {
         submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
+        // Only re-enable if a health is still selected (for error cases)
+        if (healthInput.value) {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('btn--disabled');
+        }
       }
     });
   }

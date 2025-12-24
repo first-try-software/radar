@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Status Logo System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1021;
+      --card: #111833;
+      --card-border: #1f2a4d;
+      --text: #e7ecff;
+      --muted: #9fb0d6;
+      --accent: #6aa7ff;
+      --accent-strong: #4c8dff;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --navy: #1a1f3c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Montserrat", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 60px 40px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+
+    h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 60px 0 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--muted);
+      margin: 32px 0 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    p {
+      color: var(--muted);
+      margin-bottom: 16px;
+      max-width: 700px;
+    }
+
+    .intro {
+      font-size: 20px;
+      margin-bottom: 40px;
+    }
+
+    .logo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+
+    .logo-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 240px;
+    }
+
+    .logo-card--light {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+
+    .logo-card--gradient {
+      background: linear-gradient(135deg, #1a1f3c 0%, #0b1021 100%);
+    }
+
+    .logo-card--accent {
+      background: linear-gradient(135deg, var(--accent-strong) 0%, #3d72cc 100%);
+    }
+
+    .logo-card svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .logo-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .logo-card--light .logo-label {
+      color: #64748b;
+    }
+
+    .color-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .color-swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .color-box {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+    }
+
+    .color-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .color-hex {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: monospace;
+    }
+
+    .lockup-row {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 24px 0;
+      padding: 40px;
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+    }
+
+    .lockup-row--light {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+
+    .spec-list {
+      list-style: none;
+      margin: 16px 0;
+    }
+
+    .spec-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      max-width: 400px;
+    }
+
+    .spec-list li span:first-child {
+      color: var(--muted);
+    }
+
+    .spec-list li span:last-child {
+      font-weight: 600;
+      font-family: monospace;
+    }
+
+    .usage-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin: 24px 0;
+    }
+
+    .usage-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .usage-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .usage-card p {
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .do-dont {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin: 24px 0;
+    }
+
+    .do-card, .dont-card {
+      padding: 24px;
+      border-radius: 12px;
+    }
+
+    .do-card {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .dont-card {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .do-card h4 {
+      color: var(--success);
+    }
+
+    .dont-card h4 {
+      color: var(--danger);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Status Logo System</h1>
+    <p class="intro">
+      A comprehensive visual identity for Status—the project health tracking platform. 
+      The logo system incorporates the health status indicators (●▲■) as a core design element,
+      creating a distinctive mark that communicates the product's purpose at a glance.
+    </p>
+
+    <!-- PRIMARY ICON -->
+    <h2>Primary Icon</h2>
+    <p>
+      The primary icon combines the letterform "S" with the three health status indicators.
+      The flowing S-curve connects the shapes, representing the continuous monitoring of project health.
+    </p>
+
+    <div class="logo-grid">
+      <!-- Main Icon - Dark -->
+      <div class="logo-card">
+        <svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Background circle -->
+          <circle cx="80" cy="80" r="76" fill="#1a1f3c"/>
+          <!-- S-curve path connecting the indicators -->
+          <path d="M50 45 Q80 45 80 80 Q80 115 110 115" stroke="#3d5a99" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.3"/>
+          <!-- On Track - Circle (top left) -->
+          <circle cx="50" cy="45" r="16" fill="#22c55e"/>
+          <!-- At Risk - Triangle (center) -->
+          <path d="M80 65 L93 91 L67 91 Z" fill="#f59e0b"/>
+          <!-- Off Track - Square (bottom right) -->
+          <rect x="96" cy="101" y="101" width="28" height="28" rx="4" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">Primary Icon • Dark</span>
+      </div>
+
+      <!-- Main Icon - Light -->
+      <div class="logo-card logo-card--light">
+        <svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="80" cy="80" r="76" fill="#1a1f3c"/>
+          <path d="M50 45 Q80 45 80 80 Q80 115 110 115" stroke="#3d5a99" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.3"/>
+          <circle cx="50" cy="45" r="16" fill="#22c55e"/>
+          <path d="M80 65 L93 91 L67 91 Z" fill="#f59e0b"/>
+          <rect x="96" y="101" width="28" height="28" rx="4" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">Primary Icon • Light Background</span>
+      </div>
+
+      <!-- Monochrome White -->
+      <div class="logo-card logo-card--accent">
+        <svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="80" cy="80" r="76" fill="rgba(255,255,255,0.15)"/>
+          <path d="M50 45 Q80 45 80 80 Q80 115 110 115" stroke="rgba(255,255,255,0.2)" stroke-width="12" stroke-linecap="round" fill="none"/>
+          <circle cx="50" cy="45" r="16" fill="white"/>
+          <path d="M80 65 L93 91 L67 91 Z" fill="white"/>
+          <rect x="96" y="101" width="28" height="28" rx="4" fill="white"/>
+        </svg>
+        <span class="logo-label" style="color: rgba(255,255,255,0.7)">Monochrome • White</span>
+      </div>
+
+      <!-- Monochrome Dark -->
+      <div class="logo-card logo-card--light">
+        <svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="80" cy="80" r="76" fill="#1a1f3c"/>
+          <path d="M50 45 Q80 45 80 80 Q80 115 110 115" stroke="rgba(255,255,255,0.15)" stroke-width="12" stroke-linecap="round" fill="none"/>
+          <circle cx="50" cy="45" r="16" fill="white"/>
+          <path d="M80 65 L93 91 L67 91 Z" fill="white"/>
+          <rect x="96" y="101" width="28" height="28" rx="4" fill="white"/>
+        </svg>
+        <span class="logo-label">Monochrome • Navy</span>
+      </div>
+    </div>
+
+    <!-- ALTERNATE ICON - Minimal -->
+    <h3>Alternate: Minimal Icon</h3>
+    <p>A simplified version using just the three status indicators in an S-arrangement, suitable for smaller sizes.</p>
+
+    <div class="logo-grid">
+      <div class="logo-card">
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="56" fill="#1a1f3c"/>
+          <!-- Three shapes in S arrangement -->
+          <circle cx="40" cy="38" r="12" fill="#22c55e"/>
+          <path d="M60 50 L72 74 L48 74 Z" fill="#f59e0b"/>
+          <rect x="68" y="70" width="20" height="20" rx="3" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">Minimal • Dark</span>
+      </div>
+
+      <div class="logo-card logo-card--light">
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="56" fill="#1a1f3c"/>
+          <circle cx="40" cy="38" r="12" fill="#22c55e"/>
+          <path d="M60 50 L72 74 L48 74 Z" fill="#f59e0b"/>
+          <rect x="68" y="70" width="20" height="20" rx="3" fill="#ef4444"/>
+        </svg>
+        <span class="logo-label">Minimal • Light</span>
+      </div>
+    </div>
+
+    <!-- FAVICON / APP ICON -->
+    <h3>Favicon & App Icon</h3>
+    <p>Optimized versions for small display sizes. Uses simplified geometry for clarity at 16px–32px.</p>
+
+    <div class="logo-grid">
+      <div class="logo-card">
+        <div style="display: flex; gap: 24px; align-items: flex-end;">
+          <!-- 64px -->
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="64" height="64" rx="14" fill="#1a1f3c"/>
+            <circle cx="22" cy="20" r="7" fill="#22c55e"/>
+            <path d="M32 28 L40 44 L24 44 Z" fill="#f59e0b"/>
+            <rect x="36" y="36" width="12" height="12" rx="2" fill="#ef4444"/>
+          </svg>
+          <!-- 32px -->
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="7" fill="#1a1f3c"/>
+            <circle cx="11" cy="10" r="4" fill="#22c55e"/>
+            <path d="M16 14 L20 22 L12 22 Z" fill="#f59e0b"/>
+            <rect x="18" y="18" width="6" height="6" rx="1" fill="#ef4444"/>
+          </svg>
+          <!-- 16px -->
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="16" height="16" rx="3" fill="#1a1f3c"/>
+            <circle cx="5" cy="5" r="2" fill="#22c55e"/>
+            <path d="M8 7 L10 11 L6 11 Z" fill="#f59e0b"/>
+            <rect x="9" y="9" width="3" height="3" rx="0.5" fill="#ef4444"/>
+          </svg>
+        </div>
+        <span class="logo-label">App Icons: 64px, 32px, 16px</span>
+      </div>
+    </div>
+
+    <!-- WORDMARK -->
+    <h2>Wordmark</h2>
+    <p>
+      The Status wordmark uses Montserrat Bold with subtle customization. 
+      The "a" features a modified terminal, and letter-spacing is tightened for a cohesive, modern look.
+    </p>
+
+    <div class="logo-grid">
+      <div class="logo-card" style="min-height: 160px;">
+        <svg width="280" height="60" viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <text x="0" y="48" font-family="Montserrat, sans-serif" font-weight="700" font-size="52" fill="#e7ecff" letter-spacing="-2">status</text>
+        </svg>
+        <span class="logo-label">Primary Wordmark • Light on Dark</span>
+      </div>
+
+      <div class="logo-card logo-card--light" style="min-height: 160px;">
+        <svg width="280" height="60" viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <text x="0" y="48" font-family="Montserrat, sans-serif" font-weight="700" font-size="52" fill="#1a1f3c" letter-spacing="-2">status</text>
+        </svg>
+        <span class="logo-label">Primary Wordmark • Dark on Light</span>
+      </div>
+    </div>
+
+    <!-- ACCENT WORDMARK -->
+    <h3>Accent Wordmark with Health Indicator</h3>
+    <p>An optional variation featuring the health indicator dot integrated into the wordmark.</p>
+
+    <div class="logo-grid">
+      <div class="logo-card" style="min-height: 160px;">
+        <svg width="320" height="60" viewBox="0 0 320 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <text x="0" y="48" font-family="Montserrat, sans-serif" font-weight="700" font-size="52" fill="#e7ecff" letter-spacing="-2">status</text>
+          <circle cx="300" cy="38" r="10" fill="#22c55e"/>
+        </svg>
+        <span class="logo-label">With Health Dot • On Track</span>
+      </div>
+    </div>
+
+    <!-- LOCKUPS -->
+    <h2>Logo Lockups</h2>
+    <p>Standard arrangements combining the icon and wordmark for various applications.</p>
+
+    <h3>Horizontal Lockup</h3>
+    <div class="lockup-row">
+      <svg width="320" height="80" viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Icon -->
+        <circle cx="40" cy="40" r="38" fill="#1a1f3c"/>
+        <circle cx="25" cy="24" r="8" fill="#22c55e"/>
+        <path d="M40 32 L47 46 L33 46 Z" fill="#f59e0b"/>
+        <rect x="47" y="48" width="14" height="14" rx="2" fill="#ef4444"/>
+        <!-- Wordmark -->
+        <text x="95" y="54" font-family="Montserrat, sans-serif" font-weight="700" font-size="42" fill="#e7ecff" letter-spacing="-1.5">status</text>
+      </svg>
+    </div>
+
+    <div class="lockup-row lockup-row--light">
+      <svg width="320" height="80" viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="38" fill="#1a1f3c"/>
+        <circle cx="25" cy="24" r="8" fill="#22c55e"/>
+        <path d="M40 32 L47 46 L33 46 Z" fill="#f59e0b"/>
+        <rect x="47" y="48" width="14" height="14" rx="2" fill="#ef4444"/>
+        <text x="95" y="54" font-family="Montserrat, sans-serif" font-weight="700" font-size="42" fill="#1a1f3c" letter-spacing="-1.5">status</text>
+      </svg>
+    </div>
+
+    <h3>Stacked Lockup</h3>
+    <div class="logo-grid">
+      <div class="logo-card" style="min-height: 280px;">
+        <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Icon -->
+          <circle cx="100" cy="70" r="50" fill="#1a1f3c"/>
+          <circle cx="78" cy="48" r="10" fill="#22c55e"/>
+          <path d="M100 58 L110 78 L90 78 Z" fill="#f59e0b"/>
+          <rect x="108" y="82" width="18" height="18" rx="3" fill="#ef4444"/>
+          <!-- Wordmark -->
+          <text x="100" y="170" font-family="Montserrat, sans-serif" font-weight="700" font-size="36" fill="#e7ecff" letter-spacing="-1" text-anchor="middle">status</text>
+        </svg>
+        <span class="logo-label">Stacked Lockup</span>
+      </div>
+
+      <div class="logo-card logo-card--light" style="min-height: 280px;">
+        <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="70" r="50" fill="#1a1f3c"/>
+          <circle cx="78" cy="48" r="10" fill="#22c55e"/>
+          <path d="M100 58 L110 78 L90 78 Z" fill="#f59e0b"/>
+          <rect x="108" y="82" width="18" height="18" rx="3" fill="#ef4444"/>
+          <text x="100" y="170" font-family="Montserrat, sans-serif" font-weight="700" font-size="36" fill="#1a1f3c" letter-spacing="-1" text-anchor="middle">status</text>
+        </svg>
+        <span class="logo-label">Stacked Lockup • Light</span>
+      </div>
+    </div>
+
+    <!-- COLOR PALETTE -->
+    <h2>Color Palette</h2>
+    <p>The Status brand colors are derived from the health status indicators and the application's dark theme.</p>
+
+    <h3>Primary Colors</h3>
+    <div class="color-row">
+      <div class="color-swatch">
+        <div class="color-box" style="background: #1a1f3c;"></div>
+        <span class="color-name">Navy</span>
+        <span class="color-hex">#1a1f3c</span>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #0b1021;"></div>
+        <span class="color-name">Deep Navy</span>
+        <span class="color-hex">#0b1021</span>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #6aa7ff;"></div>
+        <span class="color-name">Accent Blue</span>
+        <span class="color-hex">#6aa7ff</span>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #e7ecff;"></div>
+        <span class="color-name">Light Text</span>
+        <span class="color-hex">#e7ecff</span>
+      </div>
+    </div>
+
+    <h3>Status Colors</h3>
+    <div class="color-row">
+      <div class="color-swatch">
+        <div class="color-box" style="background: #22c55e; border-radius: 50%;"></div>
+        <span class="color-name">On Track</span>
+        <span class="color-hex">#22c55e</span>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #f59e0b; clip-path: polygon(50% 0%, 100% 100%, 0% 100%);"></div>
+        <span class="color-name">At Risk</span>
+        <span class="color-hex">#f59e0b</span>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #ef4444; border-radius: 8px;"></div>
+        <span class="color-name">Off Track</span>
+        <span class="color-hex">#ef4444</span>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #6b7280;"></div>
+        <span class="color-name">Not Available</span>
+        <span class="color-hex">#6b7280</span>
+      </div>
+    </div>
+
+    <!-- TYPOGRAPHY -->
+    <h2>Typography</h2>
+    <p>Montserrat is the primary typeface for both the logo and the application UI.</p>
+
+    <ul class="spec-list">
+      <li><span>Primary Font</span><span>Montserrat</span></li>
+      <li><span>Logo Weight</span><span>700 (Bold)</span></li>
+      <li><span>Heading Weight</span><span>600–700</span></li>
+      <li><span>Body Weight</span><span>400–500</span></li>
+      <li><span>Letter Spacing (Logo)</span><span>-2px</span></li>
+    </ul>
+
+    <!-- CLEAR SPACE -->
+    <h2>Clear Space & Sizing</h2>
+    <p>Maintain adequate clear space around the logo to ensure legibility and visual impact.</p>
+
+    <div class="logo-card" style="max-width: 500px; margin: 24px 0;">
+      <svg width="280" height="180" viewBox="0 0 280 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Clear space guides -->
+        <rect x="40" y="30" width="200" height="120" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4 4"/>
+        
+        <!-- Dimension lines -->
+        <line x1="20" y1="30" x2="20" y2="60" stroke="var(--accent)" stroke-width="1"/>
+        <line x1="15" y1="30" x2="25" y2="30" stroke="var(--accent)" stroke-width="1"/>
+        <line x1="15" y1="60" x2="25" y2="60" stroke="var(--accent)" stroke-width="1"/>
+        <text x="10" y="48" font-size="10" fill="var(--accent)" text-anchor="middle">X</text>
+        
+        <!-- Icon -->
+        <circle cx="100" cy="90" r="40" fill="#1a1f3c"/>
+        <circle cx="82" cy="72" r="9" fill="#22c55e"/>
+        <path d="M100 80 L108 96 L92 96 Z" fill="#f59e0b"/>
+        <rect x="108" y="98" width="16" height="16" rx="2" fill="#ef4444"/>
+        
+        <!-- Wordmark -->
+        <text x="155" y="100" font-family="Montserrat, sans-serif" font-weight="700" font-size="28" fill="#e7ecff" letter-spacing="-1">status</text>
+      </svg>
+      <span class="logo-label">Clear space = Height of circle indicator (X)</span>
+    </div>
+
+    <h3>Minimum Sizes</h3>
+    <ul class="spec-list">
+      <li><span>Icon Only (Digital)</span><span>24px</span></li>
+      <li><span>Icon Only (Print)</span><span>12mm</span></li>
+      <li><span>Horizontal Lockup (Digital)</span><span>120px wide</span></li>
+      <li><span>Horizontal Lockup (Print)</span><span>40mm wide</span></li>
+    </ul>
+
+    <!-- USAGE GUIDELINES -->
+    <h2>Usage Guidelines</h2>
+
+    <div class="do-dont">
+      <div class="do-card">
+        <h4>✓ Do</h4>
+        <ul style="margin-top: 12px; padding-left: 20px; color: var(--muted);">
+          <li>Use the full-color version on dark backgrounds</li>
+          <li>Maintain the correct aspect ratio</li>
+          <li>Use monochrome version when color isn't available</li>
+          <li>Keep adequate clear space around the logo</li>
+          <li>Use the favicon version at small sizes</li>
+        </ul>
+      </div>
+      <div class="dont-card">
+        <h4>✗ Don't</h4>
+        <ul style="margin-top: 12px; padding-left: 20px; color: var(--muted);">
+          <li>Stretch or distort the logo</li>
+          <li>Change the colors of individual shapes</li>
+          <li>Add drop shadows or effects</li>
+          <li>Place on busy or low-contrast backgrounds</li>
+          <li>Rotate or skew the logo</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CO-BRANDING -->
+    <h2>Co-Branding: The Bridge</h2>
+    <p>Status is part of "The Bridge" engineering intelligence platform. When shown together, use this arrangement:</p>
+
+    <div class="lockup-row">
+      <svg width="400" height="60" viewBox="0 0 400 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- The Bridge -->
+        <text x="0" y="42" font-family="Montserrat, sans-serif" font-weight="600" font-size="24" fill="#6aa7ff" letter-spacing="-0.5">the bridge</text>
+        <!-- Divider -->
+        <line x1="155" y1="15" x2="155" y2="45" stroke="#3d5a99" stroke-width="2"/>
+        <!-- Status with icon -->
+        <circle cx="190" cy="30" r="20" fill="#1a1f3c"/>
+        <circle cx="180" cy="22" r="5" fill="#22c55e"/>
+        <path d="M190 26 L195 36 L185 36 Z" fill="#f59e0b"/>
+        <rect x="195" y="34" width="9" height="9" rx="1" fill="#ef4444"/>
+        <text x="220" y="40" font-family="Montserrat, sans-serif" font-weight="700" font-size="24" fill="#e7ecff" letter-spacing="-0.5">status</text>
+      </svg>
+    </div>
+
+    <!-- FILE FORMATS -->
+    <h2>Asset Checklist</h2>
+    <p>Export the logo in these formats for comprehensive coverage:</p>
+
+    <div class="usage-grid">
+      <div class="usage-card">
+        <h4>SVG</h4>
+        <p>Primary format for web and scalable applications. Maintains perfect quality at any size.</p>
+      </div>
+      <div class="usage-card">
+        <h4>PNG</h4>
+        <p>Raster format with transparency. Export at 1x, 2x, and 3x for digital use.</p>
+      </div>
+      <div class="usage-card">
+        <h4>ICO / ICNS</h4>
+        <p>Favicon packages for web browsers and desktop applications.</p>
+      </div>
+      <div class="usage-card">
+        <h4>PDF</h4>
+        <p>Vector format for print production and professional applications.</p>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
+
+
+

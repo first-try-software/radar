@@ -188,7 +188,7 @@ module ApplicationHelper
   # Breadcrumb helpers
 
   def project_breadcrumb(project, project_record)
-    crumbs = [{ name: 'Status', path: root_path }]
+    crumbs = [{ name: 'Radar', path: root_path }]
 
     # Collect project ancestors
     project_ancestors = collect_project_ancestors(project)
@@ -210,7 +210,7 @@ module ApplicationHelper
   end
 
   def team_breadcrumb(team, team_record)
-    crumbs = [{ name: 'Status', path: root_path }]
+    crumbs = [{ name: 'Radar', path: root_path }]
 
     # Add parent team hierarchy
     if team.respond_to?(:parent_team) && team.parent_team
@@ -222,7 +222,7 @@ module ApplicationHelper
   end
 
   def initiative_breadcrumb(initiative, initiative_record)
-    crumbs = [{ name: 'Status', path: root_path }]
+    crumbs = [{ name: 'Radar', path: root_path }]
     render_breadcrumb(crumbs)
   end
 

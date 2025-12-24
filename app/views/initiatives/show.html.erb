@@ -1,4 +1,4 @@
-<% content_for(:title) { "#{@initiative_record.name} - Status" } %>
+<% content_for(:title) { "#{@initiative_record.name} - Radar" } %>
 <% allowed_states = SetInitiativeState::SETTABLE_STATES %>
 <% cascading_states = Initiative::CASCADING_STATES %>
 <% related_project_count = @initiative_record.related_projects.count %>
@@ -8,9 +8,12 @@
   <div class="sticky-header__container">
     <div class="sticky-header__left">
       <div class="sticky-header__breadcrumb">
-        <%= @initiative ? initiative_breadcrumb(@initiative, @initiative_record) : render_breadcrumb([{ name: 'Status', path: root_path }]) %>
+        <%= @initiative ? initiative_breadcrumb(@initiative, @initiative_record) : render_breadcrumb([{ name: 'Radar', path: root_path }]) %>
       </div>
-      <h2 class="sticky-header__title"><%= @initiative_record.name %></h2>
+      <div class="sticky-header__title-row">
+        <img src="/logo-radar-animated-loop-v8.svg" alt="" class="sticky-header__logo">
+        <h2 class="sticky-header__title"><%= @initiative_record.name %></h2>
+      </div>
     </div>
     <div class="sticky-header__right">
       <div class="sticky-header__actions">
@@ -33,7 +36,7 @@
 
 <div class="project-hero" data-project-hero>
   <div class="project-hero__breadcrumb" data-hero-breadcrumb>
-    <%= @initiative ? initiative_breadcrumb(@initiative, @initiative_record) : render_breadcrumb([{ name: 'Status', path: root_path }]) %>
+    <%= @initiative ? initiative_breadcrumb(@initiative, @initiative_record) : render_breadcrumb([{ name: 'Radar', path: root_path }]) %>
   </div>
   <div class="project-hero__actions">
     <% if @initiative_record.archived %>

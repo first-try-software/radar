@@ -1,0 +1,50 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Status Logo - Animated Radar Sweep (Infinite Loop) - V6 -->
+  <!-- Back to B1 style - no outer ring -->
+  <style>
+    @keyframes radar-sweep { 
+      from { transform: rotate(0deg); } 
+      to { transform: rotate(360deg); } 
+    }
+    @keyframes pulse { 
+      0%, 100% { opacity: 1; } 
+      50% { opacity: 0.6; } 
+    }
+    .sweep { 
+      transform-origin: 90px 90px; 
+      animation: radar-sweep 3s linear infinite;
+    }
+    .blip { 
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .blip-1 { animation-delay: 0.3s; }
+    .blip-2 { animation-delay: 0.6s; }
+  </style>
+  
+  <circle cx="90" cy="90" r="80" fill="#1a1f3c"/>
+  <!-- Radar rings -->
+  <circle cx="90" cy="90" r="60" stroke="#3d5a99" stroke-width="1" fill="none" opacity="0.3"/>
+  <circle cx="90" cy="90" r="40" stroke="#3d5a99" stroke-width="1" fill="none" opacity="0.3"/>
+  <circle cx="90" cy="90" r="20" stroke="#3d5a99" stroke-width="1" fill="none" opacity="0.3"/>
+  <!-- Crosshairs -->
+  <line x1="90" y1="25" x2="90" y2="155" stroke="#3d5a99" stroke-width="1" opacity="0.2"/>
+  <line x1="25" y1="90" x2="155" y2="90" stroke="#3d5a99" stroke-width="1" opacity="0.2"/>
+  <!-- Radar sweep - gradient trails BEHIND the line -->
+  <g class="sweep">
+    <defs>
+      <linearGradient id="sweepGradientLoop" gradientUnits="userSpaceOnUse" x1="90" y1="90" x2="45" y2="50">
+        <stop offset="0%" stop-color="#6aa7ff" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#6aa7ff" stop-opacity="0.5"/>
+      </linearGradient>
+    </defs>
+    <!-- Wedge trails behind (counterclockwise from the line) -->
+    <path d="M90 90 L90 25 A65 65 0 0 0 45 50 Z" fill="url(#sweepGradientLoop)"/>
+    <!-- The leading edge / sweep line -->
+    <line x1="90" y1="90" x2="90" y2="25" stroke="#6aa7ff" stroke-width="2"/>
+  </g>
+  <!-- Status blips -->
+  <circle class="blip" cx="60" cy="55" r="8" fill="#22c55e"/>
+  <path class="blip blip-1" d="M110 70 L118 86 L102 86 Z" fill="#f59e0b"/>
+  <rect class="blip blip-2" x="115" y="105" width="14" height="14" rx="2" fill="#ef4444"/>
+</svg>
+
