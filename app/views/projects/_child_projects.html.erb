@@ -1,9 +1,14 @@
+<turbo-frame id="child-projects-section">
 <%
   project = local_assigns[:project]
   project_record = local_assigns[:project_record]
+  health_updates = local_assigns[:health_updates] || []
 
-  is_leaf = project.respond_to?(:leaf?) ? project.leaf? : true
-  return if is_leaf
+  has_children = project.respond_to?(:children) && project.children.any?
+  has_health_updates = health_updates.any?
+
+  # Show child projects if: has children OR has neither (empty project)
+  return if has_health_updates && !has_children
 
   all_children = project.children
   direct_children = all_children.reject { |p| p.respond_to?(:archived?) && p.archived? }
@@ -33,7 +38,20 @@
 
 <section class="section section--projects" data-controller="tabs inline-form" data-tabs-active-value="all">
   <div class="section__title-row">
-    <h3 class="section__title">Child Projects</h3>
+    <div class="section__title-with-info">
+      <h3 class="section__title">Child Projects</h3>
+      <div class="info-tooltip">
+        <span class="info-tooltip__icon">i</span>
+        <div class="info-tooltip__tooltip">
+          <div class="info-tooltip__methodology">Projects can either contain child projects or track health updates directly — not both.</div>
+          <div class="info-tooltip__range">
+            <div>• Parent projects aggregate health from children</div>
+            <div>• Leaf projects track their own health updates</div>
+            <div>• Adding a child makes this a parent project</div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="dashboard-tabs-v2">
       <button class="dashboard-tab-v2 active" data-tabs-target="tab" data-tabs-name="all" data-action="tabs#switch">
         All <span class="dashboard-tab-v2__count"><%= direct_children.size %></span>
@@ -159,3 +177,4 @@
     </div>
   <% end %>
 </section>
+</turbo-frame>

@@ -463,6 +463,11 @@ a:hover {
   border-color: rgba(106, 167, 255, 0.4);
 }
 
+.badge.state.state--new {
+  color: #a78bfa;
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
 .badge.archived {
   color: var(--warning);
   border-color: rgba(255, 209, 102, 0.4);
@@ -651,6 +656,11 @@ input::placeholder {
 }
 
 /* State-specific colors */
+.state-toggle .badge.state--new {
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+}
+
 .state-toggle .badge.state--blocked {
   background: rgba(255, 107, 107, 0.2);
   color: var(--danger);
@@ -1855,6 +1865,16 @@ input::placeholder {
 }
 
 .section__header .section__title {
+  margin: 0;
+}
+
+.section__title-with-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section__title-with-info .section__title {
   margin: 0;
 }
 
@@ -4472,6 +4492,11 @@ input.inline-create-form__input--date {
   letter-spacing: 0.5px;
   border-radius: 4px;
   white-space: nowrap;
+}
+
+.state-pill--new {
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
 }
 
 .state-pill--todo {

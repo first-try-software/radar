@@ -127,6 +127,19 @@ class ProjectsController < ApplicationController
 
     respond_to do |format|
       format.json { render_result(result, success_status: :created) }
+      format.turbo_stream do
+        if result.success?
+          @project_record = ProjectRecord.find_by(id: params[:id])
+          @project = project_actions.find_project.perform(id: params[:id]).value
+          @child_project = result.value
+          render :create_subordinate
+        else
+          @errors = result.errors
+          render turbo_stream: turbo_stream.append("toast-container",
+            "<div class='toast toast--error toast--visible'>#{result.errors.join(', ')}</div>".html_safe
+          ), status: :unprocessable_entity
+        end
+      end
       format.html do
         if result.success?
           redirect_to(project_path(params[:id]), notice: 'Child project created')

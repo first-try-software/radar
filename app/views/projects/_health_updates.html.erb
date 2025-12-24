@@ -4,8 +4,11 @@
   health_updates = local_assigns[:health_updates] || []
   allowed_states = local_assigns[:allowed_states] || SetProjectState::SETTABLE_STATES
 
-  is_leaf = project.respond_to?(:leaf?) ? project.leaf? : false
-  return unless is_leaf
+  has_children = project.respond_to?(:children) && project.children.any?
+  has_health_updates = health_updates.any?
+
+  # Show health updates if: has health updates OR has neither (empty project)
+  return if has_children && !has_health_updates
 %>
 
 <turbo-frame id="updates-section">

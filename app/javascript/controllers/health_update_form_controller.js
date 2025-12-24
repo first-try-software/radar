@@ -118,7 +118,7 @@ export default class extends Controller {
 
         await this.updateStateIfNeeded()
         this.resetForm()
-        this.showToast("Update added!", "success")
+        this.showToast("Today's health update added!", "success")
       } else {
         const data = await response.json()
         const errorMsg = data.errors ? data.errors.join(", ") : "Failed to add update"

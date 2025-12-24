@@ -24,7 +24,7 @@
 <% end %>
 
 <!-- Toast Container -->
-<div class="toast-container" data-toast-container></div>
+<div id="toast-container" class="toast-container" data-toast-container></div>
 
 <%= render "projects/search",
     project: project,
@@ -35,7 +35,8 @@
 
 <%= render "projects/child_projects",
     project: project,
-    project_record: @project_record %>
+    project_record: @project_record,
+    health_updates: @health_updates %>
 
 <%= render "projects/health_updates",
     project: project,

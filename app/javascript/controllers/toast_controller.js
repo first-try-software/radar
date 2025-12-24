@@ -13,6 +13,12 @@ export default class extends Controller {
     if (this.messageValue) {
       this.show()
     }
+    // If already visible (e.g., from Turbo Stream), set up auto-dismiss
+    else if (this.element.classList.contains("toast--visible")) {
+      this.dismissTimeout = setTimeout(() => {
+        this.dismiss()
+      }, this.durationValue)
+    }
   }
 
   show() {
