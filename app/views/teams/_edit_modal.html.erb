@@ -1,0 +1,54 @@
+<%
+  team_record = local_assigns[:team_record]
+%>
+
+<div class="modal-overlay"
+     data-edit-form-target="modal"
+     data-action="click->edit-form#closeOnBackdrop keydown.escape@document->edit-form#close"
+     hidden>
+  <div class="modal">
+    <div class="modal__header">
+      <h3>Edit Team</h3>
+    </div>
+    <%= form_with model: team_record,
+                  url: team_path(team_record),
+                  method: :patch,
+                  local: false,
+                  class: "edit-project-form",
+                  data: { edit_form_target: "form", action: "submit->edit-form#submit" } do |f| %>
+      <div class="modal__body">
+        <div class="form-field">
+          <label for="team_name" class="form-field__label">Name</label>
+          <input type="text" id="team_name" name="team[name]" class="form-field__input" value="<%= team_record.name %>" required>
+        </div>
+        <div class="form-field">
+          <label for="team_description" class="form-field__label">Description</label>
+          <input type="text" id="team_description" name="team[description]" class="form-field__input" value="<%= team_record.description %>">
+        </div>
+        <div class="form-field">
+          <label for="team_point_of_contact" class="form-field__label">Contact(s)</label>
+          <input type="text" id="team_point_of_contact" name="team[point_of_contact]" class="form-field__input" value="<%= team_record.point_of_contact %>">
+        </div>
+        <div class="form-field form-field--archive">
+          <span class="form-field__label">Archive this team and remove it from view?</span>
+          <label class="checkbox-field">
+            <input type="hidden" name="team[archived]" value="0">
+            <input type="checkbox"
+                   name="team[archived]"
+                   value="1"
+                   class="checkbox-field__input"
+                   <%= 'checked' if team_record.archived %>
+                   data-edit-form-target="archiveCheckbox"
+                   data-action="change->edit-form#updateArchiveLabel">
+            <span class="checkbox-field__box"></span>
+            <span class="checkbox-field__label" data-edit-form-target="archiveLabel"><%= team_record.archived ? 'This team is archived and hidden.' : 'Click checkbox to archive' %></span>
+          </label>
+        </div>
+      </div>
+      <div class="modal__actions">
+        <button type="button" class="btn secondary" data-action="edit-form#close">Cancel</button>
+        <button type="submit" class="btn" data-edit-form-target="saveButton">Save</button>
+      </div>
+    <% end %>
+  </div>
+</div>

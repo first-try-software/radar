@@ -122,7 +122,7 @@ class InitiativesController < ApplicationController
           @linked_project = result.value
           render :link_related_project
         else
-          render turbo_stream: turbo_stream.action(:show_toast, message: "Failed to link project: #{result.errors.join(', ')}", type: "error"), status: :unprocessable_entity
+          render turbo_stream: turbo_stream.append("toast-container", "<div class='toast toast--error toast--visible'>Failed to link project: #{result.errors.join(', ')}</div>".html_safe), status: :unprocessable_content
         end
       end
     end
@@ -144,7 +144,7 @@ class InitiativesController < ApplicationController
           render :show, status: :unprocessable_content
         end
         format.turbo_stream do
-          render turbo_stream: turbo_stream.action(:show_toast, message: "Failed to create project: #{create_result.errors.join(', ')}", type: "error"), status: :unprocessable_entity
+          render turbo_stream: turbo_stream.append("toast-container", "<div class='toast toast--error toast--visible'>Failed to create project: #{create_result.errors.join(', ')}</div>".html_safe), status: :unprocessable_content
         end
       end
       return
@@ -178,7 +178,7 @@ class InitiativesController < ApplicationController
           @initiative_record = InitiativeRecord.find(params[:id])
           render :add_related_project
         else
-          render turbo_stream: turbo_stream.action(:show_toast, message: "Failed to link project: #{link_result.errors.join(', ')}", type: "error"), status: :unprocessable_entity
+          render turbo_stream: turbo_stream.append("toast-container", "<div class='toast toast--error toast--visible'>Failed to link project: #{link_result.errors.join(', ')}</div>".html_safe), status: :unprocessable_content
         end
       end
     end

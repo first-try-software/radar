@@ -1,0 +1,54 @@
+<%
+  team = local_assigns[:team]
+  team_record = local_assigns[:team_record]
+  effective_contact = team.respond_to?(:effective_contact) ? team.effective_contact : nil
+  effective_contact ||= team_record.point_of_contact
+%>
+
+<!-- Sticky Header -->
+<div class="sticky-header" data-sticky-header>
+  <div class="sticky-header__container">
+    <div class="sticky-header__left">
+      <div class="sticky-header__breadcrumb">
+        <%= team ? team_breadcrumb(team, team_record) : render_breadcrumb([{ name: 'Radar', path: root_path }]) %>
+      </div>
+      <div class="sticky-header__title-row">
+        <img src="/logo-radar-animated-loop-v8.svg" alt="" class="sticky-header__logo">
+        <h2 class="sticky-header__title"><%= team_record.name %></h2>
+      </div>
+    </div>
+    <div class="sticky-header__right">
+      <div class="sticky-header__actions">
+        <% if team_record.archived %>
+          <span class="badge badge--archived">ARCHIVED</span>
+        <% end %>
+        <button type="button" class="sticky-header__edit-btn" data-action="edit-form#open" aria-label="Edit team">✎</button>
+      </div>
+      <% if effective_contact.present? %>
+        <span class="sticky-header__contact">Contact: <%= effective_contact %></span>
+      <% else %>
+        <span class="sticky-header__contact sticky-header__contact--missing">No contact specified</span>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Hero Section -->
+<div class="project-hero" data-project-hero>
+  <div class="project-hero__breadcrumb" data-hero-breadcrumb>
+    <%= team ? team_breadcrumb(team, team_record) : render_breadcrumb([{ name: 'Radar', path: root_path }]) %>
+  </div>
+  <div class="project-hero__actions">
+    <% if team_record.archived %>
+      <span class="badge badge--archived" data-archived-badge>ARCHIVED</span>
+    <% end %>
+    <button type="button" class="project-hero__edit-btn" data-action="edit-form#open" aria-label="Edit team">✎</button>
+  </div>
+  <h1 class="project-hero__title" data-project-title><%= team_record.name %></h1>
+  <p class="project-hero__tagline" data-project-tagline<%= ' hidden' if team_record.description.blank? %>><%= team_record.description %></p>
+  <% if effective_contact.present? %>
+    <p class="project-hero__contact" data-project-contact>For more information, contact <strong data-project-poc><%= effective_contact %></strong>.</p>
+  <% else %>
+    <p class="project-hero__contact project-hero__contact--missing" data-project-contact>Psst! Do me a favor! Tell me who to call if this thing breaks!</p>
+  <% end %>
+</div>

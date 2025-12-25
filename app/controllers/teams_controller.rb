@@ -89,6 +89,16 @@ class TeamsController < ApplicationController
           render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
         end
       end
+      format.turbo_stream do
+        if result.success?
+          @team = find_domain_team(params[:id])
+          @team_record = TeamRecord.find(params[:id])
+          @project = result.value
+          render :link_owned_project
+        else
+          render turbo_stream: turbo_stream.append("toast-container", "<div class='toast toast--error toast--visible'>Failed to link project: #{result.errors.join(', ')}</div>".html_safe), status: :unprocessable_content
+        end
+      end
     end
   end
 
@@ -112,6 +122,9 @@ class TeamsController < ApplicationController
           populate_team_dashboard_data(@team)
           @errors = create_result.errors
           render :show, status: :unprocessable_content
+        end
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.append("toast-container", "<div class='toast toast--error toast--visible'>Failed to create project: #{create_result.errors.join(', ')}</div>".html_safe), status: :unprocessable_content
         end
       end
       return
@@ -137,6 +150,15 @@ class TeamsController < ApplicationController
           populate_team_dashboard_data(@team)
           @errors = link_result.errors
           render :show, status: :unprocessable_content
+        end
+      end
+      format.turbo_stream do
+        if link_result.success?
+          @team = find_domain_team(params[:id])
+          @team_record = TeamRecord.find(params[:id])
+          render :add_owned_project
+        else
+          render turbo_stream: turbo_stream.append("toast-container", "<div class='toast toast--error toast--visible'>Failed to link project: #{link_result.errors.join(', ')}</div>".html_safe), status: :unprocessable_content
         end
       end
     end
@@ -168,6 +190,15 @@ class TeamsController < ApplicationController
           populate_team_dashboard_data(@team)
           @errors = result.errors
           render :show, status: :unprocessable_content
+        end
+      end
+      format.turbo_stream do
+        if result.success?
+          @team = find_domain_team(params[:id])
+          @team_record = TeamRecord.find(params[:id])
+          render :add_subordinate_team
+        else
+          render turbo_stream: turbo_stream.append("toast-container", "<div class='toast toast--error toast--visible'>Failed to create team: #{result.errors.join(', ')}</div>".html_safe), status: :unprocessable_content
         end
       end
     end

@@ -137,7 +137,7 @@ class ProjectsController < ApplicationController
           @errors = result.errors
           render turbo_stream: turbo_stream.append("toast-container",
             "<div class='toast toast--error toast--visible'>#{result.errors.join(', ')}</div>".html_safe
-          ), status: :unprocessable_entity
+          ), status: :unprocessable_content
         end
       end
       format.html do

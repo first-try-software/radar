@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe InitiativesController, type: :request do
   let(:actions) { Rails.application.config.x.initiative_actions }
   let(:json_headers) { { 'ACCEPT' => 'application/json' } }
+  let(:turbo_stream_headers) { { 'ACCEPT' => 'text/vnd.turbo-stream.html' } }
 
   describe 'HTML endpoints' do
     it 'renders the show page' do
@@ -458,6 +459,77 @@ RSpec.describe InitiativesController, type: :request do
       delete "/initiatives/#{initiative.id}/related_projects/#{project.id}"
 
       expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe 'turbo_stream endpoints' do
+    it 'creates a related project via turbo_stream' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+
+      post "/initiatives/#{initiative.id}/related_projects/add",
+           params: { project: { name: 'TurboProject' } },
+           headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(ProjectRecord.exists?(name: 'TurboProject')).to be(true)
+    end
+
+    it 'returns turbo_stream error for invalid related project' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+
+      post "/initiatives/#{initiative.id}/related_projects/add",
+           params: { project: { name: '' } },
+           headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+    end
+
+    it 'links an existing project via turbo_stream' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      project = ProjectRecord.create!(name: 'ExistingProject')
+
+      post "/initiatives/#{initiative.id}/related_projects",
+           params: { project_id: project.id },
+           headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(InitiativesProjectRecord.exists?(initiative: initiative, project: project)).to be(true)
+    end
+
+    it 'returns turbo_stream error for invalid link' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+
+      post "/initiatives/#{initiative.id}/related_projects",
+           params: { project_id: 999 },
+           headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+    end
+
+    it 'returns turbo_stream error when project created but linking fails' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+
+      # Stub link action to fail after project is created
+      link_action = instance_double('LinkRelatedProject')
+      allow(link_action).to receive(:perform).and_return(
+        double('Result', success?: false, errors: ['linking failed'])
+      )
+      allow_any_instance_of(InitiativesController).to receive(:initiative_actions).and_wrap_original do |method|
+        actions = method.call
+        allow(actions).to receive(:link_related_project).and_return(link_action)
+        actions
+      end
+
+      post "/initiatives/#{initiative.id}/related_projects/add",
+           params: { project: { name: 'NewProject' } },
+           headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
     end
   end
 end

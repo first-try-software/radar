@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe ProjectsController, type: :request do
   let(:actions) { Rails.application.config.x.project_actions }
   let(:json_headers) { { 'ACCEPT' => 'application/json' } }
+  let(:turbo_stream_headers) { { 'ACCEPT' => 'text/vnd.turbo-stream.html' } }
 
   describe 'HTML endpoints' do
     it 'renders the show page for a leaf project' do
@@ -599,6 +600,47 @@ RSpec.describe ProjectsController, type: :request do
       post '/projects/999/health_updates', params: params, headers: json_headers
 
       expect(response).to have_http_status(:not_found)
+    end
+
+    it 'creates a health update via turbo_stream and returns stream response' do
+      record = ProjectRecord.create!(name: 'Turbo', current_state: 'in_progress')
+      params = { health_update: { date: Date.current, health: 'on_track', description: 'All good' } }
+
+      post "/projects/#{record.id}/health_updates", params: params, headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+    end
+
+    it 'returns turbo_stream error for invalid health update' do
+      record = ProjectRecord.create!(name: 'Turbo', current_state: 'in_progress')
+      params = { health_update: { date: Date.current, health: 'bogus' } }
+
+      post "/projects/#{record.id}/health_updates", params: params, headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+    end
+  end
+
+  describe 'POST /projects/:id/subordinates turbo_stream' do
+    it 'creates a subordinate project via turbo_stream' do
+      parent = ProjectRecord.create!(name: 'TurboParent')
+
+      post "/projects/#{parent.id}/subordinates", params: { project: { name: 'TurboChild' } }, headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(ProjectRecord.exists?(name: 'TurboChild')).to be(true)
+    end
+
+    it 'returns turbo_stream error for invalid subordinate' do
+      parent = ProjectRecord.create!(name: 'TurboParent')
+
+      post "/projects/#{parent.id}/subordinates", params: { project: { name: '' } }, headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
     end
   end
 end

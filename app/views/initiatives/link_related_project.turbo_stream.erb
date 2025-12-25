@@ -15,4 +15,6 @@
     <span class="section__badge section__badge--linked">✓ Linked</span>
   </li>
 <% end %>
-<%= turbo_stream.action :show_toast, message: "#{@linked_project.name} linked to initiative!", type: "success" %>
+<%= turbo_stream.append "toast-container" do %>
+  <div class="toast toast--success toast--visible" data-controller="toast"><%= @linked_project.name %> linked to initiative!</div>
+<% end %>

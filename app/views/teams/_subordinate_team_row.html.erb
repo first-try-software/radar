@@ -1,0 +1,19 @@
+<%
+  team_data = local_assigns[:team_data]
+%>
+<li class="project-item-v2">
+  <a href="<%= team_path(team_data[:record]) %>" class="project-item-v2__link" data-turbo-frame="_top">
+    <div class="team-item__grid">
+      <span class="team-item__col team-item__col--health">
+        <span class="project-item-v2__health project-item-v2__health--<%= team_data[:health] %>"></span>
+      </span>
+      <span class="team-item__col team-item__col--name"><%= team_data[:record].name %></span>
+      <span class="team-item__col team-item__col--trend">
+        <%= trend_arrow_svg(team_data[:trend]) %>
+      </span>
+      <span class="team-item__col team-item__col--projects"><%= team_data[:projects] %></span>
+      <span class="team-item__col team-item__col--stale<%= ' team-item__col--stale-warning' if team_data[:stale] > 0 %>"><%= team_data[:stale] %></span>
+      <span class="team-item__col team-item__col--contact"><%= team_data[:record].point_of_contact.presence || '—' %></span>
+    </div>
+  </a>
+</li>

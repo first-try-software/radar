@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe TeamsController, type: :request do
   let(:actions) { Rails.application.config.x.team_actions }
   let(:json_headers) { { 'ACCEPT' => 'application/json' } }
+  let(:turbo_stream_headers) { { 'ACCEPT' => 'text/vnd.turbo-stream.html' } }
 
   describe 'HTML endpoints' do
     it 'renders the show page' do
@@ -379,6 +380,100 @@ RSpec.describe TeamsController, type: :request do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body['errors']).to include('team name must be unique')
+    end
+  end
+
+  describe 'turbo_stream endpoints' do
+    it 'creates an owned project via turbo_stream' do
+      team = TeamRecord.create!(name: 'Platform Team')
+
+      post "/teams/#{team.id}/owned_projects/add",
+           params: { project: { name: 'TurboProject' } },
+           headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(ProjectRecord.exists?(name: 'TurboProject')).to be(true)
+    end
+
+    it 'returns turbo_stream error for invalid owned project' do
+      team = TeamRecord.create!(name: 'Platform Team')
+
+      post "/teams/#{team.id}/owned_projects/add",
+           params: { project: { name: '' } },
+           headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+    end
+
+    it 'links an existing project via turbo_stream' do
+      team = TeamRecord.create!(name: 'Platform Team')
+      project = ProjectRecord.create!(name: 'ExistingProject')
+
+      post "/teams/#{team.id}/owned_projects",
+           params: { project_id: project.id },
+           headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(TeamsProjectRecord.exists?(team: team, project: project)).to be(true)
+    end
+
+    it 'returns turbo_stream error for invalid link' do
+      team = TeamRecord.create!(name: 'Platform Team')
+
+      post "/teams/#{team.id}/owned_projects",
+           params: { project_id: 999 },
+           headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+    end
+
+    it 'creates a subordinate team via turbo_stream' do
+      team = TeamRecord.create!(name: 'Platform Team')
+
+      post "/teams/#{team.id}/subordinate_teams",
+           params: { team: { name: 'SubTeam' } },
+           headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(TeamRecord.exists?(name: 'SubTeam')).to be(true)
+    end
+
+    it 'returns turbo_stream error for invalid subordinate team' do
+      team = TeamRecord.create!(name: 'Platform Team')
+
+      post "/teams/#{team.id}/subordinate_teams",
+           params: { team: { name: '' } },
+           headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+    end
+
+    it 'returns turbo_stream error when project created but linking fails' do
+      team = TeamRecord.create!(name: 'Platform Team')
+
+      # Stub link action to fail after project is created
+      link_action = instance_double('LinkOwnedProject')
+      allow(link_action).to receive(:perform).and_return(
+        double('Result', success?: false, errors: ['linking failed'])
+      )
+      allow_any_instance_of(TeamsController).to receive(:team_actions).and_wrap_original do |method|
+        actions = method.call
+        allow(actions).to receive(:link_owned_project).and_return(link_action)
+        actions
+      end
+
+      post "/teams/#{team.id}/owned_projects/add",
+           params: { project: { name: 'NewProject' } },
+           headers: turbo_stream_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
     end
   end
 end

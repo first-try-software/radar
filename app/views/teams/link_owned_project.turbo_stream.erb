@@ -1,0 +1,24 @@
+<%
+  all_child_teams = @team_record.child_relationships.includes(:child).order(:order).map(&:child)
+  subordinate_teams = all_child_teams.reject(&:archived)
+  archived_child_teams = all_child_teams.select(&:archived)
+%>
+<%= turbo_stream.replace "subordinate-teams-section", partial: "teams/subordinate_teams", locals: { team: @team, team_record: @team_record, subordinate_teams: subordinate_teams, archived_child_teams: archived_child_teams } %>
+<%= turbo_stream.replace "owned-projects-section", partial: "teams/owned_projects", locals: { team: @team, team_record: @team_record, subordinate_teams: subordinate_teams, archived_child_teams: archived_child_teams } %>
+<%= turbo_stream.replace "search-project-item-#{@project.id}" do %>
+  <li class="section__item section__item--searchable"
+      id="search-project-item-<%= @project.id %>"
+      data-search-type="project"
+      data-search-name="<%= @project.name.downcase %>"
+      data-search-poc="<%= @project.point_of_contact.to_s.downcase %>"
+      data-project-id="<%= @project.id %>">
+    <a href="<%= project_path(@project.id) %>" class="section__link" data-turbo-frame="_top">
+      <span class="project-item-v2__health project-item-v2__health--<%= @project.health || :not_available %>"></span>
+      <span class="section__name"><%= @project.name %></span>
+    </a>
+    <span class="section__badge section__badge--linked">✓ Owned</span>
+  </li>
+<% end %>
+<%= turbo_stream.append "toast-container" do %>
+  <div class="toast toast--success toast--visible" data-controller="toast">Project linked to team!</div>
+<% end %>
