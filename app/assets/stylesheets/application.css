@@ -2140,6 +2140,57 @@ input::placeholder {
   margin-bottom: 2px;
 }
 
+.section__item--with-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.section__item--with-action .section__link {
+  flex: 1;
+  min-width: 0;
+}
+
+.section__link-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.section__link-btn:hover {
+  background: var(--accent);
+  color: white;
+}
+
+.section__link-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.section__badge {
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.section__badge--linked {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--health-on-track);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
 .global-search__item:last-child {
   margin-bottom: 0;
 }

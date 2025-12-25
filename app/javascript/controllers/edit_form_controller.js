@@ -1,9 +1,10 @@
 import { Controller } from "@hotwired/stimulus"
 
 // Handles edit modal form submission with AJAX
+// Works for both projects and initiatives
 export default class extends Controller {
   static targets = ["modal", "form", "archiveCheckbox", "archiveLabel", "saveButton"]
-  static values = { url: String }
+  static values = { url: String, modelType: { type: String, default: "project" } }
 
   open() {
     if (this.hasModalTarget) {
@@ -25,8 +26,9 @@ export default class extends Controller {
 
   updateArchiveLabel() {
     if (this.hasArchiveCheckboxTarget && this.hasArchiveLabelTarget) {
+      const modelName = this.modelTypeValue === "initiative" ? "initiative" : "project"
       this.archiveLabelTarget.textContent = this.archiveCheckboxTarget.checked
-        ? "This project is archived and hidden."
+        ? `This ${modelName} is archived and hidden.`
         : "Click checkbox to archive"
     }
   }
@@ -83,10 +85,14 @@ export default class extends Controller {
     const actionsEl = document.querySelector(".project-hero__actions")
     let archivedBadge = document.querySelector("[data-archived-badge]")
 
-    const name = formData.get("project[name]")
-    const description = formData.get("project[description]")
-    const poc = formData.get("project[point_of_contact]")
-    const archived = formData.get("project[archived]") === "1"
+    // Detect model type from form data
+    const modelType = formData.has("initiative[name]") ? "initiative" : "project"
+    const prefix = `${modelType}[`
+
+    const name = formData.get(`${prefix}name]`)
+    const description = formData.get(`${prefix}description]`)
+    const poc = formData.get(`${prefix}point_of_contact]`)
+    const archived = formData.get(`${prefix}archived]`) === "1"
 
     if (titleEl) titleEl.textContent = name
     if (taglineEl) {

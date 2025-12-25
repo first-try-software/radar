@@ -1,0 +1,2 @@
+<%= turbo_stream.replace "related-projects-section", partial: "initiatives/related_projects", locals: { initiative: @initiative, initiative_record: @initiative_record } %>
+<%= turbo_stream.action :show_toast, message: "Related project created!", type: "success" %>

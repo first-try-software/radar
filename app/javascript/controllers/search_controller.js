@@ -75,5 +75,83 @@ export default class extends Controller {
       this.close()
     }
   }
+
+  async linkProject(event) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const button = event.currentTarget
+    const url = button.dataset.linkUrl
+    const projectId = button.dataset.projectId
+    const token = document.querySelector('meta[name="csrf-token"]')?.content
+
+    // Disable button and show loading state
+    const originalText = button.textContent
+    button.textContent = "Linking..."
+    button.disabled = true
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Accept": "text/vnd.turbo-stream.html, application/json",
+          "X-CSRF-Token": token
+        }
+      })
+
+      if (response.ok) {
+        const contentType = response.headers.get("Content-Type")
+        if (contentType && contentType.includes("turbo-stream")) {
+          const text = await response.text()
+          Turbo.renderStreamMessage(text)
+        } else {
+          // Fallback: update button to show linked state
+          const listItem = button.closest(".section__item")
+          button.remove()
+          const badge = document.createElement("span")
+          badge.className = "section__badge section__badge--linked"
+          badge.textContent = "✓ Linked"
+          listItem.appendChild(badge)
+        }
+        this.close()
+      } else {
+        const data = await response.json()
+        const errorMsg = data.errors ? data.errors.join(", ") : "Failed to link project"
+        this.showToast(errorMsg, "error")
+        button.textContent = originalText
+        button.disabled = false
+      }
+    } catch (error) {
+      console.error("Failed to link project:", error)
+      this.showToast("An error occurred. Please try again.", "error")
+      button.textContent = originalText
+      button.disabled = false
+    }
+  }
+
+  showToast(message, type = "success") {
+    const container = document.querySelector("[data-toast-container]")
+    if (!container) return
+
+    const toast = document.createElement("div")
+    toast.className = `toast toast--${type}`
+    toast.textContent = message
+
+    container.appendChild(toast)
+
+    requestAnimationFrame(() => {
+      toast.classList.add("toast--visible")
+    })
+
+    setTimeout(() => {
+      toast.classList.remove("toast--visible")
+      setTimeout(() => toast.remove(), 300)
+    }, 5000)
+
+    toast.addEventListener("click", () => {
+      toast.classList.remove("toast--visible")
+      setTimeout(() => toast.remove(), 300)
+    })
+  }
 }
 

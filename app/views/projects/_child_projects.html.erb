@@ -38,20 +38,7 @@
 
 <section class="section section--projects" data-controller="tabs inline-form" data-tabs-active-value="all">
   <div class="section__title-row">
-    <div class="section__title-with-info">
-      <h3 class="section__title">Child Projects</h3>
-      <div class="info-tooltip">
-        <span class="info-tooltip__icon">i</span>
-        <div class="info-tooltip__tooltip">
-          <div class="info-tooltip__methodology">Projects can either contain child projects or track health updates directly — not both.</div>
-          <div class="info-tooltip__range">
-            <div>• Parent projects aggregate health from children</div>
-            <div>• Leaf projects track their own health updates</div>
-            <div>• Adding a child makes this a parent project</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <h3 class="section__title">Child Projects</h3>
     <div class="dashboard-tabs-v2">
       <button class="dashboard-tab-v2 active" data-tabs-target="tab" data-tabs-name="all" data-action="tabs#switch">
         All <span class="dashboard-tab-v2__count"><%= direct_children.size %></span>
@@ -77,6 +64,17 @@
               data-inline-form-target="toggle"
               data-action="inline-form#toggle"
               aria-label="Create child project">+</button>
+      <div class="info-tooltip">
+        <span class="info-tooltip__icon">i</span>
+        <div class="info-tooltip__tooltip">
+          <div class="info-tooltip__methodology">Projects can either contain child projects or track health updates directly — not both.</div>
+          <div class="info-tooltip__range">
+            <div>• Parent projects aggregate health from children</div>
+            <div>• Leaf projects track their own health updates</div>
+            <div>• Adding a child makes this a parent project</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

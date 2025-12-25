@@ -53,7 +53,7 @@
   <p class="project-hero__tagline" data-project-tagline<%= ' hidden' if @team_record.description.blank? %>><%= @team_record.description %></p>
   <% effective_contact = @team&.effective_contact || @team_record.point_of_contact %>
   <% if effective_contact.present? %>
-    <p class="project-hero__contact" data-project-contact>For more information, contact <span data-project-poc><%= effective_contact %></span>.</p>
+    <p class="project-hero__contact" data-project-contact>For more information, contact <strong data-project-poc><%= effective_contact %></strong>.</p>
   <% else %>
     <p class="project-hero__contact project-hero__contact--missing" data-project-contact>Psst! Do me a favor! Tell me who to call if this thing breaks!</p>
   <% end %>

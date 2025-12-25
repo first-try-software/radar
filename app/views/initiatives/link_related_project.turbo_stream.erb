@@ -1,0 +1,18 @@
+<%
+  project_record = ProjectRecord.find_by(id: params[:project_id])
+%>
+<%= turbo_stream.replace "related-projects-section", partial: "initiatives/related_projects", locals: { initiative: @initiative, initiative_record: @initiative_record } %>
+<%= turbo_stream.replace "search-project-#{params[:project_id]}" do %>
+  <li class="section__item section__item--searchable section__item--with-action"
+      id="search-project-<%= project_record&.id %>"
+      data-search-type="project"
+      data-search-name="<%= @linked_project.name.downcase %>"
+      data-search-poc="<%= @linked_project.point_of_contact.to_s.downcase %>">
+    <a href="<%= project_path(project_record) %>" class="section__link" data-turbo-frame="_top">
+      <span class="project-item-v2__health project-item-v2__health--<%= @linked_project.health || :not_available %>"></span>
+      <span class="section__name"><%= @linked_project.name %></span>
+    </a>
+    <span class="section__badge section__badge--linked">✓ Linked</span>
+  </li>
+<% end %>
+<%= turbo_stream.action :show_toast, message: "#{@linked_project.name} linked to initiative!", type: "success" %>

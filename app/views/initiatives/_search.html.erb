@@ -1,0 +1,133 @@
+<%
+  initiative = local_assigns[:initiative]
+  initiative_record = local_assigns[:initiative_record]
+  teams = local_assigns[:teams] || []
+  initiatives = local_assigns[:initiatives] || []
+  all_projects = local_assigns[:all_projects] || []
+
+  # Get IDs of projects already linked to this initiative
+  linked_project_ids = if initiative.respond_to?(:related_projects)
+    (initiative.related_projects || []).map { |p| p.respond_to?(:id) ? p.id : nil }.compact.map(&:to_i)
+  else
+    []
+  end
+
+  # Build flat list of all teams with ancestry for search
+  all_teams_flat = []
+  build_team_tree = ->(team_list, ancestors = []) do
+    team_list.sort_by(&:name).each do |team|
+      path = ancestors + [team.name]
+      all_teams_flat << { entity: team, type: :team, path: path, record: TeamRecord.find_by(name: team.name) }
+      build_team_tree.call(team.subordinate_teams, path) if team.subordinate_teams.any?
+    end
+  end
+  build_team_tree.call(teams) if teams
+
+  # Build flat list of all initiatives
+  all_initiatives_flat = initiatives.map do |init|
+    { entity: init, type: :initiative, record: InitiativeRecord.find_by(name: init.name) }
+  end
+
+  # Build flat list of all projects with linkability info
+  all_projects_flat = all_projects.map do |proj|
+    record = ProjectRecord.find_by(name: proj.name)
+    is_top_level = proj.respond_to?(:parent) ? proj.parent.nil? : (record&.parent_id.nil?)
+    is_linked = record && linked_project_ids.include?(record.id)
+    { entity: proj, type: :project, record: record, is_top_level: is_top_level, is_linked: is_linked }
+  end
+%>
+
+<div class="global-search" data-controller="search">
+  <input type="text"
+         class="global-search__input"
+         placeholder="Find or create what you are looking for..."
+         data-search-target="input"
+         data-action="input->search#search keydown->search#escape">
+  <div class="global-search__results-container" data-search-target="container">
+    <div class="section section--search-results">
+      <h3 class="section__title" data-search-target="resultsHeader">Results</h3>
+      <div class="section__columns" data-search-target="resultsGrid">
+        <!-- Teams Column -->
+        <div class="section__column" data-search-target="column" data-results-column="teams">
+          <h4 class="section__subtitle">Teams</h4>
+          <ul class="section__list">
+            <% all_teams_flat.each do |entry| %>
+              <li class="section__item section__item--searchable"
+                  data-search-type="team"
+                  data-search-name="<%= entry[:entity].name.downcase %>"
+                  data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                <a href="<%= team_path(entry[:record]) %>" class="section__link" data-turbo-frame="_top">
+                  <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                  <span class="section__name"><%= entry[:entity].name %></span>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+
+        <!-- Initiatives Column -->
+        <div class="section__column" data-search-target="column" data-results-column="initiatives">
+          <h4 class="section__subtitle">Initiatives</h4>
+          <ul class="section__list">
+            <% all_initiatives_flat.each do |entry| %>
+              <li class="section__item section__item--searchable"
+                  data-search-type="initiative"
+                  data-search-name="<%= entry[:entity].name.downcase %>"
+                  data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                <a href="<%= initiative_path(entry[:record]) %>" class="section__link" data-turbo-frame="_top">
+                  <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                  <span class="section__name"><%= entry[:entity].name %></span>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+
+        <!-- Projects Column -->
+        <div class="section__column" data-search-target="column" data-results-column="projects">
+          <h4 class="section__subtitle">Projects</h4>
+          <ul class="section__list">
+            <% all_projects_flat.each do |entry| %>
+              <li class="section__item section__item--searchable section__item--with-action"
+                  id="search-project-<%= entry[:record]&.id %>"
+                  data-search-type="project"
+                  data-search-name="<%= entry[:entity].name.downcase %>"
+                  data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                <a href="<%= project_path(entry[:record]) %>" class="section__link" data-turbo-frame="_top">
+                  <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                  <span class="section__name"><%= entry[:entity].name %></span>
+                </a>
+                <% if entry[:is_linked] %>
+                  <span class="section__badge section__badge--linked">✓ Linked</span>
+                <% elsif entry[:is_top_level] && entry[:record] %>
+                  <button type="button"
+                          class="section__link-btn"
+                          data-action="click->search#linkProject"
+                          data-project-id="<%= entry[:record].id %>"
+                          data-link-url="<%= related_projects_initiative_path(initiative_record, project_id: entry[:record].id) %>">
+                    Link
+                  </button>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+
+      <!-- No Results / Create -->
+      <div class="global-search__no-results" data-search-target="noResults" hidden>
+        <h3 class="section__title">Create Related Project</h3>
+        <div class="global-search__form-card">
+          <%= form_with url: add_related_project_initiative_path(initiative_record), method: :post, local: false, class: "global-search__create-form" do |f| %>
+            <div class="global-search__form-fields-inline">
+              <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-search-target="createName" required>
+              <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)">
+              <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)">
+              <button type="submit" class="global-search__create-btn">Create Related Project</button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

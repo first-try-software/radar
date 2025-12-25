@@ -115,6 +115,16 @@ class InitiativesController < ApplicationController
           render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
         end
       end
+      format.turbo_stream do
+        if result.success?
+          @initiative = find_domain_initiative(params[:id])
+          @initiative_record = InitiativeRecord.find(params[:id])
+          @linked_project = result.value
+          render :link_related_project
+        else
+          render turbo_stream: turbo_stream.action(:show_toast, message: "Failed to link project: #{result.errors.join(', ')}", type: "error"), status: :unprocessable_entity
+        end
+      end
     end
   end
 
@@ -132,6 +142,9 @@ class InitiativesController < ApplicationController
           @errors = create_result.errors
           populate_dashboard_data(@initiative)
           render :show, status: :unprocessable_content
+        end
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.action(:show_toast, message: "Failed to create project: #{create_result.errors.join(', ')}", type: "error"), status: :unprocessable_entity
         end
       end
       return
@@ -157,6 +170,15 @@ class InitiativesController < ApplicationController
           @errors = link_result.errors
           populate_dashboard_data(@initiative)
           render :show, status: :unprocessable_content
+        end
+      end
+      format.turbo_stream do
+        if link_result.success?
+          @initiative = find_domain_initiative(params[:id])
+          @initiative_record = InitiativeRecord.find(params[:id])
+          render :add_related_project
+        else
+          render turbo_stream: turbo_stream.action(:show_toast, message: "Failed to link project: #{link_result.errors.join(', ')}", type: "error"), status: :unprocessable_entity
         end
       end
     end
