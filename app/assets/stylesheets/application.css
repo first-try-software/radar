@@ -1415,35 +1415,45 @@ input::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  margin-bottom: 24px;
+  gap: 36px;
 }
 
 .home-hero__logo {
-  width: 96px;
-  height: 96px;
+  width: 120px;
+  height: 120px;
   flex-shrink: 0;
 }
 
+.home-hero__title-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  
+}
+
 .home-hero__title {
-  font-family: "Sansation", sans-serif;
-  font-size: 132px;
-  font-weight: 700;
+  font-family: "Montserrat", sans-serif;
+  font-size: 72px;
+  font-weight: 400;
   color: var(--text);
-  margin: 0;
+  margin: -24px -72px 0 0;
   line-height: 0.8;
-  letter-spacing: -2px;
+  letter-spacing: 72px;
   text-transform: lowercase;
+  font-variant: small-caps;
 }
 
 .home-hero__tagline {
   font-family: "Montserrat", sans-serif;
-  font-size: 32px;
+  font-size: 20px;
   font-weight: 400;
   color: var(--text-muted);
-  margin: 0;
+  margin: 0 -4px 0 4px;
   line-height: 1;
-  letter-spacing: -1px;
+  letter-spacing: 4px;
+  text-transform: lowercase;
+  font-variant: small-caps;
 }
 
 .home-hero__contact {
@@ -1824,7 +1834,7 @@ input::placeholder {
   font-size: 14px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 4px;
   color: var(--text-muted);
   margin: 0 0 16px 0;
 }
@@ -3164,7 +3174,7 @@ input::placeholder {
   font-size: 10px;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   margin-bottom: 16px;
 }
 
@@ -3688,7 +3698,7 @@ input::placeholder {
   font-size: 14px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 4px;
   color: var(--text-muted);
   margin-left: -16px;
   width: auto !important;
@@ -4010,10 +4020,10 @@ input.inline-create-form__input--date {
 
 .team-item__header-label {
   font-size: 11px !important;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .team-item__col--trend,
