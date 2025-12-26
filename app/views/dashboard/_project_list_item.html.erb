@@ -1,27 +1,87 @@
-<% health_override = local_assigns.fetch(:health, nil) %>
-<% latest_update = project.latest_health_update %>
-<% last_update_date = latest_update&.date ? latest_update.date.strftime('%-m/%-d/%-y') : '—' %>
-<% last_update_comment = latest_update&.description.present? ? latest_update.description : '—' %>
-<% project_record = ProjectRecord.find_by(name: project.name) %>
-<% link_href = project_path(project_record) %>
-<% health_value = health_override || project.health || :not_available %>
-<% state_label = project.current_state.to_s.tr('_', ' ').titleize %>
-<% state_class = "project-item-v2__state project-item-v2__state--#{project.current_state}" %>
+<%#
+  list_type: :leaf (default) or :parent
+  - leaf: State | Last Update | Comment | Contact (from project's own latest update)
+  - parent: State | Trend | Projects | Stale | Contact (aggregated from children)
+%>
+<%
+  health_override = local_assigns.fetch(:health, nil)
+  list_type = local_assigns.fetch(:list_type, :leaf)
+
+  project_record = ProjectRecord.find_by(name: project.name)
+  link_href = project_path(project_record)
+  health_value = health_override || project.health || :not_available
+  state_label = project.current_state.to_s.tr('_', ' ').titleize
+  state_class = "project-item-v2__state project-item-v2__state--#{project.current_state}"
+  contact = project.respond_to?(:point_of_contact) ? (project.point_of_contact.presence || '—') : '—'
+
+  if list_type == :parent
+    # Parent columns: aggregate from immediate children
+    children = project.respond_to?(:children) ? project.children : []
+    active_children = children.reject { |c| c.respond_to?(:archived?) && c.archived? }
+
+    # Projects count: immediate children only
+    projects_count = active_children.size
+
+    # Stale count: immediate children that are stale
+    stale_children = active_children.select do |child|
+      next false unless [:in_progress, :blocked].include?(child.current_state)
+      # Get the effective latest update (child's own if leaf, or from its descendants)
+      if child.respond_to?(:leaf?) && child.leaf?
+        latest = child.latest_health_update
+      else
+        # For child parents, find most recent update from their leaf descendants
+        leaves = child.respond_to?(:leaf_descendants) ? child.leaf_descendants : []
+        latest = leaves.map(&:latest_health_update).compact.max_by { |u| u.date.to_date }
+      end
+      latest.nil? || (Date.current - latest.date.to_date).to_i > 7
+    end
+    stale_count = stale_children.size
+
+    # Trend: use project's trend if available
+    trend_direction = project.respond_to?(:trend) ? project.trend : :stable
+  else
+    # Leaf columns: project's own data
+    latest_update = project.latest_health_update
+    last_update_date = latest_update&.date ? latest_update.date.strftime('%-m/%-d/%-y') : '—'
+    last_update_comment = latest_update&.description.present? ? latest_update.description : '—'
+  end
+%>
 
 <li class="project-item-v2">
   <a href="<%= link_href %>" class="project-item-v2__link" data-turbo-frame="_top">
-    <div class="project-item-v2__grid">
-      <span class="project-item-v2__col project-item-v2__col--health">
-        <span class="project-item-v2__health project-item-v2__health--<%= health_value %>"></span>
-      </span>
-      <span class="project-item-v2__col project-item-v2__col--name">
-        <span class="project-item-v2__name"><%= project.name %></span>
-      </span>
-      <span class="project-item-v2__col project-item-v2__col--state">
-        <span class="<%= state_class %>"><%= state_label %></span>
-      </span>
-      <span class="project-item-v2__col project-item-v2__col--meta"><%= last_update_date %></span>
-      <span class="project-item-v2__col project-item-v2__col--comment"><%= last_update_comment %></span>
-    </div>
+    <% if list_type == :parent %>
+      <div class="project-item-v2__grid project-item-v2__grid--parent">
+        <span class="project-item-v2__col project-item-v2__col--health">
+          <span class="project-item-v2__health project-item-v2__health--<%= health_value %>"></span>
+        </span>
+        <span class="project-item-v2__col project-item-v2__col--name">
+          <span class="project-item-v2__name"><%= project.name %></span>
+        </span>
+        <span class="project-item-v2__col project-item-v2__col--state">
+          <span class="<%= state_class %>"><%= state_label %></span>
+        </span>
+        <span class="project-item-v2__col project-item-v2__col--trend">
+          <%= trend_arrow_svg(trend_direction) %>
+        </span>
+        <span class="project-item-v2__col project-item-v2__col--count"><%= projects_count %></span>
+        <span class="project-item-v2__col project-item-v2__col--count"><%= stale_count %></span>
+        <span class="project-item-v2__col project-item-v2__col--contact"><%= contact %></span>
+      </div>
+    <% else %>
+      <div class="project-item-v2__grid">
+        <span class="project-item-v2__col project-item-v2__col--health">
+          <span class="project-item-v2__health project-item-v2__health--<%= health_value %>"></span>
+        </span>
+        <span class="project-item-v2__col project-item-v2__col--name">
+          <span class="project-item-v2__name"><%= project.name %></span>
+        </span>
+        <span class="project-item-v2__col project-item-v2__col--state">
+          <span class="<%= state_class %>"><%= state_label %></span>
+        </span>
+        <span class="project-item-v2__col project-item-v2__col--meta"><%= last_update_date %></span>
+        <span class="project-item-v2__col project-item-v2__col--comment"><%= last_update_comment %></span>
+        <span class="project-item-v2__col project-item-v2__col--contact"><%= contact %></span>
+      </div>
+    <% end %>
   </a>
 </li>

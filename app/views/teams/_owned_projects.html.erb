@@ -22,6 +22,10 @@
   sorted_projects = sort_projects_canonical(direct_projects)
   sorted_archived = sort_projects_canonical(archived_projects)
 
+  # Determine list type based on first project (all should be same type)
+  first_project = direct_projects.first
+  list_type = (first_project && first_project.respond_to?(:children) && first_project.children.any?) ? :parent : :leaf
+
   unhealthy = direct_projects.select { |p| p.respond_to?(:health) && [:off_track, :at_risk].include?(p.health) }
   sorted_unhealthy = sort_projects_canonical(unhealthy)
 
@@ -101,9 +105,9 @@
         <div class="tab-empty-v2">No owned projects</div>
       <% else %>
         <ul class="project-list-v2">
-          <%= render 'dashboard/project_list_header' %>
+          <%= render 'dashboard/project_list_header', list_type: list_type %>
           <% sorted_projects.each do |project| %>
-            <%= render 'dashboard/project_list_item', project: project %>
+            <%= render 'dashboard/project_list_item', project: project, list_type: list_type %>
           <% end %>
         </ul>
       <% end %>
@@ -115,9 +119,9 @@
         <div class="tab-empty-v2">All owned projects are healthy!</div>
       <% else %>
         <ul class="project-list-v2">
-          <%= render 'dashboard/project_list_header' %>
+          <%= render 'dashboard/project_list_header', list_type: list_type %>
           <% sorted_unhealthy.each do |project| %>
-            <%= render 'dashboard/project_list_item', project: project %>
+            <%= render 'dashboard/project_list_item', project: project, list_type: list_type %>
           <% end %>
         </ul>
       <% end %>
@@ -129,9 +133,9 @@
         <div class="tab-empty-v2">All owned projects are up to date!</div>
       <% else %>
         <ul class="project-list-v2">
-          <%= render 'dashboard/project_list_header' %>
+          <%= render 'dashboard/project_list_header', list_type: list_type %>
           <% sorted_stale.each do |project| %>
-            <%= render 'dashboard/project_list_item', project: project, tag_text: 'Stale', tag_modifier: 'stale' %>
+            <%= render 'dashboard/project_list_item', project: project, list_type: list_type, tag_text: 'Stale', tag_modifier: 'stale' %>
           <% end %>
         </ul>
       <% end %>
@@ -143,11 +147,11 @@
         <div class="tab-empty-v2">No active owned projects</div>
       <% else %>
         <ul class="project-list-v2">
-          <%= render 'dashboard/project_list_header' %>
+          <%= render 'dashboard/project_list_header', list_type: list_type %>
           <% sorted_active.each do |project| %>
             <% tag_text = project.current_state == :blocked ? 'Blocked' : nil %>
             <% tag_modifier = project.current_state == :blocked ? 'blocked' : nil %>
-            <%= render 'dashboard/project_list_item', project: project, tag_text: tag_text, tag_modifier: tag_modifier %>
+            <%= render 'dashboard/project_list_item', project: project, list_type: list_type, tag_text: tag_text, tag_modifier: tag_modifier %>
           <% end %>
         </ul>
       <% end %>
@@ -159,10 +163,10 @@
         <div class="tab-empty-v2">No inactive owned projects</div>
       <% else %>
         <ul class="project-list-v2">
-          <%= render 'dashboard/project_list_header' %>
+          <%= render 'dashboard/project_list_header', list_type: list_type %>
           <% sorted_inactive.each do |project| %>
             <% tag_text = project.current_state.to_s.tr('_', ' ').titleize %>
-            <%= render 'dashboard/project_list_item', project: project, tag_text: tag_text, tag_modifier: 'inactive' %>
+            <%= render 'dashboard/project_list_item', project: project, list_type: list_type, tag_text: tag_text, tag_modifier: 'inactive' %>
           <% end %>
         </ul>
       <% end %>
@@ -172,9 +176,9 @@
     <% if archived_projects.any? %>
       <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="archived">
         <ul class="project-list-v2">
-          <%= render 'dashboard/project_list_header' %>
+          <%= render 'dashboard/project_list_header', list_type: list_type %>
           <% sorted_archived.each do |project| %>
-            <%= render 'dashboard/project_list_item', project: project, tag_text: 'Archived', tag_modifier: 'archived' %>
+            <%= render 'dashboard/project_list_item', project: project, list_type: list_type, tag_text: 'Archived', tag_modifier: 'archived' %>
           <% end %>
         </ul>
       </div>
