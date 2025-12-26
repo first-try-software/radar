@@ -1,3 +1,28 @@
+/* ==========================================
+   STATUS/RADAR APPLICATION STYLES
+   ==========================================
+   
+   STRUCTURE:
+   1. Theme Variables (CSS custom properties)
+   2. Base Styles (reset, typography, links)
+   3. Layout (page container, grid, sections)
+   4. Cards & Components (card, badges, buttons)
+   5. Forms & Inputs
+   6. Health Indicators (all health visualization)
+   7. Entity Headers (sticky header, hero)
+   8. Metric Widgets (health, trend, confidence)
+   9. Section Lists (project/team/initiative lists)
+   10. Search (global search)
+   11. Modals & Toasts
+   12. Tab System (Phase 7: Remove)
+   13. Entity-Specific Styles
+   
+   CONVENTIONS:
+   - BEM naming: block__element--modifier
+   - Shared partials use container-agnostic sizing (flex/grid)
+   - No fixed widths on reusable components
+   ========================================== */
+
 /* Theme variables */
 :root {
   --bg: #0b1021;
@@ -1861,6 +1886,12 @@ turbo-frame + turbo-frame .section {
   margin: 0;
 }
 
+.section__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .section__title-with-info {
   display: flex;
   align-items: center;
@@ -2111,7 +2142,7 @@ turbo-frame + turbo-frame .section {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1.5px;
   color: var(--text-muted);
   margin: 0 0 8px 0;
   padding-bottom: 6px;
@@ -3160,6 +3191,12 @@ turbo-frame + turbo-frame .section {
   font-style: italic;
 }
 
+/* ==========================================
+   SHARED PARTIAL STYLES
+   Styles for shared/_*.html.erb partials.
+   These are container-agnostic and reusable.
+   ========================================== */
+
 /* Metrics Row V2 */
 .metrics-row-v2 {
   display: flex;
@@ -3532,106 +3569,40 @@ turbo-frame + turbo-frame .section {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Dashboard Tabs V2 */
-.dashboard-tabs-v2 {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.dashboard-tab-v2 {
+/* Add Button (used in section headers) */
+.dashboard-tab-v2--add {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  justify-content: center;
+  padding: 8px 12px;
   background: transparent;
   border: 1px solid var(--card-border);
   border-radius: 999px;
   color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 400;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.dashboard-tab-v2:hover {
+.dashboard-tab-v2--add:hover {
   border-color: var(--text-muted);
   color: var(--text);
   background: rgba(255, 255, 255, 0.03);
 }
 
-.dashboard-tab-v2.active {
-  background: rgba(106, 167, 255, 0.12);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.dashboard-tab-v2__count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
-  font-size: 11px;
-  color: inherit;
-}
-
-.dashboard-tab-v2.active .dashboard-tab-v2__count {
-  background: rgba(255, 255, 255, 0.16);
-}
-
-.dashboard-tab-v2--add {
-  padding: 8px 12px;
-  font-size: 16px;
-  font-weight: 400;
-}
-
-.dashboard-tab-v2--add.active {
-  background: var(--accent-strong);
-  color: white;
-}
-
-/* Tab Content V2 */
-.tab-content-v2 {
-  display: none;
-}
-
-.tab-content-v2.active {
-  display: block;
-}
-
+/* Empty State */
 .tab-empty-v2 {
   padding: 32px;
   text-align: center;
   color: var(--text-muted);
 }
 
-.tab-section-v2 {
-  margin-bottom: 20px;
-}
-
-.tab-section-v2:last-child {
-  margin-bottom: 0;
-}
-
-.tab-section-v2__title {
-  font-size: 12px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-block-start: 0;
-  margin-bottom: 12px;
-}
-
 /* Project List V2 */
 .project-list-v2 {
   list-style: none;
   padding: 0;
-  margin: 24px 0 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -3708,6 +3679,8 @@ turbo-frame + turbo-frame .section {
   margin-left: -16px;
   width: auto !important;
   min-width: 0;
+  justify-self: start !important;
+  text-align: left;
 }
 
 .project-item-v2__col--health {
@@ -3743,11 +3716,11 @@ turbo-frame + turbo-frame .section {
 }
 
 .project-item-v2__header-label {
-  font-size: 11px !important;
+  font-size: 10px !important;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 700;
+  letter-spacing: 1.5px;
+  font-weight: 400;
 }
 
 .project-item-v2__health {

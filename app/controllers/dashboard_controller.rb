@@ -57,6 +57,11 @@ class DashboardController < ApplicationController
 
     # System health (aggregate of all active root projects)
     @system_health = calculate_system_health
+
+    # Build presenters for shared partials
+    build_metric_presenters
+    build_search_data
+    build_section_presenters
   end
 
   private
@@ -168,6 +173,159 @@ class DashboardController < ApplicationController
       health_rank = health_order[health] || 99
 
       [health_rank, entity.name.to_s.downcase]
+    end
+  end
+
+  def build_metric_presenters
+    # Health presenter
+    off_track_count = @teams.count { |t| t.health == :off_track } +
+                      @initiatives.count { |i| i.health == :off_track }
+    at_risk_count = @teams.count { |t| t.health == :at_risk } +
+                    @initiatives.count { |i| i.health == :at_risk }
+    total_count = @teams.size + @initiatives.size
+    raw_score = calculate_raw_score
+
+    @health_presenter = HealthPresenter.new(
+      health: @system_health,
+      raw_score: raw_score,
+      off_track_count: off_track_count,
+      at_risk_count: at_risk_count,
+      total_count: total_count,
+      entity_label: "teams/initiatives",
+      methodology: "Average of team and initiative health scores, equally weighted."
+    )
+
+    # Trend presenter
+    @trend_presenter = TrendPresenter.new(
+      trend_data: @trend_data,
+      trend_direction: @trend_direction,
+      trend_delta: @trend_delta,
+      weeks_of_data: @weeks_of_data,
+      gradient_id: "dashboard-trend-gradient"
+    )
+
+    # Confidence presenter
+    @confidence_presenter = ConfidencePresenter.new(
+      score: @confidence_score,
+      level: @confidence_level,
+      factors: @confidence_factors
+    )
+  end
+
+  def calculate_raw_score
+    health_values = []
+    @teams.each do |team|
+      health = team.health
+      health_values << HEALTH_SCORES[health] if health != :not_available && HEALTH_SCORES.key?(health)
+    end
+    @initiatives.each do |initiative|
+      health = initiative.health
+      health_values << HEALTH_SCORES[health] if health != :not_available && HEALTH_SCORES.key?(health)
+    end
+    health_values.any? ? health_values.sum(0.0) / health_values.length : nil
+  end
+
+  def build_search_data
+    # Build flat list of all teams with ancestry for search
+    @search_teams = []
+    build_team_tree = ->(teams, ancestors = []) do
+      teams.sort_by(&:name).each do |team|
+        path = ancestors + [team.name]
+        @search_teams << { entity: team, record: TeamRecord.find_by(name: team.name) }
+        build_team_tree.call(team.subordinate_teams, path) if team.subordinate_teams.any?
+      end
+    end
+    build_team_tree.call(@teams)
+
+    # Build flat list of all initiatives
+    @search_initiatives = @initiatives.map do |initiative|
+      { entity: initiative, record: InitiativeRecord.find_by(name: initiative.name) }
+    end
+
+    # Build flat list of all projects
+    @search_projects = @all_projects.map do |project|
+      { entity: project, record: ProjectRecord.find_by(name: project.name) }
+    end
+  end
+
+  def build_section_presenters
+    # Teams section (compact)
+    @team_presenters = @sorted_teams.map do |team|
+      team_record = TeamRecord.find_by(name: team.name)
+      team_info = @team_data[team.name] || {}
+      TeamSectionCompactItemPresenter.new(
+        entity: team,
+        record: team_record,
+        view_context: view_context,
+        trend_direction: team_info[:trend_direction] || :stable,
+        projects_count: team_info[:projects_count] || 0,
+        stale_count: team_info[:stale_count] || 0
+      )
+    end
+
+    @archived_team_presenters = @archived_teams.map do |team|
+      team_record = TeamRecord.find_by(name: team.name)
+      TeamSectionCompactItemPresenter.new(
+        entity: team,
+        record: team_record,
+        view_context: view_context
+      )
+    end
+
+    # Initiatives section (compact)
+    @initiative_presenters = @sorted_initiatives.map do |initiative|
+      initiative_record = InitiativeRecord.find_by(name: initiative.name)
+      initiative_info = @initiative_data[initiative.name] || {}
+      InitiativeSectionCompactItemPresenter.new(
+        entity: initiative,
+        record: initiative_record,
+        view_context: view_context,
+        trend_direction: initiative_info[:trend_direction] || :stable,
+        projects_count: initiative_info[:projects_count] || 0,
+        stale_count: initiative_info[:stale_count] || 0
+      )
+    end
+
+    @archived_initiative_presenters = @archived_initiatives.map do |initiative|
+      initiative_record = InitiativeRecord.find_by(name: initiative.name)
+      InitiativeSectionCompactItemPresenter.new(
+        entity: initiative,
+        record: initiative_record,
+        view_context: view_context
+      )
+    end
+
+    # Projects section (full) - for each project row
+    @project_presenters = @sorted_all_projects.map do |project|
+      project_record = ProjectRecord.find_by(name: project.name)
+      children = project.respond_to?(:children) ? project.children : []
+      projects_count = children.size
+      stale_count = calculate_stale_count(children)
+      trend_direction = project.respond_to?(:trend) ? project.trend : :stable
+
+      ProjectSectionItemPresenter.new(
+        entity: project,
+        record: project_record,
+        view_context: view_context,
+        trend_direction: trend_direction,
+        projects_count: projects_count,
+        stale_count: stale_count
+      )
+    end
+  end
+
+  def calculate_stale_count(children)
+    active_children = children.reject { |c| c.respond_to?(:archived?) && c.archived? }
+    active_children.count do |child|
+      next false unless [:in_progress, :blocked].include?(child.current_state)
+
+      if child.respond_to?(:leaf?) && child.leaf?
+        latest = child.latest_health_update
+      else
+        leaves = child.respond_to?(:leaf_descendants) ? child.leaf_descendants : []
+        latest = leaves.map(&:latest_health_update).compact.max_by { |u| u.date.to_date }
+      end
+      latest.nil? || (Date.current - latest.date.to_date).to_i > 7
     end
   end
 end

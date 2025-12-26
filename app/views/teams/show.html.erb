@@ -3,53 +3,38 @@
   all_child_teams = @team_record.child_relationships.includes(:child).order(:order).map(&:child)
   subordinate_teams = all_child_teams.reject(&:archived)
   archived_child_teams = all_child_teams.select(&:archived)
-  has_subteams = subordinate_teams.any? || archived_child_teams.any?
-  is_leaf_team = !has_subteams
   team = @team || @team_record
 %>
 
 <div data-controller="edit-form" data-edit-form-url-value="<%= team_path(@team_record) %>" data-edit-form-model-type-value="team">
 
-<%= render "teams/header",
-    team: team,
-    team_record: @team_record %>
+<%= render 'shared/header', presenter: @header_presenter %>
 
-<%= render "teams/metrics",
-    team: team,
-    trend_data: @trend_data,
-    trend_direction: @trend_direction,
-    trend_delta: @trend_delta,
-    weeks_of_data: @weeks_of_data,
-    confidence_score: @confidence_score,
-    confidence_level: @confidence_level,
-    confidence_factors: @confidence_factors %>
+<div class="initiative-dashboard-v2">
+  <div class="metrics-row-v2">
+    <%= render 'shared/health_widget', presenter: @health_presenter %>
+    <%= render 'shared/trend_widget', presenter: @trend_presenter %>
+    <%= render 'shared/confidence_widget', presenter: @confidence_presenter %>
+  </div>
+</div>
 
-<!-- Toast Container -->
-<div id="toast-container" class="toast-container" data-toast-container></div>
+<%= render 'shared/toast_container' %>
 
-<%= render "teams/search",
-    team: team,
-    team_record: @team_record,
-    teams: @teams,
-    initiatives: @initiatives,
-    all_projects: @all_projects,
-    subordinate_teams: subordinate_teams,
-    archived_child_teams: archived_child_teams %>
+<%= render 'shared/search' %>
 
-<%= render "teams/subordinate_teams",
+<%= render 'teams/subordinate_teams',
     team: team,
     team_record: @team_record,
     subordinate_teams: subordinate_teams,
     archived_child_teams: archived_child_teams %>
 
-<%= render "teams/owned_projects",
+<%= render 'teams/owned_projects',
     team: team,
     team_record: @team_record,
     subordinate_teams: subordinate_teams,
     archived_child_teams: archived_child_teams %>
 
-<%= render "teams/edit_modal",
-    team_record: @team_record %>
+<%= render 'shared/edit_modal', presenter: @edit_modal_presenter %>
 
 </div><!-- end edit-form controller wrapper -->
 

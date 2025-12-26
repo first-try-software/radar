@@ -12,52 +12,13 @@
   # Determine list type based on first project (all should be same type)
   first_project = direct_projects.first
   list_type = (first_project && first_project.respond_to?(:children) && first_project.children.any?) ? :parent : :leaf
-
-  unhealthy = direct_projects.select { |p| p.respond_to?(:health) && [:off_track, :at_risk].include?(p.health) }
-  sorted_unhealthy = sort_projects_canonical(unhealthy)
-
-  stale = direct_projects.select do |p|
-    next false unless [:in_progress, :blocked].include?(p.current_state)
-    latest = p.latest_health_update
-    latest.nil? || (Date.current - latest.date.to_date).to_i > 7
-  end
-  sorted_stale = sort_projects_canonical(stale)
-
-  active_states = [:new, :in_progress, :blocked]
-  inactive_states = [:completed, :paused, :cancelled, :done, :on_hold, :todo]
-
-  active_projects = direct_projects.select { |p| active_states.include?(p.current_state) }
-  sorted_active = sort_projects_canonical(active_projects)
-
-  inactive_projects = direct_projects.select { |p| inactive_states.include?(p.current_state) }
-  sorted_inactive = sort_projects_canonical(inactive_projects)
 %>
 
 <turbo-frame id="related-projects-section">
-  <section class="section section--projects" data-controller="tabs inline-form" data-tabs-active-value="all">
-    <div class="section__title-row">
+  <section class="section section--projects" data-controller="inline-form">
+    <div class="section__header">
       <h3 class="section__title">Related Projects</h3>
-      <div class="dashboard-tabs-v2">
-        <button class="dashboard-tab-v2 active" data-tabs-target="tab" data-tabs-name="all" data-action="tabs#switch">
-          All <span class="dashboard-tab-v2__count"><%= direct_projects.size %></span>
-        </button>
-        <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="unhealthy" data-action="tabs#switch">
-          Unhealthy <span class="dashboard-tab-v2__count"><%= unhealthy.size %></span>
-        </button>
-        <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="stale" data-action="tabs#switch">
-          Stale <span class="dashboard-tab-v2__count"><%= stale.size %></span>
-        </button>
-        <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="active" data-action="tabs#switch">
-          Active <span class="dashboard-tab-v2__count"><%= active_projects.size %></span>
-        </button>
-        <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="inactive" data-action="tabs#switch">
-          Inactive <span class="dashboard-tab-v2__count"><%= inactive_projects.size %></span>
-        </button>
-        <% if archived_projects.any? %>
-          <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="archived" data-action="tabs#switch">
-            Archived <span class="dashboard-tab-v2__count"><%= archived_projects.size %></span>
-          </button>
-        <% end %>
+      <div class="section__actions">
         <button class="dashboard-tab-v2 dashboard-tab-v2--add"
                 data-inline-form-target="toggle"
                 data-action="inline-form#toggle"
@@ -87,11 +48,10 @@
       <% end %>
     </div>
 
-    <!-- Tab Content: All -->
-    <div class="tab-content-v2 active" data-tabs-target="content" data-tabs-name="all">
-      <% if direct_projects.empty? %>
-        <div class="tab-empty-v2">No related projects</div>
-      <% else %>
+    <% if direct_projects.empty? && archived_projects.empty? %>
+      <div class="tab-empty-v2">No related projects</div>
+    <% else %>
+      <% if direct_projects.any? %>
         <ul class="project-list-v2">
           <%= render 'dashboard/project_list_header', list_type: list_type %>
           <% sorted_projects.each do |project| %>
@@ -99,77 +59,17 @@
           <% end %>
         </ul>
       <% end %>
-    </div>
 
-    <!-- Tab Content: Unhealthy -->
-    <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="unhealthy">
-      <% if unhealthy.empty? %>
-        <div class="tab-empty-v2">All related projects are healthy!</div>
-      <% else %>
-        <ul class="project-list-v2">
-          <%= render 'dashboard/project_list_header', list_type: list_type %>
-          <% sorted_unhealthy.each do |project| %>
-            <%= render 'dashboard/project_list_item', project: project, list_type: list_type %>
-          <% end %>
-        </ul>
+      <% if archived_projects.any? %>
+        <details class="section__archived-details">
+          <summary class="section__archived-summary">Archived (<%= archived_projects.size %>)</summary>
+          <ul class="project-list-v2" style="margin-top: 8px;">
+            <% sorted_archived.each do |project| %>
+              <%= render 'dashboard/project_list_item', project: project, list_type: list_type, tag_text: 'Archived', tag_modifier: 'archived' %>
+            <% end %>
+          </ul>
+        </details>
       <% end %>
-    </div>
-
-    <!-- Tab Content: Stale -->
-    <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="stale">
-      <% if stale.empty? %>
-        <div class="tab-empty-v2">All related projects are up to date!</div>
-      <% else %>
-        <ul class="project-list-v2">
-          <%= render 'dashboard/project_list_header', list_type: list_type %>
-          <% sorted_stale.each do |project| %>
-            <%= render 'dashboard/project_list_item', project: project, list_type: list_type, tag_text: 'Stale', tag_modifier: 'stale' %>
-          <% end %>
-        </ul>
-      <% end %>
-    </div>
-
-    <!-- Tab Content: Active -->
-    <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="active">
-      <% if active_projects.empty? %>
-        <div class="tab-empty-v2">No active related projects</div>
-      <% else %>
-        <ul class="project-list-v2">
-          <%= render 'dashboard/project_list_header', list_type: list_type %>
-          <% sorted_active.each do |project| %>
-            <% tag_text = project.current_state == :blocked ? 'Blocked' : nil %>
-            <% tag_modifier = project.current_state == :blocked ? 'blocked' : nil %>
-            <%= render 'dashboard/project_list_item', project: project, list_type: list_type, tag_text: tag_text, tag_modifier: tag_modifier %>
-          <% end %>
-        </ul>
-      <% end %>
-    </div>
-
-    <!-- Tab Content: Inactive -->
-    <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="inactive">
-      <% if inactive_projects.empty? %>
-        <div class="tab-empty-v2">No inactive related projects</div>
-      <% else %>
-        <ul class="project-list-v2">
-          <%= render 'dashboard/project_list_header', list_type: list_type %>
-          <% sorted_inactive.each do |project| %>
-            <% tag_text = project.current_state.to_s.tr('_', ' ').titleize %>
-            <%= render 'dashboard/project_list_item', project: project, list_type: list_type, tag_text: tag_text, tag_modifier: 'inactive' %>
-          <% end %>
-        </ul>
-      <% end %>
-    </div>
-
-    <!-- Tab Content: Archived -->
-    <% if archived_projects.any? %>
-      <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="archived">
-        <ul class="project-list-v2">
-          <%= render 'dashboard/project_list_header', list_type: list_type %>
-          <% sorted_archived.each do |project| %>
-            <%= render 'dashboard/project_list_item', project: project, list_type: list_type, tag_text: 'Archived', tag_modifier: 'archived' %>
-          <% end %>
-        </ul>
-      </div>
     <% end %>
   </section>
 </turbo-frame>

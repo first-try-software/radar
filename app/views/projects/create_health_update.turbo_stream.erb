@@ -15,13 +15,13 @@
 <%= turbo_stream.remove "updates-empty" %>
 
 <%= turbo_stream.replace "health-widget" do %>
-  <%= render "projects/health_widget", project: @project, project_health: @project_health, health_summary: @health_summary %>
+  <%= render "shared/health_widget", presenter: @health_presenter %>
 <% end %>
 
 <%= turbo_stream.replace "trend-widget" do %>
-  <%= render "projects/trend_widget", weeks_of_data: @weeks_of_data, trend_direction: @trend_direction, trend_delta: @trend_delta, trend_data: @trend_data %>
+  <%= render "shared/trend_widget", presenter: @trend_presenter %>
 <% end %>
 
 <%= turbo_stream.replace "confidence-widget" do %>
-  <%= render "projects/confidence_widget", confidence_score: @confidence_score, confidence_level: @confidence_level, confidence_factors: @confidence_factors %>
+  <%= render "shared/confidence_widget", presenter: @confidence_presenter %>
 <% end %>

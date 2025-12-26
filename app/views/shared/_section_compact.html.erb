@@ -1,0 +1,67 @@
+<%# Shared compact section partial for displaying Team/Initiative lists on Dashboard
+    Columns: Health | Name | Trend | Projects | Stale
+
+    Expects:
+      title: Section title (String)
+      items: Array of SectionCompactItemPresenter objects
+      archived_items: Optional array of SectionCompactItemPresenter objects for archived entities
+%>
+<%
+  title = local_assigns[:title] || "Items"
+  items = local_assigns[:items] || []
+  archived_items = local_assigns[:archived_items] || []
+%>
+
+<div class="section section--compact">
+  <% if items.any? %>
+    <ul class="project-list-v2">
+      <!-- Header Row -->
+      <li class="project-item-v2 project-item-v2--header">
+        <div class="team-item__grid team-item__grid--compact team-item__grid--header">
+          <span class="team-item__col team-item__col--health section__title--grid"><%= title %></span>
+          <span class="team-item__col team-item__col--name"></span>
+          <span class="team-item__col team-item__col--trend team-item__header-label">Trend</span>
+          <span class="team-item__col team-item__col--projects team-item__header-label">Projects</span>
+          <span class="team-item__col team-item__col--stale team-item__header-label">Stale</span>
+        </div>
+      </li>
+
+      <!-- Item Rows -->
+      <% items.each do |item| %>
+        <li class="project-item-v2">
+          <a href="<%= item.path %>" class="project-item-v2__link" data-turbo-frame="<%= item.turbo_frame %>">
+            <div class="team-item__grid team-item__grid--compact">
+              <span class="team-item__col team-item__col--health">
+                <span class="project-item-v2__health project-item-v2__health--<%= item.health %>"></span>
+              </span>
+              <span class="team-item__col team-item__col--name"><%= item.name %></span>
+              <span class="team-item__col team-item__col--trend">
+                <%= item.trend_arrow %>
+              </span>
+              <span class="team-item__col team-item__col--projects"><%= item.projects_count %></span>
+              <span class="team-item__col team-item__col--stale<%= ' team-item__col--stale-warning' if item.stale_warning? %>"><%= item.stale_count %></span>
+            </div>
+          </a>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="section__empty">No <%= title.downcase %></p>
+  <% end %>
+
+  <% if archived_items.any? %>
+    <details class="section__archived-details">
+      <summary class="section__archived-summary">Archived (<%= archived_items.size %>)</summary>
+      <ul class="section__list section__list--archived">
+        <% archived_items.each do |item| %>
+          <li class="section__item section__item--archived">
+            <a href="<%= item.path %>" class="section__link">
+              <span class="project-item-v2__health project-item-v2__health--not_available"></span>
+              <span class="section__name"><%= item.name %></span>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+    </details>
+  <% end %>
+</div>

@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-in Navigation Options — Radar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1021;
+      --card: #111833;
+      --card-border: #1f2a4d;
+      --text: #e7ecff;
+      --muted: #9fb0d6;
+      --accent: #6aa7ff;
+      --accent-strong: #4c8dff;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Montserrat", system-ui, sans-serif;
+      background: radial-gradient(circle at 20% 20%, #121a36, #0b1021 50%),
+                  radial-gradient(circle at 80% 0%, rgba(76, 141, 255, 0.15), transparent 35%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 48px;
+      font-size: 15px;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    .option {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .option__header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .option__title {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .option__badge {
+      background: var(--accent);
+      color: #0b1021;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .option__route {
+      font-family: "SF Mono", Monaco, monospace;
+      font-size: 13px;
+      color: var(--muted);
+      background: rgba(0,0,0,0.3);
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+
+    .option__body {
+      padding: 24px;
+    }
+
+    .option__description {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .option__preview {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .option__pros {
+      margin-top: 20px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .option__pro {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--success);
+    }
+
+    .option__pro::before {
+      content: "✓";
+    }
+
+    /* Dashboard Preview */
+    .dashboard-preview {
+      padding: 16px;
+    }
+
+    .dashboard-preview__hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .dashboard-preview__logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dashboard-preview__logo img {
+      width: 40px;
+      height: 40px;
+    }
+
+    .dashboard-preview__logo span {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .dashboard-preview__actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .checkin-btn {
+      background: linear-gradient(135deg, var(--accent) 0%, #5b8fd9 100%);
+      color: #0b1021;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(106, 167, 255, 0.3);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 4px 12px rgba(106, 167, 255, 0.3); }
+      50% { box-shadow: 0 4px 20px rgba(106, 167, 255, 0.5); }
+    }
+
+    .checkin-btn__badge {
+      background: rgba(0,0,0,0.2);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    .dashboard-preview__search {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Stale Tab Preview */
+    .stale-preview {
+      padding: 16px;
+    }
+
+    .stale-preview__tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stale-preview__tab {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--muted);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .stale-preview__tab--active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0b1021;
+    }
+
+    .stale-preview__cta {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px dashed var(--warning);
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stale-preview__cta-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stale-preview__cta-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--warning);
+    }
+
+    .stale-preview__cta-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .stale-preview__cta-btn {
+      background: var(--warning);
+      color: #0b1021;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* FAB Preview */
+    .fab-preview {
+      position: relative;
+      height: 200px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 20px;
+    }
+
+    .fab-preview__context {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .fab {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent) 0%, #5b8fd9 100%);
+      border: none;
+      color: #0b1021;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(106, 167, 255, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .fab__badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--danger);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .fab__tooltip {
+      position: absolute;
+      right: 70px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .fab__tooltip::after {
+      content: "";
+      position: absolute;
+      right: -6px;
+      top: 50%;
+      transform: translateY(-50%);
+      border-left: 6px solid var(--card-border);
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+    }
+
+    .fab__tooltip kbd {
+      background: rgba(255,255,255,0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: inherit;
+      margin-left: 8px;
+    }
+
+    /* Keyboard Preview */
+    .keyboard-preview {
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .keyboard-preview__keys {
+      display: flex;
+      gap: 8px;
+    }
+
+    .keyboard-preview__key {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 18px;
+      font-weight: 600;
+      min-width: 50px;
+      text-align: center;
+    }
+
+    .keyboard-preview__key--accent {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0b1021;
+    }
+
+    .keyboard-preview__hint {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Summary */
+    .summary {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 40px;
+    }
+
+    .summary__title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .summary__recommendation {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .summary__item {
+      flex: 1;
+      min-width: 200px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .summary__item-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .summary__item-title--primary {
+      color: var(--accent);
+    }
+
+    .summary__item-title--secondary {
+      color: var(--muted);
+    }
+
+    .summary__item-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Where Should "Check-in" Live?</h1>
+    <p class="subtitle">Four navigation options for accessing the weekly check-in experience</p>
+
+    <div class="options">
+      <!-- Option 1: Dashboard Header Button -->
+      <div class="option">
+        <div class="option__header">
+          <div class="option__title">
+            <span>1. Dashboard Header Button</span>
+            <span class="option__badge">RECOMMENDED</span>
+          </div>
+          <span class="option__route">/check-in</span>
+        </div>
+        <div class="option__body">
+          <p class="option__description">
+            A prominent "Check In" button in the dashboard header, next to the Radar logo. 
+            The badge shows how many projects need updates, creating urgency and making the action discoverable.
+          </p>
+          <div class="option__preview dashboard-preview">
+            <div class="dashboard-preview__hero">
+              <div class="dashboard-preview__logo">
+                <img src="/logo-radar-animated-loop.svg" alt="">
+                <span>Radar</span>
+              </div>
+              <div class="dashboard-preview__actions">
+                <button class="checkin-btn">
+                  📋 Check In
+                  <span class="checkin-btn__badge">5</span>
+                </button>
+              </div>
+            </div>
+            <div class="dashboard-preview__search">Find or create what you are looking for...</div>
+          </div>
+          <div class="option__pros">
+            <span class="option__pro">Always visible on the home page</span>
+            <span class="option__pro">Badge creates urgency</span>
+            <span class="option__pro">One click to start</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 2: Stale Tab CTA -->
+      <div class="option">
+        <div class="option__header">
+          <div class="option__title">
+            <span>2. Stale Tab Call-to-Action</span>
+          </div>
+          <span class="option__route">/check-in</span>
+        </div>
+        <div class="option__body">
+          <p class="option__description">
+            When viewing the "Stale" tab on the dashboard, show a contextual call-to-action 
+            that invites users to enter check-in mode. This surfaces the feature exactly when users are already thinking about updates.
+          </p>
+          <div class="option__preview stale-preview">
+            <div class="stale-preview__tabs">
+              <button class="stale-preview__tab">All</button>
+              <button class="stale-preview__tab">Unhealthy</button>
+              <button class="stale-preview__tab stale-preview__tab--active">Stale 5</button>
+              <button class="stale-preview__tab">Active</button>
+            </div>
+            <div class="stale-preview__cta">
+              <div class="stale-preview__cta-text">
+                <span class="stale-preview__cta-title">5 projects need updates</span>
+                <span class="stale-preview__cta-subtitle">Enter check-in mode to update them all at once</span>
+              </div>
+              <button class="stale-preview__cta-btn">Start Check-in →</button>
+            </div>
+          </div>
+          <div class="option__pros">
+            <span class="option__pro">Contextually relevant</span>
+            <span class="option__pro">Educates users about the feature</span>
+            <span class="option__pro">Non-intrusive placement</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 3: Floating Action Button -->
+      <div class="option">
+        <div class="option__header">
+          <div class="option__title">
+            <span>3. Floating Action Button (FAB)</span>
+          </div>
+          <span class="option__route">/check-in</span>
+        </div>
+        <div class="option__body">
+          <p class="option__description">
+            A persistent floating button in the bottom-right corner, visible on every page. 
+            Shows a badge with the count of stale projects. Hovering reveals a tooltip with keyboard shortcut.
+          </p>
+          <div class="option__preview fab-preview">
+            <div class="fab-preview__context">
+              <em>(Visible on every page throughout the app)</em>
+            </div>
+            <button class="fab">
+              📋
+              <span class="fab__badge">5</span>
+            </button>
+            <div class="fab__tooltip">
+              Weekly Check-in<kbd>C</kbd>
+            </div>
+          </div>
+          <div class="option__pros">
+            <span class="option__pro">Accessible from any page</span>
+            <span class="option__pro">Persistent visibility</span>
+            <span class="option__pro">Mobile-friendly pattern</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 4: Keyboard Shortcut -->
+      <div class="option">
+        <div class="option__header">
+          <div class="option__title">
+            <span>4. Keyboard Shortcut</span>
+          </div>
+          <span class="option__route">Press <kbd style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:4px;">C</kbd> anywhere</span>
+        </div>
+        <div class="option__body">
+          <p class="option__description">
+            Power users can press <strong>C</strong> from any page to jump directly into check-in mode. 
+            Combine with a subtle hint in the UI so users discover it.
+          </p>
+          <div class="option__preview keyboard-preview">
+            <div class="keyboard-preview__keys">
+              <span class="keyboard-preview__key keyboard-preview__key--accent">C</span>
+            </div>
+            <span class="keyboard-preview__hint">Press <strong>C</strong> from anywhere to start your weekly check-in</span>
+          </div>
+          <div class="option__pros">
+            <span class="option__pro">Zero friction for power users</span>
+            <span class="option__pro">Works from any page</span>
+            <span class="option__pro">Memorable shortcut</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary">
+      <h3 class="summary__title">💡 Recommendation: Use Multiple Entry Points</h3>
+      <div class="summary__recommendation">
+        <div class="summary__item">
+          <div class="summary__item-title summary__item-title--primary">Primary</div>
+          <p class="summary__item-desc">
+            <strong>Dashboard header button</strong> with badge — this is the most discoverable 
+            and creates a clear call-to-action for weekly rituals.
+          </p>
+        </div>
+        <div class="summary__item">
+          <div class="summary__item-title summary__item-title--secondary">Secondary</div>
+          <p class="summary__item-desc">
+            <strong>Stale tab CTA</strong> — contextual nudge for users already looking at outdated projects.
+          </p>
+        </div>
+        <div class="summary__item">
+          <div class="summary__item-title summary__item-title--secondary">Power User</div>
+          <p class="summary__item-desc">
+            <strong>Keyboard shortcut</strong> (<kbd>C</kbd>) — for frequent users who want 
+            the fastest path.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+
+

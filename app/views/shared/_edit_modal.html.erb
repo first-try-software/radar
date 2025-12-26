@@ -1,0 +1,67 @@
+<%# Shared edit modal partial for Team, Initiative, and Project pages
+    Expects: presenter (EditModalPresenter) %>
+<% presenter = local_assigns[:presenter] %>
+
+<div class="modal-overlay"
+     data-edit-form-target="modal"
+     data-action="click->edit-form#closeOnBackdrop keydown.escape@document->edit-form#close"
+     hidden>
+  <div class="modal">
+    <div class="modal__header">
+      <h3><%= presenter.modal_title %></h3>
+    </div>
+    <%= form_with model: presenter.form_model,
+                  url: presenter.update_path,
+                  method: presenter.form_method,
+                  local: false,
+                  class: "edit-project-form",
+                  data: { edit_form_target: "form", action: "submit->edit-form#submit" } do |f| %>
+      <div class="modal__body">
+        <div class="form-field">
+          <label for="<%= presenter.field_id(:name) %>" class="form-field__label">Name</label>
+          <input type="text"
+                 id="<%= presenter.field_id(:name) %>"
+                 name="<%= presenter.field_name(:name) %>"
+                 class="form-field__input"
+                 value="<%= presenter.name %>"
+                 required>
+        </div>
+        <div class="form-field">
+          <label for="<%= presenter.field_id(:description) %>" class="form-field__label">Description</label>
+          <input type="text"
+                 id="<%= presenter.field_id(:description) %>"
+                 name="<%= presenter.field_name(:description) %>"
+                 class="form-field__input"
+                 value="<%= presenter.description %>">
+        </div>
+        <div class="form-field">
+          <label for="<%= presenter.field_id(:point_of_contact) %>" class="form-field__label">Contact(s)</label>
+          <input type="text"
+                 id="<%= presenter.field_id(:point_of_contact) %>"
+                 name="<%= presenter.field_name(:point_of_contact) %>"
+                 class="form-field__input"
+                 value="<%= presenter.point_of_contact %>">
+        </div>
+        <div class="form-field form-field--archive">
+          <span class="form-field__label"><%= presenter.archive_prompt %></span>
+          <label class="checkbox-field">
+            <input type="hidden" name="<%= presenter.field_name(:archived) %>" value="0">
+            <input type="checkbox"
+                   name="<%= presenter.field_name(:archived) %>"
+                   value="1"
+                   class="checkbox-field__input"
+                   <%= 'checked' if presenter.archived? %>
+                   data-edit-form-target="archiveCheckbox"
+                   data-action="change->edit-form#updateArchiveLabel">
+            <span class="checkbox-field__box"></span>
+            <span class="checkbox-field__label" data-edit-form-target="archiveLabel"><%= presenter.archive_label %></span>
+          </label>
+        </div>
+      </div>
+      <div class="modal__actions">
+        <button type="button" class="btn secondary" data-action="edit-form#close">Cancel</button>
+        <button type="submit" class="btn" data-edit-form-target="saveButton">Save</button>
+      </div>
+    <% end %>
+  </div>
+</div>

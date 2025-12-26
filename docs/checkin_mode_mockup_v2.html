@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-in Mode v2 — Radar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1021;
+      --card: #111833;
+      --card-border: #1f2a4d;
+      --text: #e7ecff;
+      --muted: #9fb0d6;
+      --accent: #6aa7ff;
+      --accent-strong: #4c8dff;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --health-on-track: #22c55e;
+      --health-at-risk: #f59e0b;
+      --health-off-track: #ef4444;
+      --health-not-available: #6b7280;
+      --bg-hover: rgba(255, 255, 255, 0.05);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Montserrat", system-ui, sans-serif;
+      background: radial-gradient(circle at 20% 20%, #121a36, #0b1021 50%),
+                  radial-gradient(circle at 80% 0%, rgba(76, 141, 255, 0.15), transparent 35%),
+                  radial-gradient(circle at 10% 90%, rgba(101, 209, 149, 0.12), transparent 35%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-strong); }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    /* Header - Simplified */
+    .checkin-header {
+      margin-bottom: 24px;
+    }
+
+    .checkin-header__back {
+      font-size: 13px;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .checkin-header__back:hover { color: var(--accent); }
+
+    .checkin-header__title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .checkin-header__scope {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .checkin-header__scope strong {
+      color: var(--text);
+    }
+
+    /* Progress - Simplified */
+    .progress-section {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar__fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success), #4ade80);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    .progress-count {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .progress-count span {
+      color: var(--success);
+    }
+
+    /* Project List */
+    .project-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Project Card - Simplified */
+    .project-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+
+    .project-card:hover {
+      border-color: rgba(106, 167, 255, 0.3);
+    }
+
+    .project-card--completed {
+      opacity: 0.5;
+    }
+
+    .project-card--completed:hover {
+      opacity: 0.7;
+    }
+
+    .project-card__header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+    }
+
+    .project-card__health {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .project-card__health--on_track { background: var(--health-on-track); }
+    .project-card__health--at_risk { 
+      background: transparent;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 10px solid var(--health-at-risk);
+      border-radius: 0;
+    }
+    .project-card__health--off_track { background: var(--health-off-track); }
+    .project-card__health--not_available { background: var(--health-not-available); }
+
+    .project-card__info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .project-card__name {
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .project-card__meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .project-card__stale {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .project-card__stale--overdue {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+
+    .project-card__stale--stale {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+    }
+
+    .project-card__stale--new {
+      background: rgba(107, 114, 128, 0.2);
+      color: var(--muted);
+    }
+
+    .project-card__stale--done {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--success);
+    }
+
+    .project-card__expand {
+      color: var(--muted);
+      font-size: 16px;
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .project-card.expanded .project-card__expand {
+      transform: rotate(180deg);
+    }
+
+    /* Update Form - Simplified */
+    .project-card__form {
+      display: none;
+      padding: 0 16px 16px;
+    }
+
+    .project-card.expanded .project-card__form {
+      display: block;
+    }
+
+    .update-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .update-form__row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .update-form__health-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .health-btn {
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--card-border);
+      background: transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .health-btn:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+      background: var(--bg-hover);
+    }
+
+    .health-btn.selected {
+      border-width: 3px;
+    }
+
+    .health-btn--on_track.selected {
+      border-color: var(--health-on-track);
+      background: rgba(34, 197, 94, 0.15);
+    }
+
+    .health-btn--at_risk.selected {
+      border-color: var(--health-at-risk);
+      background: rgba(245, 158, 11, 0.15);
+    }
+
+    .health-btn--off_track.selected {
+      border-color: var(--health-off-track);
+      background: rgba(239, 68, 68, 0.15);
+    }
+
+    .health-btn__dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+    }
+
+    .health-btn--on_track .health-btn__dot { background: var(--health-on-track); }
+    .health-btn--at_risk .health-btn__dot { 
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-bottom: 12px solid var(--health-at-risk);
+      border-radius: 0;
+      background: transparent;
+    }
+    .health-btn--off_track .health-btn__dot { background: var(--health-off-track); }
+
+    .update-form__description {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      height: 40px;
+      transition: border-color 0.15s;
+    }
+
+    .update-form__description:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .update-form__description::placeholder {
+      color: var(--muted);
+    }
+
+    .update-form__submit {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--card-border);
+      padding: 0 16px;
+      height: 40px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: not-allowed;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .update-form__submit.ready {
+      background: var(--accent);
+      color: #0b1021;
+      border-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .update-form__submit.ready:hover {
+      background: var(--accent-strong);
+    }
+
+    /* Last Update - Subtle */
+    .last-update {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .last-update strong {
+      color: var(--text);
+    }
+
+    /* Completed State */
+    .project-card--completed .project-card__form {
+      display: block;
+      padding-top: 0;
+    }
+
+    .project-card--completed .update-form {
+      display: none;
+    }
+
+    .completed-message {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 0;
+      border-top: 1px solid rgba(34, 197, 94, 0.2);
+      color: var(--success);
+      font-size: 13px;
+    }
+
+    /* Empty State */
+    .empty-state {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 48px 32px;
+      text-align: center;
+    }
+
+    .empty-state__icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state__title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .empty-state__text {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Help link */
+    .help-link {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 32px;
+      height: 32px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: help;
+      transition: all 0.15s;
+    }
+
+    .help-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Animations */
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .project-card.expanded .update-form {
+      animation: slideDown 0.15s ease;
+    }
+
+    @keyframes checkmark {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    .completed-message span:first-child {
+      animation: checkmark 0.3s ease;
+    }
+
+    /* Section divider */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 12px;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--card-border);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Header -->
+    <header class="checkin-header">
+      <a href="#" class="checkin-header__back">← Dashboard</a>
+      <h1 class="checkin-header__title">Weekly Check-in</h1>
+      <p class="checkin-header__scope">Showing projects for <strong>Sarah Chen</strong></p>
+    </header>
+
+    <!-- Progress - Simplified -->
+    <div class="progress-section">
+      <div class="progress-bar">
+        <div class="progress-bar__fill" style="width: 40%"></div>
+      </div>
+      <span class="progress-count"><span>2</span> of 5 updated</span>
+    </div>
+
+    <!-- Project List - Needing Updates -->
+    <div class="project-list">
+      <!-- Overdue Project (auto-expanded first) -->
+      <div class="project-card expanded">
+        <div class="project-card__header" onclick="this.parentElement.classList.toggle('expanded')">
+          <span class="project-card__health project-card__health--off_track"></span>
+          <div class="project-card__info">
+            <span class="project-card__name">Payment Gateway Migration</span>
+          </div>
+          <span class="project-card__stale project-card__stale--overdue">18d overdue</span>
+          <span class="project-card__expand">▾</span>
+        </div>
+        <div class="project-card__form">
+          <form class="update-form">
+            <div class="update-form__row">
+              <div class="update-form__health-group">
+                <button type="button" class="health-btn health-btn--on_track" title="On Track">
+                  <span class="health-btn__dot"></span>
+                </button>
+                <button type="button" class="health-btn health-btn--at_risk" title="At Risk">
+                  <span class="health-btn__dot"></span>
+                </button>
+                <button type="button" class="health-btn health-btn--off_track" title="Off Track">
+                  <span class="health-btn__dot"></span>
+                </button>
+              </div>
+              <textarea class="update-form__description" placeholder="What's the current status? Any blockers?"></textarea>
+              <button type="submit" class="update-form__submit">Save</button>
+            </div>
+            <div class="last-update">
+              Last: <strong>Off Track</strong> — "Waiting on vendor API credentials"
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Stale Project -->
+      <div class="project-card">
+        <div class="project-card__header" onclick="this.parentElement.classList.toggle('expanded')">
+          <span class="project-card__health project-card__health--on_track"></span>
+          <div class="project-card__info">
+            <span class="project-card__name">Mobile App Performance</span>
+          </div>
+          <span class="project-card__stale project-card__stale--stale">10d stale</span>
+          <span class="project-card__expand">▾</span>
+        </div>
+        <div class="project-card__form">
+          <form class="update-form">
+            <div class="update-form__row">
+              <div class="update-form__health-group">
+                <button type="button" class="health-btn health-btn--on_track" title="On Track">
+                  <span class="health-btn__dot"></span>
+                </button>
+                <button type="button" class="health-btn health-btn--at_risk" title="At Risk">
+                  <span class="health-btn__dot"></span>
+                </button>
+                <button type="button" class="health-btn health-btn--off_track" title="Off Track">
+                  <span class="health-btn__dot"></span>
+                </button>
+              </div>
+              <textarea class="update-form__description" placeholder="What's the current status? Any blockers?"></textarea>
+              <button type="submit" class="update-form__submit">Save</button>
+            </div>
+            <div class="last-update">
+              Last: <strong>On Track</strong> — "Reduced bundle size by 23%"
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- New Project -->
+      <div class="project-card">
+        <div class="project-card__header" onclick="this.parentElement.classList.toggle('expanded')">
+          <span class="project-card__health project-card__health--not_available"></span>
+          <div class="project-card__info">
+            <span class="project-card__name">Internal Analytics Dashboard</span>
+          </div>
+          <span class="project-card__stale project-card__stale--new">New</span>
+          <span class="project-card__expand">▾</span>
+        </div>
+        <div class="project-card__form">
+          <form class="update-form">
+            <div class="update-form__row">
+              <div class="update-form__health-group">
+                <button type="button" class="health-btn health-btn--on_track" title="On Track">
+                  <span class="health-btn__dot"></span>
+                </button>
+                <button type="button" class="health-btn health-btn--at_risk" title="At Risk">
+                  <span class="health-btn__dot"></span>
+                </button>
+                <button type="button" class="health-btn health-btn--off_track" title="Off Track">
+                  <span class="health-btn__dot"></span>
+                </button>
+              </div>
+              <textarea class="update-form__description" placeholder="What's the current status? Any blockers?"></textarea>
+              <button type="submit" class="update-form__submit">Save</button>
+            </div>
+            <div class="last-update">
+              First update for this project
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Section: Already Updated -->
+      <div class="section-divider">Updated this week</div>
+
+      <!-- Completed Project -->
+      <div class="project-card project-card--completed">
+        <div class="project-card__header">
+          <span class="project-card__health project-card__health--on_track"></span>
+          <div class="project-card__info">
+            <span class="project-card__name">Security Audit Remediation</span>
+          </div>
+          <span class="project-card__stale project-card__stale--done">✓ Today</span>
+        </div>
+        <div class="project-card__form">
+          <div class="completed-message">
+            <span>✓</span>
+            <span><strong>On Track</strong> — "All critical vulnerabilities patched"</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completed Project 2 -->
+      <div class="project-card project-card--completed">
+        <div class="project-card__header">
+          <span class="project-card__health project-card__health--at_risk"></span>
+          <div class="project-card__info">
+            <span class="project-card__name">Database Sharding</span>
+          </div>
+          <span class="project-card__stale project-card__stale--done">✓ Yesterday</span>
+        </div>
+        <div class="project-card__form">
+          <div class="completed-message">
+            <span>✓</span>
+            <span><strong>At Risk</strong> — "Read replica issues found"</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help -->
+    <div class="help-link" title="Keyboard shortcuts: ↑↓ navigate, 1-2-3 set health">?</div>
+  </div>
+
+  <script>
+    // Health button selection
+    document.querySelectorAll('.health-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const group = btn.closest('.update-form__health-group');
+        group.querySelectorAll('.health-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        
+        // Enable submit button
+        const submitBtn = btn.closest('.update-form').querySelector('.update-form__submit');
+        submitBtn.classList.add('ready');
+      });
+    });
+
+    // Form submission
+    document.querySelectorAll('.update-form').forEach(form => {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const card = form.closest('.project-card');
+        const selectedHealth = form.querySelector('.health-btn.selected');
+        const description = form.querySelector('.update-form__description').value;
+        
+        if (!selectedHealth) return;
+        
+        const healthClass = selectedHealth.classList[1].replace('health-btn--', '');
+        const healthLabel = healthClass.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+        
+        // Update card
+        card.classList.add('project-card--completed');
+        card.classList.remove('expanded');
+        
+        // Update health indicator
+        const healthDot = card.querySelector('.project-card__health');
+        healthDot.className = `project-card__health project-card__health--${healthClass}`;
+        
+        // Remove stale badge
+        const staleBadge = card.querySelector('.project-card__stale');
+        if (staleBadge) staleBadge.remove();
+        
+        // Update meta
+        const meta = card.querySelector('.project-card__meta');
+        meta.textContent = 'Updated just now';
+        
+        // Remove expand icon
+        card.querySelector('.project-card__expand').textContent = '';
+        
+        // Show completed message
+        const formArea = card.querySelector('.project-card__form');
+        formArea.innerHTML = `
+          <div class="completed-message">
+            <span>✓</span>
+            <span><strong>${healthLabel}</strong> — "${description || 'No note'}"</span>
+          </div>
+        `;
+        
+        // Update progress
+        updateProgress();
+      });
+    });
+
+    function updateProgress() {
+      const total = document.querySelectorAll('.project-card').length;
+      const completed = document.querySelectorAll('.project-card--completed').length;
+      const percentage = (completed / total * 100);
+      
+      document.querySelector('.progress-bar__fill').style.width = percentage + '%';
+      document.querySelector('.progress-count').innerHTML = `<span>${completed}</span> of ${total} updated`;
+    }
+  </script>
+</body>
+</html>
+

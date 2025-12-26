@@ -1,0 +1,85 @@
+<%# Shared section partial for displaying entity lists
+    Columns: Health | Name | State | Trend | Projects | Stale | Owner
+
+    Expects:
+      title: Section title (String)
+      items: Array of SectionItemPresenter objects
+      archived_items: Optional array of SectionItemPresenter objects for archived entities
+      show_tabs: Whether to show filter tabs (default: false)
+%>
+<%
+  title = local_assigns[:title] || "Items"
+  items = local_assigns[:items] || []
+  archived_items = local_assigns[:archived_items] || []
+  show_tabs = local_assigns.fetch(:show_tabs, false)
+%>
+
+<section class="section section--projects">
+  <div class="section__title-row">
+    <h3 class="section__title"><%= title %></h3>
+  </div>
+
+  <% if items.empty? && archived_items.empty? %>
+    <div class="tab-empty-v2">No <%= title.downcase %></div>
+  <% else %>
+    <ul class="project-list-v2">
+      <!-- Header Row -->
+      <li class="project-item-v2 project-item-v2--header">
+        <div class="project-item-v2__grid project-item-v2__grid--header project-item-v2__grid--parent">
+          <span class="project-item-v2__col project-item-v2__col--health"></span>
+          <span class="project-item-v2__col project-item-v2__col--name project-item-v2__header-label">Name</span>
+          <span class="project-item-v2__col project-item-v2__col--state project-item-v2__header-label">State</span>
+          <span class="project-item-v2__col project-item-v2__col--trend project-item-v2__header-label">Trend</span>
+          <span class="project-item-v2__col project-item-v2__col--count project-item-v2__header-label">Projects</span>
+          <span class="project-item-v2__col project-item-v2__col--count project-item-v2__header-label">Stale</span>
+          <span class="project-item-v2__col project-item-v2__col--contact project-item-v2__header-label">Owner</span>
+        </div>
+      </li>
+
+      <!-- Item Rows -->
+      <% items.each do |item| %>
+        <li class="project-item-v2">
+          <a href="<%= item.path %>" class="project-item-v2__link" data-turbo-frame="<%= item.turbo_frame %>">
+            <div class="project-item-v2__grid project-item-v2__grid--parent">
+              <span class="project-item-v2__col project-item-v2__col--health">
+                <span class="project-item-v2__health project-item-v2__health--<%= item.health %>"></span>
+              </span>
+              <span class="project-item-v2__col project-item-v2__col--name">
+                <span class="project-item-v2__name"><%= item.name %></span>
+              </span>
+              <span class="project-item-v2__col project-item-v2__col--state">
+                <% if item.show_state? %>
+                  <span class="<%= item.state_css_class %>"><%= item.state_label %></span>
+                <% else %>
+                  <span>—</span>
+                <% end %>
+              </span>
+              <span class="project-item-v2__col project-item-v2__col--trend">
+                <%= item.trend_arrow %>
+              </span>
+              <span class="project-item-v2__col project-item-v2__col--count"><%= item.projects_count %></span>
+              <span class="project-item-v2__col project-item-v2__col--count<%= ' team-item__col--stale-warning' if item.stale_warning? %>"><%= item.stale_count %></span>
+              <span class="project-item-v2__col project-item-v2__col--contact"><%= item.owner %></span>
+            </div>
+          </a>
+        </li>
+      <% end %>
+    </ul>
+
+    <% if archived_items.any? %>
+      <details class="section__archived-details">
+        <summary class="section__archived-summary">Archived (<%= archived_items.size %>)</summary>
+        <ul class="section__list section__list--archived">
+          <% archived_items.each do |item| %>
+            <li class="section__item section__item--archived">
+              <a href="<%= item.path %>" class="section__link">
+                <span class="project-item-v2__health project-item-v2__health--not_available"></span>
+                <span class="section__name"><%= item.name %></span>
+              </a>
+            </li>
+          <% end %>
+        </ul>
+      </details>
+    <% end %>
+  <% end %>
+</section>

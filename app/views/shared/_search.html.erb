@@ -1,0 +1,87 @@
+<%# Shared global search partial
+    Expects instance variables: @search_teams, @search_initiatives, @search_projects
+    Each should be an array of hashes with :entity, :record keys %>
+
+<div class="global-search" data-controller="search">
+  <input type="text"
+         class="global-search__input"
+         placeholder="Find or create what you are looking for..."
+         data-search-target="input"
+         data-action="input->search#search keydown->search#escape">
+  <div class="global-search__results-container" data-search-target="container">
+    <div class="section section--search-results">
+      <h3 class="section__title" data-search-target="resultsHeader">Results</h3>
+      <div class="section__columns" data-search-target="resultsGrid">
+        <!-- Teams Column -->
+        <div class="section__column" data-search-target="column">
+          <h4 class="section__subtitle">Teams</h4>
+          <ul class="section__list">
+            <% (@search_teams || []).each do |entry| %>
+              <li class="section__item section__item--searchable"
+                  data-search-type="team"
+                  data-search-name="<%= entry[:entity].name.downcase %>"
+                  data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                <a href="<%= team_path(entry[:record]) %>" class="section__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                  <span class="section__name"><%= entry[:entity].name %></span>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+
+        <!-- Initiatives Column -->
+        <div class="section__column" data-search-target="column">
+          <h4 class="section__subtitle">Initiatives</h4>
+          <ul class="section__list">
+            <% (@search_initiatives || []).each do |entry| %>
+              <li class="section__item section__item--searchable"
+                  data-search-type="initiative"
+                  data-search-name="<%= entry[:entity].name.downcase %>"
+                  data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                <a href="<%= initiative_path(entry[:record]) %>" class="section__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                  <span class="section__name"><%= entry[:entity].name %></span>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+
+        <!-- Projects Column -->
+        <div class="section__column" data-search-target="column">
+          <h4 class="section__subtitle">Projects</h4>
+          <ul class="section__list">
+            <% (@search_projects || []).each do |entry| %>
+              <li class="section__item section__item--searchable"
+                  data-search-type="project"
+                  data-search-name="<%= entry[:entity].name.downcase %>"
+                  data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
+                <a href="<%= project_path(entry[:record]) %>" class="section__link">
+                  <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
+                  <span class="section__name"><%= entry[:entity].name %></span>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+
+      <!-- No Results / Create Project -->
+      <div class="global-search__no-results" data-search-target="noResults" hidden data-controller="project-create" data-action="project-create:created->search#close">
+        <h3 class="section__title">Create Project</h3>
+        <div class="global-search__form-card">
+          <form action="<%= projects_path %>" method="post" class="global-search__create-form" data-project-create-target="form" data-action="submit->project-create#create">
+            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+            <div class="global-search__form-fields-inline">
+              <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-search-target="createName" data-project-create-target="input name" required>
+              <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)" data-project-create-target="input">
+              <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)" data-project-create-target="input">
+              <button type="submit" class="global-search__create-btn" data-project-create-target="submit">Create Project</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

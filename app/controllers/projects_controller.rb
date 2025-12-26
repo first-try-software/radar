@@ -227,6 +227,7 @@ class ProjectsController < ApplicationController
           @project_record = ProjectRecord.find(params[:id])
           @project = project_actions.find_project.perform(id: params[:id]).value
           prepare_trend_data(project: @project)
+          build_project_presenters(@project)
           render :create_health_update
         else
           render turbo_stream: turbo_stream.replace(
@@ -372,6 +373,89 @@ class ProjectsController < ApplicationController
     @teams = team_repository.all_active_roots
     @initiatives = initiative_repository.all_active_roots
     @all_projects = project_repository.all_active_roots
+
+    # Build presenters for shared partials
+    build_project_presenters(@project)
+  end
+
+  def build_project_presenters(project)
+    # Header presenter
+    @header_presenter = ProjectHeaderPresenter.new(
+      entity: project,
+      record: @project_record,
+      view_context: view_context
+    )
+
+    # Metric presenters
+    is_leaf = project.respond_to?(:children) ? project.children.empty? : true
+
+    if is_leaf
+      methodology = "Based on the most recent health update for this project."
+      off_track_count = 0
+      at_risk_count = 0
+      total_count = 0
+    else
+      methodology = "Average of all leaf-node project health scores."
+      children = project.children || []
+      active_states = [:in_progress, :blocked]
+      active_children = children.select { |p| active_states.include?(p.current_state) }
+      off_track_count = active_children.count { |p| p.health == :off_track }
+      at_risk_count = active_children.count { |p| p.health == :at_risk }
+      total_count = active_children.size
+    end
+
+    @health_presenter = HealthPresenter.new(
+      health: @project_health || project.health,
+      raw_score: @health_summary&.dig(:raw_score),
+      off_track_count: off_track_count,
+      at_risk_count: at_risk_count,
+      total_count: total_count,
+      entity_label: "child #{'project'.pluralize(total_count)}",
+      methodology: methodology
+    )
+
+    @trend_presenter = TrendPresenter.new(
+      trend_data: @trend_data,
+      trend_direction: @trend_direction,
+      trend_delta: @trend_delta,
+      weeks_of_data: @weeks_of_data,
+      gradient_id: "project-trend-gradient"
+    )
+
+    @confidence_presenter = ConfidencePresenter.new(
+      score: @confidence_score,
+      level: @confidence_level,
+      factors: @confidence_factors || {}
+    )
+
+    # Edit modal presenter
+    @edit_modal_presenter = ProjectEditModalPresenter.new(
+      entity: project,
+      record: @project_record,
+      view_context: view_context
+    )
+
+    # Search data
+    build_search_data
+  end
+
+  def build_search_data
+    @search_teams = []
+    build_team_tree = ->(teams) do
+      teams.sort_by(&:name).each do |t|
+        @search_teams << { entity: t, record: TeamRecord.find_by(name: t.name) }
+        build_team_tree.call(t.subordinate_teams) if t.subordinate_teams.any?
+      end
+    end
+    build_team_tree.call(@teams)
+
+    @search_initiatives = @initiatives.map do |i|
+      { entity: i, record: InitiativeRecord.find_by(name: i.name) }
+    end
+
+    @search_projects = @all_projects.map do |p|
+      { entity: p, record: ProjectRecord.find_by(name: p.name) }
+    end
   end
 
   def prepare_health_updates

@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-in Placement Options — Radar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1021;
+      --card: #111833;
+      --card-border: #1f2a4d;
+      --text: #e7ecff;
+      --muted: #9fb0d6;
+      --accent: #6aa7ff;
+      --accent-strong: #4c8dff;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --health-on-track: #22c55e;
+      --health-at-risk: #f59e0b;
+      --health-off-track: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Montserrat", system-ui, sans-serif;
+      background: #080c18;
+      color: var(--text);
+      padding: 40px 20px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 48px;
+    }
+
+    .section {
+      margin-bottom: 60px;
+    }
+
+    .section__title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section__title span {
+      background: var(--accent);
+      color: #0b1021;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .option {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .option__label {
+      padding: 12px 20px;
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid var(--card-border);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .option__label-tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .option__label-tag--recommended {
+      background: var(--success);
+      color: #0b1021;
+    }
+
+    .option__preview {
+      padding: 24px;
+      background: radial-gradient(circle at 20% 20%, #121a36, #0b1021 50%),
+                  radial-gradient(circle at 80% 0%, rgba(76, 141, 255, 0.1), transparent 35%);
+    }
+
+    /* ===== HERO STYLES ===== */
+    .home-hero {
+      text-align: center;
+      padding: 20px 0 24px;
+    }
+
+    .home-hero__header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    .home-hero__logo {
+      width: 48px;
+      height: 48px;
+    }
+
+    .home-hero__title {
+      font-size: 36px;
+      font-weight: 700;
+    }
+
+    .home-hero__tagline {
+      color: var(--muted);
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .home-hero__contact {
+      color: var(--muted);
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    /* Tagline CTA variations */
+    .home-hero__tagline--cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .tagline-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent);
+      font-size: 14px;
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+
+    .tagline-cta:hover {
+      background: rgba(106, 167, 255, 0.1);
+    }
+
+    .tagline-cta__count {
+      background: rgba(106, 167, 255, 0.2);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .tagline-cta--button {
+      background: var(--accent);
+      color: #0b1021;
+      font-weight: 600;
+    }
+
+    .tagline-cta--button:hover {
+      background: var(--accent-strong);
+    }
+
+    .tagline-cta--button .tagline-cta__count {
+      background: rgba(0,0,0,0.2);
+    }
+
+    .tagline-cta--outline {
+      border: 1px solid var(--accent);
+    }
+
+    .tagline-cta--ghost {
+      color: var(--muted);
+    }
+
+    .tagline-cta--ghost:hover {
+      color: var(--accent);
+    }
+
+    /* ===== SEARCH BAR STYLES ===== */
+    .search-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .global-search {
+      flex: 1;
+    }
+
+    .global-search__input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+    }
+
+    .global-search__input::placeholder {
+      color: var(--muted);
+    }
+
+    /* Search bar CTA variations */
+    .search-cta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .search-cta--filled {
+      background: var(--accent);
+      color: #0b1021;
+    }
+
+    .search-cta--filled:hover {
+      background: var(--accent-strong);
+    }
+
+    .search-cta--outline {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+    }
+
+    .search-cta--outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .search-cta--ghost {
+      background: transparent;
+      color: var(--muted);
+      padding: 14px 16px;
+    }
+
+    .search-cta--ghost:hover {
+      color: var(--accent);
+    }
+
+    .search-cta--subtle {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border);
+      color: var(--muted);
+    }
+
+    .search-cta--subtle:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+    }
+
+    .search-cta--warning {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--warning);
+    }
+
+    .search-cta--warning:hover {
+      background: rgba(245, 158, 11, 0.25);
+    }
+
+    .search-cta__count {
+      background: rgba(0,0,0,0.15);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    .search-cta--outline .search-cta__count,
+    .search-cta--ghost .search-cta__count,
+    .search-cta--subtle .search-cta__count {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .search-cta--done {
+      background: transparent;
+      color: var(--success);
+      font-weight: 500;
+    }
+
+    /* ===== METRICS WIDGET STYLES ===== */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .metrics-row--four {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .metric-widget {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+
+    .metric-widget__title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .metric-widget__title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .metric-widget__content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .metric-widget__dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .metric-widget__dot--on-track { background: var(--health-on-track); }
+    .metric-widget__dot--at-risk { background: var(--health-at-risk); }
+
+    .metric-widget__text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .metric-widget__label {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .metric-widget__label--on-track { color: var(--health-on-track); }
+
+    .metric-widget__detail {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Fourth widget variations */
+    .metric-widget--updates {
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .metric-widget--updates:hover {
+      border-color: var(--accent);
+    }
+
+    .metric-widget--updates-needed {
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .metric-widget--updates-needed:hover {
+      border-color: var(--warning);
+    }
+
+    .metric-widget--updates-done {
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+
+    .metric-widget__progress {
+      margin-top: 8px;
+    }
+
+    .progress-bar-mini {
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-mini__fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+
+    .progress-bar-mini__fill--warning {
+      background: var(--warning);
+    }
+
+    .progress-bar-mini__fill--success {
+      background: var(--success);
+    }
+
+    .metric-widget__big-number {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .metric-widget__big-number--warning {
+      color: var(--warning);
+    }
+
+    .metric-widget__big-number--success {
+      color: var(--success);
+    }
+
+    .metric-widget__fraction {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .metric-widget__cta {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .metric-widget__check {
+      font-size: 20px;
+      color: var(--success);
+    }
+
+    /* Notes */
+    .option__notes {
+      padding: 16px 20px;
+      background: rgba(0,0,0,0.2);
+      border-top: 1px solid var(--card-border);
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .option__notes strong {
+      color: var(--text);
+    }
+
+    /* States comparison row */
+    .states-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .state-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Check-in Placement Options</h1>
+    <p class="subtitle">Comparing different locations and styles for the weekly check-in CTA</p>
+
+    <!-- ==================== TAGLINE CTA OPTIONS ==================== -->
+    <div class="section">
+      <h2 class="section__title">1. CTA in the Tagline Area</h2>
+      
+      <div class="options-grid">
+        <!-- Tagline: Link style -->
+        <div class="option">
+          <div class="option__label">
+            A. Text link below tagline
+          </div>
+          <div class="option__preview">
+            <div class="home-hero">
+              <div class="home-hero__header">
+                <img src="/logo-radar-animated-loop.svg" alt="" class="home-hero__logo">
+                <h1 class="home-hero__title">Radar</h1>
+              </div>
+              <p class="home-hero__tagline">Know where everything is all the time.</p>
+              <p style="margin-top: 12px;">
+                <a href="#" class="tagline-cta">
+                  5 projects need updates →
+                </a>
+              </p>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Subtle.</strong> Blends with the hero but might be too easy to miss.
+          </div>
+        </div>
+
+        <!-- Tagline: Button style -->
+        <div class="option">
+          <div class="option__label">
+            B. Button below tagline
+            <span class="option__label-tag">More prominent</span>
+          </div>
+          <div class="option__preview">
+            <div class="home-hero">
+              <div class="home-hero__header">
+                <img src="/logo-radar-animated-loop.svg" alt="" class="home-hero__logo">
+                <h1 class="home-hero__title">Radar</h1>
+              </div>
+              <p class="home-hero__tagline">Know where everything is all the time.</p>
+              <p style="margin-top: 16px;">
+                <a href="#" class="tagline-cta tagline-cta--button">
+                  Weekly Check-in
+                  <span class="tagline-cta__count">5</span>
+                </a>
+              </p>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Clear CTA.</strong> But adds visual weight to the otherwise clean hero.
+          </div>
+        </div>
+
+        <!-- Tagline: Outline button -->
+        <div class="option">
+          <div class="option__label">
+            C. Outline button below tagline
+          </div>
+          <div class="option__preview">
+            <div class="home-hero">
+              <div class="home-hero__header">
+                <img src="/logo-radar-animated-loop.svg" alt="" class="home-hero__logo">
+                <h1 class="home-hero__title">Radar</h1>
+              </div>
+              <p class="home-hero__tagline">Know where everything is all the time.</p>
+              <p style="margin-top: 16px;">
+                <a href="#" class="tagline-cta tagline-cta--outline">
+                  Check In
+                  <span class="tagline-cta__count">5 projects</span>
+                </a>
+              </p>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Middle ground.</strong> Present but not dominating.
+          </div>
+        </div>
+
+        <!-- Tagline: Inline with tagline -->
+        <div class="option">
+          <div class="option__label">
+            D. Inline with tagline text
+          </div>
+          <div class="option__preview">
+            <div class="home-hero">
+              <div class="home-hero__header">
+                <img src="/logo-radar-animated-loop.svg" alt="" class="home-hero__logo">
+                <h1 class="home-hero__title">Radar</h1>
+              </div>
+              <p class="home-hero__tagline home-hero__tagline--cta">
+                <span>Know where everything is all the time.</span>
+                <a href="#" class="tagline-cta tagline-cta--ghost">5 await your update →</a>
+              </p>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Conversational.</strong> Feels natural but may be too subtle.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SEARCH BAR CTA OPTIONS ==================== -->
+    <div class="section">
+      <h2 class="section__title">2. Button Next to Search Bar</h2>
+      
+      <div class="options-grid">
+        <!-- Search: Filled button -->
+        <div class="option">
+          <div class="option__label">
+            A. Filled button (accent color)
+          </div>
+          <div class="option__preview">
+            <div class="search-row">
+              <div class="global-search">
+                <input type="text" class="global-search__input" placeholder="Find or create what you are looking for...">
+              </div>
+              <a href="#" class="search-cta search-cta--filled">
+                Check In
+                <span class="search-cta__count">5</span>
+              </a>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Highly visible.</strong> Clear primary action, but might feel too aggressive for a "when you're ready" feature.
+          </div>
+        </div>
+
+        <!-- Search: Outline button -->
+        <div class="option">
+          <div class="option__label">
+            B. Outline button
+            <span class="option__label-tag option__label-tag--recommended">Recommended</span>
+          </div>
+          <div class="option__preview">
+            <div class="search-row">
+              <div class="global-search">
+                <input type="text" class="global-search__input" placeholder="Find or create what you are looking for...">
+              </div>
+              <a href="#" class="search-cta search-cta--outline">
+                Check In
+                <span class="search-cta__count">5</span>
+              </a>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Balanced.</strong> Visible without competing with search. Matches existing UI patterns.
+          </div>
+        </div>
+
+        <!-- Search: Subtle/muted -->
+        <div class="option">
+          <div class="option__label">
+            C. Subtle/muted button
+          </div>
+          <div class="option__preview">
+            <div class="search-row">
+              <div class="global-search">
+                <input type="text" class="global-search__input" placeholder="Find or create what you are looking for...">
+              </div>
+              <a href="#" class="search-cta search-cta--subtle">
+                Check In
+                <span class="search-cta__count">5</span>
+              </a>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Quiet.</strong> There when you need it, not demanding attention.
+          </div>
+        </div>
+
+        <!-- Search: Ghost link -->
+        <div class="option">
+          <div class="option__label">
+            D. Ghost link (text only)
+          </div>
+          <div class="option__preview">
+            <div class="search-row">
+              <div class="global-search">
+                <input type="text" class="global-search__input" placeholder="Find or create what you are looking for...">
+              </div>
+              <a href="#" class="search-cta search-cta--ghost">
+                Check In (5) →
+              </a>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Minimal.</strong> Almost invisible until you look for it.
+          </div>
+        </div>
+
+        <!-- Search: Warning style when urgent -->
+        <div class="option">
+          <div class="option__label">
+            E. Contextual urgency (warning when overdue)
+          </div>
+          <div class="option__preview">
+            <div class="search-row">
+              <div class="global-search">
+                <input type="text" class="global-search__input" placeholder="Find or create what you are looking for...">
+              </div>
+              <a href="#" class="search-cta search-cta--warning">
+                ⚠ 3 Overdue
+                <span class="search-cta__count">+2</span>
+              </a>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Escalates visually.</strong> Outline when normal, warning color when projects are actually overdue.
+          </div>
+        </div>
+
+        <!-- Search: States comparison -->
+        <div class="option">
+          <div class="option__label">
+            F. State comparison: updates needed vs. all done
+          </div>
+          <div class="option__preview">
+            <div class="states-row">
+              <div>
+                <div class="state-label">When updates needed</div>
+                <div class="search-row">
+                  <div class="global-search">
+                    <input type="text" class="global-search__input" placeholder="Find or create...">
+                  </div>
+                  <a href="#" class="search-cta search-cta--outline">
+                    Check In
+                    <span class="search-cta__count">5</span>
+                  </a>
+                </div>
+              </div>
+              <div>
+                <div class="state-label">When all caught up</div>
+                <div class="search-row">
+                  <div class="global-search">
+                    <input type="text" class="global-search__input" placeholder="Find or create...">
+                  </div>
+                  <span class="search-cta search-cta--done">
+                    ✓ All current
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Contextual.</strong> Button only appears when there's something to do. Shows "All current" when caught up.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== FOURTH WIDGET OPTIONS ==================== -->
+    <div class="section">
+      <h2 class="section__title">3. Fourth Metric Widget</h2>
+      
+      <div class="options-grid">
+        <!-- Widget: Progress fraction -->
+        <div class="option">
+          <div class="option__label">
+            A. Progress fraction with bar
+          </div>
+          <div class="option__preview">
+            <div class="metrics-row metrics-row--four">
+              <div class="metric-widget">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Health</span>
+                </div>
+                <div class="metric-widget__content">
+                  <span class="metric-widget__dot metric-widget__dot--on-track"></span>
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label metric-widget__label--on-track">On Track</div>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-widget">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Trend</span>
+                </div>
+                <div class="metric-widget__content">
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label">↗ Improving</div>
+                    <div class="metric-widget__detail">+0.2 over 6 weeks</div>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-widget">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Confidence</span>
+                </div>
+                <div class="metric-widget__content">
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label">Medium</div>
+                    <div class="metric-widget__detail">Score: 58</div>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-widget metric-widget--updates metric-widget--updates-needed">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">This Week</span>
+                </div>
+                <div class="metric-widget__content">
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label"><span class="metric-widget__fraction">3 of 8</span> updated</div>
+                  </div>
+                </div>
+                <div class="metric-widget__progress">
+                  <div class="progress-bar-mini">
+                    <div class="progress-bar-mini__fill progress-bar-mini__fill--warning" style="width: 37.5%"></div>
+                  </div>
+                </div>
+                <div class="metric-widget__cta">Continue check-in →</div>
+              </div>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Progress-focused.</strong> Shows weekly coverage with visual progress bar. Clickable to continue.
+          </div>
+        </div>
+
+        <!-- Widget: Big number remaining -->
+        <div class="option">
+          <div class="option__label">
+            B. Big number (remaining count)
+          </div>
+          <div class="option__preview">
+            <div class="metrics-row metrics-row--four">
+              <div class="metric-widget">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Health</span>
+                </div>
+                <div class="metric-widget__content">
+                  <span class="metric-widget__dot metric-widget__dot--on-track"></span>
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label metric-widget__label--on-track">On Track</div>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-widget">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Trend</span>
+                </div>
+                <div class="metric-widget__content">
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label">↗ Improving</div>
+                    <div class="metric-widget__detail">+0.2 over 6 weeks</div>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-widget">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Confidence</span>
+                </div>
+                <div class="metric-widget__content">
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label">Medium</div>
+                    <div class="metric-widget__detail">Score: 58</div>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-widget metric-widget--updates metric-widget--updates-needed">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Awaiting Update</span>
+                </div>
+                <div class="metric-widget__content">
+                  <div class="metric-widget__big-number metric-widget__big-number--warning">5</div>
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label">projects</div>
+                    <div class="metric-widget__detail">this week</div>
+                  </div>
+                </div>
+                <div class="metric-widget__cta">Start check-in →</div>
+              </div>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Action-oriented.</strong> Emphasizes what's left to do. Big number draws attention.
+          </div>
+        </div>
+
+        <!-- Widget: All done state -->
+        <div class="option">
+          <div class="option__label">
+            C. Completed state (all caught up)
+          </div>
+          <div class="option__preview">
+            <div class="metrics-row metrics-row--four">
+              <div class="metric-widget">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Health</span>
+                </div>
+                <div class="metric-widget__content">
+                  <span class="metric-widget__dot metric-widget__dot--on-track"></span>
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label metric-widget__label--on-track">On Track</div>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-widget">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Trend</span>
+                </div>
+                <div class="metric-widget__content">
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label">↗ Improving</div>
+                    <div class="metric-widget__detail">+0.2 over 6 weeks</div>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-widget">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Confidence</span>
+                </div>
+                <div class="metric-widget__content">
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label">Medium</div>
+                    <div class="metric-widget__detail">Score: 58</div>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-widget metric-widget--updates metric-widget--updates-done">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">This Week</span>
+                </div>
+                <div class="metric-widget__content">
+                  <div class="metric-widget__check">✓</div>
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label metric-widget__big-number--success">All current</div>
+                    <div class="metric-widget__detail">8 of 8 updated</div>
+                  </div>
+                </div>
+                <div class="metric-widget__progress">
+                  <div class="progress-bar-mini">
+                    <div class="progress-bar-mini__fill progress-bar-mini__fill--success" style="width: 100%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Satisfying.</strong> Green checkmark when everything is updated. Positive reinforcement.
+          </div>
+        </div>
+
+        <!-- Widget: Minimal style -->
+        <div class="option">
+          <div class="option__label">
+            D. Minimal (matches other widgets better)
+          </div>
+          <div class="option__preview">
+            <div class="metrics-row metrics-row--four">
+              <div class="metric-widget">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Health</span>
+                </div>
+                <div class="metric-widget__content">
+                  <span class="metric-widget__dot metric-widget__dot--on-track"></span>
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label metric-widget__label--on-track">On Track</div>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-widget">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Trend</span>
+                </div>
+                <div class="metric-widget__content">
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label">↗ Improving</div>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-widget">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Confidence</span>
+                </div>
+                <div class="metric-widget__content">
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label">Medium</div>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-widget metric-widget--updates">
+                <div class="metric-widget__title-row">
+                  <span class="metric-widget__title">Coverage</span>
+                </div>
+                <div class="metric-widget__content">
+                  <div class="metric-widget__text">
+                    <div class="metric-widget__label">3 of 8</div>
+                    <div class="metric-widget__detail">updated this week</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="option__notes">
+            <strong>Consistent.</strong> Matches the style of other widgets. Less actionable-looking.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
+
+
+

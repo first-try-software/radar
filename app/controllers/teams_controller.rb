@@ -310,6 +310,78 @@ class TeamsController < ApplicationController
     @weeks_of_data = trend_result[:weeks_of_data]
     @confidence_score = trend_result[:confidence_score]
     @confidence_level = trend_result[:confidence_level]
+    @confidence_factors = trend_result[:confidence_factors] || {}
+
+    # Build presenters for shared partials
+    build_team_presenters(team)
+  end
+
+  def build_team_presenters(team)
+    # Header presenter
+    @header_presenter = TeamHeaderPresenter.new(
+      entity: team,
+      record: @team_record,
+      view_context: view_context
+    )
+
+    # Metric presenters
+    leaf_projects = team.all_leaf_projects
+    active_leaves = leaf_projects.select { |p| [:in_progress, :blocked].include?(p.current_state) }
+    off_track_count = active_leaves.count { |p| p.health == :off_track }
+    at_risk_count = active_leaves.count { |p| p.health == :at_risk }
+
+    @health_presenter = HealthPresenter.new(
+      health: team.health,
+      raw_score: @health_summary[:raw_score],
+      off_track_count: off_track_count,
+      at_risk_count: at_risk_count,
+      total_count: active_leaves.size,
+      entity_label: "projects",
+      methodology: "Weighted average of leaf project health scores."
+    )
+
+    @trend_presenter = TrendPresenter.new(
+      trend_data: @trend_data,
+      trend_direction: @trend_direction,
+      trend_delta: @trend_delta,
+      weeks_of_data: @weeks_of_data,
+      gradient_id: "team-trend-gradient"
+    )
+
+    @confidence_presenter = ConfidencePresenter.new(
+      score: @confidence_score,
+      level: @confidence_level,
+      factors: @confidence_factors
+    )
+
+    # Edit modal presenter
+    @edit_modal_presenter = TeamEditModalPresenter.new(
+      entity: team,
+      record: @team_record,
+      view_context: view_context
+    )
+
+    # Search data
+    build_search_data
+  end
+
+  def build_search_data
+    @search_teams = []
+    build_team_tree = ->(teams) do
+      teams.sort_by(&:name).each do |t|
+        @search_teams << { entity: t, record: TeamRecord.find_by(name: t.name) }
+        build_team_tree.call(t.subordinate_teams) if t.subordinate_teams.any?
+      end
+    end
+    build_team_tree.call(@teams)
+
+    @search_initiatives = @initiatives.map do |initiative|
+      { entity: initiative, record: InitiativeRecord.find_by(name: initiative.name) }
+    end
+
+    @search_projects = @all_projects.map do |project|
+      { entity: project, record: ProjectRecord.find_by(name: project.name) }
+    end
   end
 
   def set_empty_team_dashboard_data

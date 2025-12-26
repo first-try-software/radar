@@ -1,0 +1,75 @@
+<%# Shared header partial for Team, Initiative, and Project pages
+    Expects: presenter (HeaderPresenter) %>
+<% presenter = local_assigns[:presenter] %>
+
+<!-- Sticky Header -->
+<div class="sticky-header" data-sticky-header>
+  <div class="sticky-header__container">
+    <div class="sticky-header__left">
+      <div class="sticky-header__breadcrumb">
+        <%= presenter.breadcrumb %>
+      </div>
+      <div class="sticky-header__title-row">
+        <img src="/logo-radar-animated-loop-v8.svg" alt="" class="sticky-header__logo">
+        <h2 class="sticky-header__title"><%= presenter.name %></h2>
+      </div>
+    </div>
+    <div class="sticky-header__right">
+      <div class="sticky-header__actions">
+        <% if presenter.archived? %>
+          <span class="badge badge--archived">ARCHIVED</span>
+        <% end %>
+        <% if presenter.show_state_badge? %>
+          <div class="sticky-header__badge">
+            <span class="badge state state--<%= presenter.state_css_class %>" data-state-badge><%= presenter.state_label.upcase %></span>
+          </div>
+        <% end %>
+        <button type="button" class="sticky-header__edit-btn" data-action="<%= presenter.edit_action %>" aria-label="Edit <%= presenter.entity_type_label.downcase %>">✎</button>
+      </div>
+      <% if presenter.contact_present? %>
+        <span class="sticky-header__contact">Contact: <%= presenter.point_of_contact %></span>
+      <% else %>
+        <span class="sticky-header__contact sticky-header__contact--missing">No contact specified</span>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Hero Section -->
+<div class="project-hero" data-project-hero>
+  <div class="project-hero__breadcrumb" data-hero-breadcrumb>
+    <%= presenter.breadcrumb %>
+  </div>
+  <div class="project-hero__actions">
+    <% if presenter.archived? %>
+      <span class="badge badge--archived" data-archived-badge>ARCHIVED</span>
+    <% end %>
+    <% if presenter.show_state_dropdown? %>
+      <div class="state-pill-dropdown"
+           data-controller="state-dropdown"
+           data-state-dropdown-url-value="<%= presenter.state_path %>">
+        <button class="state-pill-toggle" type="button" data-action="state-dropdown#toggle">
+          <span class="state-pill state-pill--<%= presenter.state_css_class %>" data-state-badge><%= presenter.state_label %></span>
+          <span class="state-pill-arrow">▾</span>
+        </button>
+        <div class="state-pill-menu state-pill-menu--down" data-state-dropdown-target="menu">
+          <% presenter.allowed_states.each do |state| %>
+            <button type="button" class="state-pill-option" data-state="<%= state %>" data-action="state-dropdown#select">
+              <span class="state-pill state-pill--<%= state.to_s.tr('_', '-') %>"><%= state.to_s.tr('_', ' ').titleize %></span>
+            </button>
+          <% end %>
+        </div>
+      </div>
+    <% elsif presenter.show_state_badge? %>
+      <span class="state-pill state-pill--<%= presenter.state_css_class %>"><%= presenter.state_label %></span>
+    <% end %>
+    <button type="button" class="project-hero__edit-btn" data-action="<%= presenter.edit_action %>" aria-label="Edit <%= presenter.entity_type_label.downcase %>">✎</button>
+  </div>
+  <h1 class="project-hero__title" data-project-title><%= presenter.name %></h1>
+  <p class="project-hero__tagline" data-project-tagline<%= ' hidden' unless presenter.description_present? %>><%= presenter.description %></p>
+  <% if presenter.contact_present? %>
+    <p class="project-hero__contact" data-project-contact>For more information, contact <strong data-project-poc><%= presenter.point_of_contact %></strong>.</p>
+  <% else %>
+    <p class="project-hero__contact project-hero__contact--missing" data-project-contact>Psst! Do me a favor! Tell me who to call if this thing breaks!</p>
+  <% end %>
+</div>

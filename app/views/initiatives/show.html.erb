@@ -1,46 +1,29 @@
 <% content_for(:title) { "#{@initiative_record.name} - Radar" } %>
-<% allowed_states = SetInitiativeState::SETTABLE_STATES %>
-<% cascading_states = Initiative::CASCADING_STATES %>
-<% related_project_count = @initiative_record.related_projects.count %>
 <% initiative = @initiative || @initiative_record %>
 
 <div data-controller="edit-form" data-edit-form-url-value="<%= initiative_path(@initiative_record) %>" data-edit-form-model-type-value="initiative">
 
-<%= render "initiatives/header",
-    initiative: initiative,
-    initiative_record: @initiative_record,
-    allowed_states: allowed_states,
-    cascading_states: cascading_states,
-    related_project_count: related_project_count %>
+<%= render 'shared/header', presenter: @header_presenter %>
 
-<%= render "initiatives/metrics",
-    initiative: initiative,
-    trend_data: @trend_data,
-    trend_direction: @trend_direction,
-    trend_delta: @trend_delta,
-    weeks_of_data: @weeks_of_data,
-    confidence_score: @confidence_score,
-    confidence_level: @confidence_level,
-    confidence_factors: @confidence_factors %>
+<div class="initiative-dashboard-v2">
+  <div class="metrics-row-v2">
+    <%= render 'shared/health_widget', presenter: @health_presenter %>
+    <%= render 'shared/trend_widget', presenter: @trend_presenter %>
+    <%= render 'shared/confidence_widget', presenter: @confidence_presenter %>
+  </div>
+</div>
 
-<!-- Toast Container -->
-<div id="toast-container" class="toast-container" data-toast-container></div>
+<%= render 'shared/toast_container' %>
 
-<%= render "initiatives/search",
-    initiative: initiative,
-    initiative_record: @initiative_record,
-    teams: @teams,
-    initiatives: @initiatives,
-    all_projects: @all_projects %>
+<%= render 'shared/search' %>
 
-<%= render "initiatives/related_projects",
+<%= render 'initiatives/related_projects',
     initiative: initiative,
     initiative_record: @initiative_record %>
 
-<%= render "initiatives/edit_modal",
-    initiative_record: @initiative_record %>
+<%= render 'shared/edit_modal', presenter: @edit_modal_presenter %>
 
-<%= render "initiatives/cascade_modal" %>
+<%= render 'initiatives/cascade_modal' %>
 
 </div><!-- end edit-form controller wrapper -->
 

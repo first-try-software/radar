@@ -1,0 +1,39 @@
+<%# Shared confidence widget partial for Team, Initiative, and Project pages
+    Expects: presenter (ConfidencePresenter) %>
+<% presenter = local_assigns[:presenter] %>
+
+<div id="confidence-widget" class="metric-widget metric-widget--confidence metric-widget--confidence-<%= presenter.level_css_class %>">
+  <div class="metric-widget__title-row">
+    <span class="metric-widget__title">Confidence</span>
+    <div class="info-tooltip">
+      <span class="info-tooltip__icon">i</span>
+      <div class="info-tooltip__tooltip">
+        <div class="info-tooltip__methodology">Based on trend consistency and data freshness.</div>
+        <div class="info-tooltip__range">
+          <div>Range: 0–100</div>
+          <div>High ≥70</div>
+          <div>Medium ≥40</div>
+          <div>Low &lt;40</div>
+        </div>
+        <div class="info-tooltip__score">Score: <%= presenter.score %></div>
+      </div>
+    </div>
+  </div>
+  <div class="metric-widget__content">
+    <div class="confidence-ring">
+      <svg viewBox="0 0 44 44">
+        <circle class="confidence-ring__bg" cx="22" cy="22" r="18" />
+        <circle class="confidence-ring__fill confidence-ring__fill--<%= presenter.level_css_class %>"
+                cx="22" cy="22" r="18"
+                stroke-dasharray="<%= presenter.ring_circumference %>"
+                stroke-dashoffset="<%= presenter.ring_offset %>" />
+      </svg>
+    </div>
+    <div class="metric-widget__text">
+      <div class="metric-widget__label confidence-label--<%= presenter.level_css_class %>"><%= presenter.level_label %></div>
+      <% if presenter.show_hint? %>
+        <span class="metric-widget__hint"><%= presenter.hint %></span>
+      <% end %>
+    </div>
+  </div>
+</div>

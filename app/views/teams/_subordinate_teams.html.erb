@@ -40,28 +40,11 @@
     domain_team = Rails.application.config.x.team_repository.find(sub_team.id)
     { record: sub_team, domain: domain_team, health: :not_available, trend: :stable, projects: 0, stale: 0 }
   end.sort_by { |t| t[:record].name.downcase }
-
-  unhealthy_subteams = all_subteams.select { |t| [:off_track, :at_risk].include?(t[:health]) }
-  stale_subteams = all_subteams.select { |t| t[:stale] > 0 }
 %>
-  <section class="section section--projects" data-controller="tabs inline-form" data-tabs-active-value="all">
-    <div class="section__title-row">
+  <section class="section section--projects" data-controller="inline-form">
+    <div class="section__header">
       <h3 class="section__title">Subordinate Teams</h3>
-      <div class="dashboard-tabs-v2">
-        <button class="dashboard-tab-v2 active" data-tabs-target="tab" data-tabs-name="all" data-action="tabs#switch">
-          All <span class="dashboard-tab-v2__count"><%= all_subteams.size %></span>
-        </button>
-        <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="unhealthy" data-action="tabs#switch">
-          Unhealthy <span class="dashboard-tab-v2__count"><%= unhealthy_subteams.size %></span>
-        </button>
-        <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="stale" data-action="tabs#switch">
-          Stale <span class="dashboard-tab-v2__count"><%= stale_subteams.size %></span>
-        </button>
-        <% if archived_subteams.any? %>
-          <button class="dashboard-tab-v2" data-tabs-target="tab" data-tabs-name="archived" data-action="tabs#switch">
-            Archived <span class="dashboard-tab-v2__count"><%= archived_subteams.size %></span>
-          </button>
-        <% end %>
+      <div class="section__actions">
         <button class="dashboard-tab-v2 dashboard-tab-v2--add"
                 data-inline-form-target="toggle"
                 data-action="inline-form#toggle"
@@ -92,11 +75,10 @@
       <% end %>
     </div>
 
-    <!-- Tab Content: All -->
-    <div class="tab-content-v2 active" data-tabs-target="content" data-tabs-name="all">
-      <% if all_subteams.empty? %>
-        <div class="tab-empty-v2">No subordinate teams</div>
-      <% else %>
+    <% if all_subteams.empty? && archived_subteams.empty? %>
+      <div class="tab-empty-v2">No subordinate teams</div>
+    <% else %>
+      <% if all_subteams.any? %>
         <ul class="project-list-v2">
           <li class="project-item-v2 project-item-v2--header">
             <div class="team-item__grid team-item__grid--header">
@@ -113,86 +95,30 @@
           <% end %>
         </ul>
       <% end %>
-    </div>
 
-    <!-- Tab Content: Unhealthy -->
-    <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="unhealthy">
-      <% if unhealthy_subteams.empty? %>
-        <div class="tab-empty-v2">All subordinate teams are healthy!</div>
-      <% else %>
-        <ul class="project-list-v2">
-          <li class="project-item-v2 project-item-v2--header">
-            <div class="team-item__grid team-item__grid--header">
-              <span class="team-item__col team-item__col--health"></span>
-              <span class="team-item__col team-item__col--name team-item__header-label">Team</span>
-              <span class="team-item__col team-item__col--trend team-item__header-label">Trend</span>
-              <span class="team-item__col team-item__col--projects team-item__header-label">Projects</span>
-              <span class="team-item__col team-item__col--stale team-item__header-label">Stale</span>
-              <span class="team-item__col team-item__col--contact team-item__header-label">Contact</span>
-            </div>
-          </li>
-          <% unhealthy_subteams.each do |team_data| %>
-            <%= render 'teams/subordinate_team_row', team_data: team_data %>
-          <% end %>
-        </ul>
+      <% if archived_subteams.any? %>
+        <details class="section__archived-details">
+          <summary class="section__archived-summary">Archived (<%= archived_subteams.size %>)</summary>
+          <ul class="project-list-v2" style="margin-top: 8px;">
+            <% archived_subteams.each do |team_data| %>
+              <li class="project-item-v2">
+                <a href="<%= team_path(team_data[:record]) %>" class="project-item-v2__link" data-turbo-frame="_top">
+                  <div class="team-item__grid">
+                    <span class="team-item__col team-item__col--health">
+                      <span class="project-item-v2__health project-item-v2__health--not_available"></span>
+                    </span>
+                    <span class="team-item__col team-item__col--name" style="font-style: italic;"><%= team_data[:record].name %></span>
+                    <span class="team-item__col team-item__col--trend">—</span>
+                    <span class="team-item__col team-item__col--projects">—</span>
+                    <span class="team-item__col team-item__col--stale">—</span>
+                    <span class="team-item__col team-item__col--contact"><%= team_data[:record].point_of_contact.presence || '—' %></span>
+                  </div>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </details>
       <% end %>
-    </div>
-
-    <!-- Tab Content: Stale -->
-    <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="stale">
-      <% if stale_subteams.empty? %>
-        <div class="tab-empty-v2">All subordinate teams are up to date!</div>
-      <% else %>
-        <ul class="project-list-v2">
-          <li class="project-item-v2 project-item-v2--header">
-            <div class="team-item__grid team-item__grid--header">
-              <span class="team-item__col team-item__col--health"></span>
-              <span class="team-item__col team-item__col--name team-item__header-label">Team</span>
-              <span class="team-item__col team-item__col--trend team-item__header-label">Trend</span>
-              <span class="team-item__col team-item__col--projects team-item__header-label">Projects</span>
-              <span class="team-item__col team-item__col--stale team-item__header-label">Stale</span>
-              <span class="team-item__col team-item__col--contact team-item__header-label">Contact</span>
-            </div>
-          </li>
-          <% stale_subteams.each do |team_data| %>
-            <%= render 'teams/subordinate_team_row', team_data: team_data %>
-          <% end %>
-        </ul>
-      <% end %>
-    </div>
-
-    <!-- Tab Content: Archived -->
-    <% if archived_subteams.any? %>
-      <div class="tab-content-v2" data-tabs-target="content" data-tabs-name="archived">
-        <ul class="project-list-v2">
-          <li class="project-item-v2 project-item-v2--header">
-            <div class="team-item__grid team-item__grid--header">
-              <span class="team-item__col team-item__col--health"></span>
-              <span class="team-item__col team-item__col--name team-item__header-label">Team</span>
-              <span class="team-item__col team-item__col--trend team-item__header-label">Trend</span>
-              <span class="team-item__col team-item__col--projects team-item__header-label">Projects</span>
-              <span class="team-item__col team-item__col--stale team-item__header-label">Stale</span>
-              <span class="team-item__col team-item__col--contact team-item__header-label">Contact</span>
-            </div>
-          </li>
-          <% archived_subteams.each do |team_data| %>
-            <li class="project-item-v2">
-              <a href="<%= team_path(team_data[:record]) %>" class="project-item-v2__link" data-turbo-frame="_top">
-                <div class="team-item__grid">
-                  <span class="team-item__col team-item__col--health">
-                    <span class="project-item-v2__health project-item-v2__health--not_available"></span>
-                  </span>
-                  <span class="team-item__col team-item__col--name" style="font-style: italic;"><%= team_data[:record].name %></span>
-                  <span class="team-item__col team-item__col--trend">—</span>
-                  <span class="team-item__col team-item__col--projects">—</span>
-                  <span class="team-item__col team-item__col--stale">—</span>
-                  <span class="team-item__col team-item__col--contact"><%= team_data[:record].point_of_contact.presence || '—' %></span>
-                </div>
-              </a>
-            </li>
-          <% end %>
-        </ul>
-      </div>
     <% end %>
   </section>
 </turbo-frame>
