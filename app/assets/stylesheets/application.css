@@ -37,7 +37,7 @@
   --success: #65d195;
   --warning: #ffd166;
   --health-on-track: #22c55e;
-  --health-at-risk: #f59e0b;
+  --health-at-risk: #ffd166;
   --health-off-track: #ef4444;
   --health-not-available: #6b7280;
   --bg-hover: rgba(255, 255, 255, 0.05);
@@ -58,6 +58,7 @@ body {
               var(--bg);
   color: var(--text);
   min-height: 100vh;
+  letter-spacing: 1px;
 }
 
 a {
@@ -1471,7 +1472,8 @@ input::placeholder {
 
 .home-hero__divider {
   width: 400px;
-  height: 1px;
+  height: 3px;
+  border-radius: 50%;
   background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
   margin: 2px 0;
 }
@@ -1480,7 +1482,7 @@ input::placeholder {
   font-family: "Montserrat", sans-serif;
   font-size: 20px;
   font-weight: 400;
-  color: var(--text-muted);
+  color: var(--accent);
   margin: 0 -4px 0 4px;
   line-height: 1;
   letter-spacing: 4px;
@@ -1565,22 +1567,23 @@ input::placeholder {
 
 .project-hero__title {
   font-family: "Montserrat", sans-serif;
-  font-size: 72px;
-  font-weight: 700;
+  font-size: 48px;
+  font-weight: 400;
   color: var(--text);
   margin: 36px 0 16px 0;
-  letter-spacing: -0.02em;
+  letter-spacing: 4px;
 }
 
 .project-hero__tagline {
   font-family: "Montserrat", sans-serif;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 400;
   color: var(--text-muted);
   margin: 0 0 16px 0;
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
+  letter-spacing: 2px;
 }
 
 .project-hero__contact {
@@ -1589,6 +1592,7 @@ input::placeholder {
   font-weight: 400;
   color: var(--text-muted);
   margin: 0;
+  letter-spacing: 1px;
 }
 
 .project-hero__contact--missing {
@@ -2637,7 +2641,7 @@ turbo-frame + turbo-frame .section {
 
 .stat-card--at-risk {
   border-color: var(--health-at-risk);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), var(--card));
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.1), var(--card));
 }
 
 .stat-card--off-track {
@@ -3299,8 +3303,8 @@ turbo-frame + turbo-frame .section {
 }
 
 .metric-widget--health.metric-widget--at-risk {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.03));
-  border-color: rgba(245, 158, 11, 0.25);
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.12), rgba(255, 209, 102, 0.03));
+  border-color: rgba(255, 209, 102, 0.25);
 }
 
 .metric-widget--health.metric-widget--off-track {
@@ -3425,8 +3429,8 @@ turbo-frame + turbo-frame .section {
 }
 
 .metric-widget--confidence.metric-widget--confidence-medium {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.03));
-  border-color: rgba(245, 158, 11, 0.25);
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.12), rgba(255, 209, 102, 0.03));
+  border-color: rgba(255, 209, 102, 0.25);
 }
 
 .metric-widget--confidence.metric-widget--confidence-low {
@@ -3640,14 +3644,16 @@ turbo-frame + turbo-frame .section {
 
 .project-item-v2__grid {
   display: grid;
-  grid-template-columns: 18px minmax(180px, 1fr) 100px 90px minmax(120px, 1fr) minmax(100px, 150px);
+  /* health | name | last_update | comment | contact | state */
+  grid-template-columns: 18px minmax(180px, 1fr) 90px minmax(120px, 1fr) minmax(100px, 150px) 100px;
   align-items: center;
   gap: 12px;
   width: 100%;
 }
 
 .project-item-v2__grid--parent {
-  grid-template-columns: 18px minmax(180px, 1fr) 100px 50px 70px 50px minmax(100px, 150px);
+  /* health | name | trend | projects | stale | contact | state */
+  grid-template-columns: 18px minmax(180px, 1fr) 50px 70px 50px minmax(100px, 150px) 100px;
 }
 
 .project-item-v2__col--contact {
@@ -3665,6 +3671,33 @@ turbo-frame + turbo-frame .section {
 
 .project-item-v2__col--count {
   text-align: center;
+}
+
+.project-item-v2__col--badges {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.project-item-v2__badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.project-item-v2__badge--archived {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--health-off-track);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.project-item-v2__badge--stale {
+  background: rgba(255, 209, 102, 0.15);
+  color: var(--health-at-risk);
+  border: 1px solid rgba(255, 209, 102, 0.4);
 }
 
 .project-item-v2__grid--header {
@@ -3799,7 +3832,7 @@ turbo-frame + turbo-frame .section {
 }
 
 .project-item-v2__tag--stale {
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(255, 209, 102, 0.15);
   color: var(--warning);
 }
 
@@ -4195,8 +4228,8 @@ input.inline-create-form__input--date {
 }
 
 .health-badge--at_risk {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  background: rgba(255, 209, 102, 0.15);
+  color: #ffd166;
 }
 
 .health-badge--off_track {
@@ -4358,7 +4391,7 @@ input.inline-create-form__input--date {
 
 .health-picker__btn--at_risk.selected {
   border-color: var(--health-at-risk);
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(255, 209, 102, 0.15);
 }
 
 .health-picker__btn--off_track.selected {
@@ -4445,16 +4478,11 @@ input.inline-create-form__input--date {
 
 .state-pill-toggle:hover .state-pill {
   filter: brightness(1.1);
+  box-shadow: 0 0 8px rgba(106, 167, 255, 0.5), 0 0 16px rgba(106, 167, 255, 0.3);
 }
 
 .state-pill-arrow {
-  color: var(--muted);
-  font-size: 10px;
-  transition: transform 0.15s;
-}
-
-.state-pill-dropdown.open .state-pill-arrow {
-  transform: rotate(180deg);
+  display: none;
 }
 
 .state-pill-menu {

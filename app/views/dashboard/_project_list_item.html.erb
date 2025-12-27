@@ -1,7 +1,7 @@
 <%#
   list_type: :leaf (default) or :parent
-  - leaf: State | Last Update | Comment | Contact (from project's own latest update)
-  - parent: State | Trend | Projects | Stale | Contact (aggregated from children)
+  - leaf: Symbol | Name | Last Update | Comment | Owner | State
+  - parent: Symbol | Name | Trend | Projects | Stale | Owner | State
 %>
 <%
   health_override = local_assigns.fetch(:health, nil)
@@ -57,15 +57,15 @@
         <span class="project-item-v2__col project-item-v2__col--name">
           <span class="project-item-v2__name"><%= project.name %></span>
         </span>
-        <span class="project-item-v2__col project-item-v2__col--state">
-          <span class="<%= state_class %>"><%= state_label %></span>
-        </span>
         <span class="project-item-v2__col project-item-v2__col--trend">
           <%= trend_arrow_svg(trend_direction) %>
         </span>
         <span class="project-item-v2__col project-item-v2__col--count"><%= projects_count %></span>
         <span class="project-item-v2__col project-item-v2__col--count"><%= stale_count %></span>
         <span class="project-item-v2__col project-item-v2__col--contact"><%= contact %></span>
+        <span class="project-item-v2__col project-item-v2__col--state">
+          <span class="<%= state_class %>"><%= state_label %></span>
+        </span>
       </div>
     <% else %>
       <div class="project-item-v2__grid">
@@ -75,12 +75,12 @@
         <span class="project-item-v2__col project-item-v2__col--name">
           <span class="project-item-v2__name"><%= project.name %></span>
         </span>
-        <span class="project-item-v2__col project-item-v2__col--state">
-          <span class="<%= state_class %>"><%= state_label %></span>
-        </span>
         <span class="project-item-v2__col project-item-v2__col--meta"><%= last_update_date %></span>
         <span class="project-item-v2__col project-item-v2__col--comment"><%= last_update_comment %></span>
         <span class="project-item-v2__col project-item-v2__col--contact"><%= contact %></span>
+        <span class="project-item-v2__col project-item-v2__col--state">
+          <span class="<%= state_class %>"><%= state_label %></span>
+        </span>
       </div>
     <% end %>
   </a>

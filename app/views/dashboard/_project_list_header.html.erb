@@ -3,23 +3,25 @@
 
 <li class="project-item-v2 project-item-v2--header">
   <% if list_type == :parent %>
+    <%# Parent columns: Symbol | Name | Trend | Projects | Stale | Owner | State %>
     <div class="project-item-v2__grid project-item-v2__grid--header project-item-v2__grid--parent">
       <span class="project-item-v2__col project-item-v2__col--health"></span>
       <span class="project-item-v2__col project-item-v2__col--name project-item-v2__header-label">Name</span>
-      <span class="project-item-v2__col project-item-v2__col--state project-item-v2__header-label">State</span>
       <span class="project-item-v2__col project-item-v2__col--trend project-item-v2__header-label">Trend</span>
       <span class="project-item-v2__col project-item-v2__col--count project-item-v2__header-label">Projects</span>
       <span class="project-item-v2__col project-item-v2__col--count project-item-v2__header-label">Stale</span>
-      <span class="project-item-v2__col project-item-v2__col--contact project-item-v2__header-label">Contact</span>
+      <span class="project-item-v2__col project-item-v2__col--contact project-item-v2__header-label">Owner</span>
+      <span class="project-item-v2__col project-item-v2__col--state project-item-v2__header-label">State</span>
     </div>
   <% else %>
+    <%# Leaf columns: Symbol | Name | Last update | Comment | Owner | State %>
     <div class="project-item-v2__grid project-item-v2__grid--header">
       <span class="project-item-v2__col project-item-v2__col--health"></span>
       <span class="project-item-v2__col project-item-v2__col--name project-item-v2__header-label">Name</span>
-      <span class="project-item-v2__col project-item-v2__col--state project-item-v2__header-label">State</span>
       <span class="project-item-v2__col project-item-v2__col--meta project-item-v2__header-label">Last update</span>
       <span class="project-item-v2__col project-item-v2__col--comment project-item-v2__header-label">Comment</span>
-      <span class="project-item-v2__col project-item-v2__col--contact project-item-v2__header-label">Contact</span>
+      <span class="project-item-v2__col project-item-v2__col--contact project-item-v2__header-label">Owner</span>
+      <span class="project-item-v2__col project-item-v2__col--state project-item-v2__header-label">State</span>
     </div>
   <% end %>
 </li>

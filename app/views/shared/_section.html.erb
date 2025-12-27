@@ -1,5 +1,5 @@
 <%# Shared section partial for displaying entity lists
-    Columns: Health | Name | State | Trend | Projects | Stale | Owner
+    Columns: Symbol | Name | Trend | Projects | Stale | Owner | State
 
     Expects:
       title: Section title (String)
@@ -23,20 +23,20 @@
     <div class="tab-empty-v2">No <%= title.downcase %></div>
   <% else %>
     <ul class="project-list-v2">
-      <!-- Header Row -->
+      <!-- Header Row: Symbol | Name | Trend | Projects | Stale | Owner | State -->
       <li class="project-item-v2 project-item-v2--header">
         <div class="project-item-v2__grid project-item-v2__grid--header project-item-v2__grid--parent">
           <span class="project-item-v2__col project-item-v2__col--health"></span>
           <span class="project-item-v2__col project-item-v2__col--name project-item-v2__header-label">Name</span>
-          <span class="project-item-v2__col project-item-v2__col--state project-item-v2__header-label">State</span>
           <span class="project-item-v2__col project-item-v2__col--trend project-item-v2__header-label">Trend</span>
           <span class="project-item-v2__col project-item-v2__col--count project-item-v2__header-label">Projects</span>
           <span class="project-item-v2__col project-item-v2__col--count project-item-v2__header-label">Stale</span>
           <span class="project-item-v2__col project-item-v2__col--contact project-item-v2__header-label">Owner</span>
+          <span class="project-item-v2__col project-item-v2__col--state project-item-v2__header-label">State</span>
         </div>
       </li>
 
-      <!-- Item Rows -->
+      <!-- Item Rows: Symbol | Name | Trend | Projects | Stale | Owner | State -->
       <% items.each do |item| %>
         <li class="project-item-v2">
           <a href="<%= item.path %>" class="project-item-v2__link" data-turbo-frame="<%= item.turbo_frame %>">
@@ -47,6 +47,12 @@
               <span class="project-item-v2__col project-item-v2__col--name">
                 <span class="project-item-v2__name"><%= item.name %></span>
               </span>
+              <span class="project-item-v2__col project-item-v2__col--trend">
+                <%= item.trend_arrow %>
+              </span>
+              <span class="project-item-v2__col project-item-v2__col--count"><%= item.projects_count %></span>
+              <span class="project-item-v2__col project-item-v2__col--count<%= ' team-item__col--stale-warning' if item.stale_warning? %>"><%= item.stale_count %></span>
+              <span class="project-item-v2__col project-item-v2__col--contact"><%= item.owner %></span>
               <span class="project-item-v2__col project-item-v2__col--state">
                 <% if item.show_state? %>
                   <span class="<%= item.state_css_class %>"><%= item.state_label %></span>
@@ -54,12 +60,6 @@
                   <span>—</span>
                 <% end %>
               </span>
-              <span class="project-item-v2__col project-item-v2__col--trend">
-                <%= item.trend_arrow %>
-              </span>
-              <span class="project-item-v2__col project-item-v2__col--count"><%= item.projects_count %></span>
-              <span class="project-item-v2__col project-item-v2__col--count<%= ' team-item__col--stale-warning' if item.stale_warning? %>"><%= item.stale_count %></span>
-              <span class="project-item-v2__col project-item-v2__col--contact"><%= item.owner %></span>
             </div>
           </a>
         </li>
