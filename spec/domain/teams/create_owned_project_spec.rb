@@ -43,7 +43,7 @@ RSpec.describe CreateOwnedProject do
     expect(result.errors).to eq(['project name must be unique'])
   end
 
-  it 'fails when the team has subordinate teams' do
+  it 'succeeds when the team has subordinate teams' do
     team = Team.new(name: 'Platform')
     child_team = Team.new(name: 'Child')
     team_repository = FakeTeamRepository.new(teams: { 'team-123' => team, 'child' => child_team })
@@ -53,8 +53,8 @@ RSpec.describe CreateOwnedProject do
 
     result = action.perform(team_id: 'team-123', name: 'Project')
 
-    expect(result.success?).to be(false)
-    expect(result.errors).to eq(['teams with subordinate teams cannot own projects'])
+    expect(result.success?).to be(true)
+    expect(result.value.name).to eq('Project')
   end
 
   it 'saves the project and links it to the team' do

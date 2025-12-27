@@ -1444,8 +1444,8 @@ input::placeholder {
 }
 
 .home-hero__logo {
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
   flex-shrink: 0;
 }
 
@@ -1462,7 +1462,7 @@ input::placeholder {
   font-size: 72px;
   font-weight: 400;
   color: var(--text);
-  margin: -24px -72px 0 0;
+  margin: -12px -72px 0 0;
   line-height: 0.8;
   letter-spacing: 72px;
   text-transform: lowercase;

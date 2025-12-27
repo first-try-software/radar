@@ -92,18 +92,30 @@ class Team
   attr_reader :owned_projects_loader, :subordinate_teams_loader, :parent_team_loader
 
   def collect_health_values
-    project_scores = owned_projects
-      .select { |p| WORKING_STATES.include?(p.current_state) }
-      .map { |p| HEALTH_SCORES[p.health] }
-      .compact
+    # Virtual child approach: local projects as a group get equal weight to each child team
+    health_votes = []
 
-    subordinate_scores = subordinate_teams
-      .map(&:health)
-      .reject { |h| h == :not_available }
-      .map { |h| HEALTH_SCORES[h] }
-      .compact
+    # Add local projects' aggregate health as one vote (if any are in working state)
+    local_project_score = compute_local_projects_score
+    health_votes << local_project_score unless local_project_score.nil?
 
-    project_scores + subordinate_scores
+    # Add each subordinate team's health as one vote
+    subordinate_teams.each do |child_team|
+      child_health = child_team.health
+      next if child_health == :not_available
+
+      health_votes << HEALTH_SCORES[child_health]
+    end
+
+    health_votes
+  end
+
+  def compute_local_projects_score
+    working_projects = owned_projects.select { |p| WORKING_STATES.include?(p.current_state) }
+    scores = working_projects.map { |p| HEALTH_SCORES[p.health] }.compact
+    return nil if scores.empty?
+
+    scores.sum(0.0) / scores.length
   end
 
   def load_owned_projects

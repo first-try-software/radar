@@ -122,7 +122,7 @@ RSpec.describe Team do
       expect(team.health).to eq(:at_risk)
     end
 
-    it 'includes subordinate team health with equal weight' do
+    it 'treats local projects as a group with equal weight to each child team' do
       # Parent team owns one project, child team has its own rolled-up health
       parent_project = double('Project', current_state: :in_progress, health: :on_track)
       child_project = double('Project', current_state: :blocked, health: :off_track)
@@ -133,7 +133,26 @@ RSpec.describe Team do
         subordinate_teams_loader: ->(_t) { [child_team] }
       )
 
-      # Parent project on_track (1) + child team off_track (-1) = 0 average -> at_risk
+      # Local projects (1 vote: on_track=1) + child team (1 vote: off_track=-1) = average 0 -> at_risk
+      expect(parent_team.health).to eq(:at_risk)
+    end
+
+    it 'gives local projects as a group equal weight regardless of count' do
+      # Many local projects get aggregated into one vote, equal to one child team vote
+      local_project1 = double('Project', current_state: :in_progress, health: :on_track)
+      local_project2 = double('Project', current_state: :in_progress, health: :on_track)
+      local_project3 = double('Project', current_state: :in_progress, health: :on_track)
+      child_project = double('Project', current_state: :in_progress, health: :off_track)
+      child_team = described_class.new(name: 'Child', owned_projects_loader: ->(_t) { [child_project] })
+      parent_team = described_class.new(
+        name: 'Parent',
+        owned_projects_loader: ->(_t) { [local_project1, local_project2, local_project3] },
+        subordinate_teams_loader: ->(_t) { [child_team] }
+      )
+
+      # Local projects aggregate: (1+1+1)/3 = 1 (one vote)
+      # Child team: off_track = -1 (one vote)
+      # Average: (1 + -1) / 2 = 0 -> at_risk
       expect(parent_team.health).to eq(:at_risk)
     end
 

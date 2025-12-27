@@ -2,19 +2,9 @@
 <%
   team = local_assigns[:team]
   team_record = local_assigns[:team_record]
-  subordinate_teams = local_assigns[:subordinate_teams] || []
-  archived_child_teams = local_assigns[:archived_child_teams] || []
-
-  has_subordinate_teams = subordinate_teams.any? || archived_child_teams.any?
 
   all_owned_projects = team.respond_to?(:owned_projects) ? (team.owned_projects || []) : []
-  has_owned_projects = all_owned_projects.any?
-
-  # Show owned projects if: has projects OR has neither (empty team)
-  if has_subordinate_teams && !has_owned_projects
 %>
-</turbo-frame>
-<% return end %>
 
 <%
   direct_projects = all_owned_projects.reject { |p| p.respond_to?(:archived?) && p.archived? }
@@ -37,11 +27,10 @@
         <div class="info-tooltip">
           <span class="info-tooltip__icon">i</span>
           <div class="info-tooltip__tooltip">
-            <div class="info-tooltip__methodology">Teams can own projects or have subordinate teams — not both.</div>
+            <div class="info-tooltip__methodology">Teams can own projects and have subordinate teams.</div>
             <div class="info-tooltip__range">
-              <div>• Owned projects must be top-level (no parent)</div>
-              <div>• Adding a project makes this a leaf team</div>
-              <div>• Leaf teams track health via owned projects</div>
+              <div>• Owned projects contribute to team health</div>
+              <div>• Local projects as a group get equal weight to each child team</div>
             </div>
           </div>
         </div>
