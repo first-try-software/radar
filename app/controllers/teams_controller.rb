@@ -34,14 +34,7 @@ class TeamsController < ApplicationController
   end
 
   def update
-    record = TeamRecord.find(params[:id])
-    attrs = {
-      name: record.name,
-      description: record.description,
-      point_of_contact: record.point_of_contact
-    }.merge(update_params.compact)
-
-    result = team_actions.update_team.perform(id: params[:id], **attrs)
+    result = team_actions.update_team.perform(id: params[:id], **update_params)
 
     respond_to do |format|
       format.json { render_result(result) }

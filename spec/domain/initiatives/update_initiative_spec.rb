@@ -120,4 +120,55 @@ RSpec.describe UpdateInitiative do
     expect(result.success?).to be(false)
     expect(result.errors).to eq(['initiative name must be unique'])
   end
+
+  it 'preserves existing name when name is not provided' do
+    repository = FakeInitiativeRepository.new
+    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra', description: 'Old desc'))
+    action = described_class.new(initiative_repository: repository)
+
+    action.perform(id: 'init-123', description: 'New desc')
+
+    expect(repository.find('init-123').name).to eq('Modernize Infra')
+    expect(repository.find('init-123').description).to eq('New desc')
+  end
+
+  it 'preserves existing description when description is not provided' do
+    repository = FakeInitiativeRepository.new
+    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra', description: 'Old desc'))
+    action = described_class.new(initiative_repository: repository)
+
+    action.perform(id: 'init-123', name: 'New Name')
+
+    expect(repository.find('init-123').description).to eq('Old desc')
+  end
+
+  it 'preserves existing point_of_contact when not provided' do
+    repository = FakeInitiativeRepository.new
+    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra', point_of_contact: 'Jordan'))
+    action = described_class.new(initiative_repository: repository)
+
+    action.perform(id: 'init-123', name: 'New Name')
+
+    expect(repository.find('init-123').point_of_contact).to eq('Jordan')
+  end
+
+  it 'preserves existing archived status when not provided' do
+    repository = FakeInitiativeRepository.new
+    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra', archived: true))
+    action = described_class.new(initiative_repository: repository)
+
+    action.perform(id: 'init-123', name: 'New Name')
+
+    expect(repository.find('init-123').archived?).to be(true)
+  end
+
+  it 'allows setting description to empty string' do
+    repository = FakeInitiativeRepository.new
+    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra', description: 'Old desc'))
+    action = described_class.new(initiative_repository: repository)
+
+    action.perform(id: 'init-123', description: '')
+
+    expect(repository.find('init-123').description).to eq('')
+  end
 end

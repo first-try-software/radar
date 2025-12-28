@@ -34,14 +34,7 @@ class InitiativesController < ApplicationController
   end
 
   def update
-    record = InitiativeRecord.find(params[:id])
-    attrs = {
-      name: record.name,
-      description: record.description,
-      point_of_contact: record.point_of_contact
-    }.merge(update_params.compact)
-
-    result = initiative_actions.update_initiative.perform(id: params[:id], **attrs)
+    result = initiative_actions.update_initiative.perform(id: params[:id], **update_params)
 
     respond_to do |format|
       format.json { render_result(result) }

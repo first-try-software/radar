@@ -46,14 +46,7 @@ class ProjectsController < ApplicationController
   end
 
   def update
-    record = ProjectRecord.find(params[:id])
-    attrs = {
-      name: record.name,
-      description: record.description,
-      point_of_contact: record.point_of_contact
-    }.merge(update_params.compact)
-
-    result = project_actions.update_project.perform(id: params[:id], **attrs)
+    result = project_actions.update_project.perform(id: params[:id], **update_params)
 
     respond_to do |format|
       format.json { render_result(result) }

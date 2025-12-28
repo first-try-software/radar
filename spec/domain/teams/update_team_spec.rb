@@ -101,4 +101,55 @@ RSpec.describe UpdateTeam do
 
     expect(result.errors).to eq(['name must be present'])
   end
+
+  it 'preserves existing name when name is not provided' do
+    repository = FakeTeamRepository.new
+    repository.update(id: 'team-123', team: Team.new(name: 'Platform', description: 'Old desc'))
+    action = described_class.new(team_repository: repository)
+
+    action.perform(id: 'team-123', description: 'New desc')
+
+    expect(repository.find('team-123').name).to eq('Platform')
+    expect(repository.find('team-123').description).to eq('New desc')
+  end
+
+  it 'preserves existing description when description is not provided' do
+    repository = FakeTeamRepository.new
+    repository.update(id: 'team-123', team: Team.new(name: 'Platform', description: 'Old desc'))
+    action = described_class.new(team_repository: repository)
+
+    action.perform(id: 'team-123', name: 'New Name')
+
+    expect(repository.find('team-123').description).to eq('Old desc')
+  end
+
+  it 'preserves existing point_of_contact when not provided' do
+    repository = FakeTeamRepository.new
+    repository.update(id: 'team-123', team: Team.new(name: 'Platform', point_of_contact: 'Casey'))
+    action = described_class.new(team_repository: repository)
+
+    action.perform(id: 'team-123', name: 'New Name')
+
+    expect(repository.find('team-123').point_of_contact).to eq('Casey')
+  end
+
+  it 'preserves existing archived status when not provided' do
+    repository = FakeTeamRepository.new
+    repository.update(id: 'team-123', team: Team.new(name: 'Platform', archived: true))
+    action = described_class.new(team_repository: repository)
+
+    action.perform(id: 'team-123', name: 'New Name')
+
+    expect(repository.find('team-123').archived?).to be(true)
+  end
+
+  it 'allows setting description to empty string' do
+    repository = FakeTeamRepository.new
+    repository.update(id: 'team-123', team: Team.new(name: 'Platform', description: 'Old desc'))
+    action = described_class.new(team_repository: repository)
+
+    action.perform(id: 'team-123', description: '')
+
+    expect(repository.find('team-123').description).to eq('')
+  end
 end

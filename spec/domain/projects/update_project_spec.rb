@@ -175,4 +175,45 @@ RSpec.describe UpdateProject do
 
     expect(repository.find('123').current_state).to eq(:in_progress)
   end
+
+  it 'preserves existing name when name is not provided' do
+    repository = FakeProjectRepository.new
+    repository.update(id: '123', project: ProjectBuilder.build(name: 'Old', description: 'Old desc'))
+    action = described_class.new(project_repository: repository)
+
+    action.perform(id: '123', description: 'New desc')
+
+    expect(repository.find('123').name).to eq('Old')
+    expect(repository.find('123').description).to eq('New desc')
+  end
+
+  it 'preserves existing description when description is not provided' do
+    repository = FakeProjectRepository.new
+    repository.update(id: '123', project: ProjectBuilder.build(name: 'Old', description: 'Old desc'))
+    action = described_class.new(project_repository: repository)
+
+    action.perform(id: '123', name: 'New')
+
+    expect(repository.find('123').description).to eq('Old desc')
+  end
+
+  it 'preserves existing point_of_contact when not provided' do
+    repository = FakeProjectRepository.new
+    repository.update(id: '123', project: ProjectBuilder.build(name: 'Old', point_of_contact: 'Jordan'))
+    action = described_class.new(project_repository: repository)
+
+    action.perform(id: '123', name: 'New')
+
+    expect(repository.find('123').point_of_contact).to eq('Jordan')
+  end
+
+  it 'allows setting description to empty string' do
+    repository = FakeProjectRepository.new
+    repository.update(id: '123', project: ProjectBuilder.build(name: 'Old', description: 'Old desc'))
+    action = described_class.new(project_repository: repository)
+
+    action.perform(id: '123', description: '')
+
+    expect(repository.find('123').description).to eq('')
+  end
 end
