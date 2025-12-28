@@ -2,35 +2,33 @@
 
 # Presenter for shared/_edit_modal.html.erb when editing a Team
 class TeamEditModalPresenter
-  def initialize(entity:, record:, view_context:)
+  def initialize(entity:, view_context:)
     @entity = entity
-    @record = record
     @view_context = view_context
   end
 
   # Display values
   def name
-    @entity&.name || @record&.name || ''
+    @entity&.name || ''
   end
 
   def description
-    @entity&.description || @record&.description || ''
+    @entity&.description || ''
   end
 
   def point_of_contact
-    @entity&.point_of_contact || @record&.point_of_contact || ''
+    @entity&.point_of_contact || ''
   end
 
   def archived?
-    @entity&.archived? || @record&.archived || false
+    @entity&.archived? || false
   end
 
   # Form configuration
-  def form_model = @record
   def update_path
-    return nil unless @entity || @record
+    return nil unless @entity
 
-    @view_context.team_path(@entity&.id || @record&.id)
+    @view_context.team_path(@entity.id)
   end
 
   def form_method = :patch

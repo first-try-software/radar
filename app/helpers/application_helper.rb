@@ -5,7 +5,7 @@ module ApplicationHelper
 
   # Breadcrumb helpers
 
-  def project_breadcrumb(project, project_record)
+  def project_breadcrumb(project)
     crumbs = [{ name: 'Radar', path: root_path }]
 
     # Collect project ancestors
@@ -20,14 +20,13 @@ module ApplicationHelper
 
     # Add project hierarchy (parents) in root-first order
     project_ancestors.reverse.each do |ancestor|
-      ancestor_record = ProjectRecord.find_by(name: ancestor.name)
-      crumbs << { name: ancestor.name, path: project_path(ancestor_record) } if ancestor_record
+      crumbs << { name: ancestor.name, path: project_path(ancestor.id) }
     end
 
     render_breadcrumb(crumbs)
   end
 
-  def team_breadcrumb(team, team_record)
+  def team_breadcrumb(team)
     crumbs = [{ name: 'Radar', path: root_path }]
 
     # Add parent team hierarchy
@@ -39,7 +38,7 @@ module ApplicationHelper
     render_breadcrumb(crumbs)
   end
 
-  def initiative_breadcrumb(initiative, initiative_record)
+  def initiative_breadcrumb(initiative)
     crumbs = [{ name: 'Radar', path: root_path }]
     render_breadcrumb(crumbs)
   end
@@ -74,8 +73,7 @@ module ApplicationHelper
 
     # Reverse to get root-first order
     ancestors.reverse.each do |t|
-      team_record = TeamRecord.find_by(name: t.name)
-      crumbs << { name: t.name, path: team_path(team_record) } if team_record
+      crumbs << { name: t.name, path: team_path(t.id) }
     end
 
     crumbs

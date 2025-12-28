@@ -1,6 +1,5 @@
 <%
   project = local_assigns[:project]
-  project_record = local_assigns[:project_record]
   health_updates = local_assigns[:health_updates] || []
   allowed_states = local_assigns[:allowed_states] || SetProjectState::SETTABLE_STATES
 
@@ -31,9 +30,9 @@
   <!-- Create Update Form -->
   <div class="inline-create-section"
        data-controller="health-update-form"
-       data-health-update-form-state-url-value="<%= state_project_path(project_record) %>"
+       data-health-update-form-state-url-value="<%= state_project_path(project.id) %>"
        data-action="health-picker:selected->health-update-form#healthSelected health-picker:reset->health-update-form#healthReset">
-    <%= form_with url: health_updates_project_path(project_record),
+    <%= form_with url: health_updates_project_path(project.id),
                   method: :post,
                   local: false,
                   class: "update-form",

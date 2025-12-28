@@ -7,7 +7,6 @@ class ProjectsController < ApplicationController
       format.html do
         if result.success?
           @project = result.value
-          @project_record = ProjectRecord.find(params[:id])
           prepare_health_form(project: @project)
           prepare_trend_data(project: @project)
           prepare_global_search_data
@@ -52,7 +51,6 @@ class ProjectsController < ApplicationController
         if result.success?
           redirect_to(project_path(params[:id]), notice: 'Project updated')
         else
-          @project_record = ProjectRecord.find(params[:id])
           @project = result.value || project_actions.find_project.perform(id: params[:id]).value
           @errors = result.errors
           prepare_show_for_errors
@@ -71,10 +69,10 @@ class ProjectsController < ApplicationController
         if result.success?
           redirect_to(project_path(params[:id]), notice: 'State updated')
         else
-          @project_record = ProjectRecord.find_by(id: params[:id])
-          return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @project_record
+          find_result = project_actions.find_project.perform(id: params[:id])
+          return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless find_result.success?
 
-          @project = project_actions.find_project.perform(id: params[:id]).value
+          @project = find_result.value
           @errors = result.errors
           prepare_show_for_errors
           render :show, status: error_status(result.errors)
@@ -120,7 +118,6 @@ class ProjectsController < ApplicationController
       format.json { render_result(result, success_status: :created) }
       format.turbo_stream do
         if result.success?
-          @project_record = ProjectRecord.find_by(id: params[:id])
           @project = project_actions.find_project.perform(id: params[:id]).value
           @child_project = result.value
           render :create_subordinate
@@ -138,10 +135,10 @@ class ProjectsController < ApplicationController
           if result.errors.include?('project not found')
             render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
           else
-            @project_record = ProjectRecord.find_by(id: params[:id])
-            return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @project_record
+            find_result = project_actions.find_project.perform(id: params[:id])
+            return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless find_result.success?
 
-            @project = project_actions.find_project.perform(id: params[:id]).value
+            @project = find_result.value
             @errors = result.errors
             prepare_show_for_errors
             render :show, status: error_status(result.errors)
@@ -191,7 +188,6 @@ class ProjectsController < ApplicationController
             render file: Rails.public_path.join('404.html'), status: :not_found, layout: false
           else
             # Parent exists if we get here (only 'project already has a parent' error reaches this branch)
-            @project_record = ProjectRecord.find(params[:id])
             @project = project_actions.find_project.perform(id: params[:id]).value
             @errors = result.errors
             prepare_show_for_errors
@@ -215,7 +211,6 @@ class ProjectsController < ApplicationController
       format.turbo_stream do
         if result.success?
           @health_update = result.value
-          @project_record = ProjectRecord.find(params[:id])
           @project = project_actions.find_project.perform(id: params[:id]).value
           prepare_trend_data(project: @project)
           prepare_global_search_data
@@ -327,10 +322,10 @@ class ProjectsController < ApplicationController
       return
     end
 
-    @project_record = ProjectRecord.find_by(id: params[:id])
-    return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @project_record
+    find_result = project_actions.find_project.perform(id: params[:id])
+    return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless find_result.success?
 
-    @project = project_actions.find_project.perform(id: params[:id]).value
+    @project = find_result.value
     @errors = result.errors
     prepare_show_for_errors
     render :show, status: error_status(result.errors)
@@ -380,7 +375,6 @@ class ProjectsController < ApplicationController
     # Header presenter
     @header_presenter = ProjectHeaderPresenter.new(
       entity: project,
-      record: @project_record,
       view_context: view_context
     )
 
@@ -428,7 +422,6 @@ class ProjectsController < ApplicationController
     # Edit modal presenter
     @edit_modal_presenter = ProjectEditModalPresenter.new(
       entity: project,
-      record: @project_record,
       view_context: view_context
     )
 
@@ -440,18 +433,18 @@ class ProjectsController < ApplicationController
     @search_teams = []
     build_team_tree = ->(teams) do
       teams.sort_by(&:name).each do |t|
-        @search_teams << { entity: t, record: TeamRecord.find_by(name: t.name) }
+        @search_teams << { entity: t }
         build_team_tree.call(t.subordinate_teams) if t.subordinate_teams.any?
       end
     end
     build_team_tree.call(@teams)
 
     @search_initiatives = @initiatives.map do |i|
-      { entity: i, record: InitiativeRecord.find_by(name: i.name) }
+      { entity: i }
     end
 
     @search_projects = @all_projects.map do |p|
-      { entity: p, record: ProjectRecord.find_by(name: p.name) }
+      { entity: p }
     end
   end
 

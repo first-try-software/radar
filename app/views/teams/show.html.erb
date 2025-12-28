@@ -1,12 +1,11 @@
-<% content_for(:title) { "#{@team_record.name} - Radar" } %>
+<% content_for(:title) { "#{@team.name} - Radar" } %>
 <%
-  all_child_teams = @team_record.child_relationships.includes(:child).order(:order).map(&:child)
-  subordinate_teams = all_child_teams.reject(&:archived)
-  archived_child_teams = all_child_teams.select(&:archived)
-  team = @team || @team_record
+  all_subordinate_teams = @team.subordinate_teams
+  subordinate_teams = all_subordinate_teams.reject(&:archived?)
+  archived_child_teams = all_subordinate_teams.select(&:archived?)
 %>
 
-<div data-controller="edit-form" data-edit-form-url-value="<%= team_path(@team_record) %>" data-edit-form-model-type-value="team">
+<div data-controller="edit-form" data-edit-form-url-value="<%= team_path(@team.id) %>" data-edit-form-model-type-value="team">
 
 <%= render 'shared/header', presenter: @header_presenter %>
 
@@ -23,16 +22,15 @@
 <%= render 'shared/search' %>
 
 <%= render 'teams/subordinate_teams',
-    team: team,
-    team_record: @team_record,
+    team: @team,
     subordinate_teams: subordinate_teams,
     archived_child_teams: archived_child_teams %>
 
 <%= render 'shared/projects_section',
     frame_id: 'owned-projects-section',
-    projects: team.owned_projects,
+    projects: @team.owned_projects,
     show_form: true,
-    create_url: add_owned_project_team_path(@team_record) %>
+    create_url: add_owned_project_team_path(@team.id) %>
 
 <%= render 'shared/edit_modal', presenter: @edit_modal_presenter %>
 

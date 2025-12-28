@@ -4,9 +4,8 @@
 class ProjectHeaderPresenter
   ALLOWED_STATES = %i[new todo in_progress blocked on_hold done].freeze
 
-  def initialize(entity:, record:, view_context:)
+  def initialize(entity:, view_context:)
     @entity = entity
-    @record = record
     @view_context = view_context
   end
 
@@ -32,7 +31,7 @@ class ProjectHeaderPresenter
 
   # Navigation
   def breadcrumb
-    @view_context.project_breadcrumb(@entity, @record)
+    @view_context.project_breadcrumb(@entity)
   end
 
   # Edit form

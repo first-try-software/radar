@@ -7,7 +7,6 @@ class TeamsController < ApplicationController
       format.html do
         if result.success?
           @team = result.value
-          @team_record = TeamRecord.find(params[:id])
           populate_team_dashboard_data(@team)
           render :show
         else
@@ -41,8 +40,9 @@ class TeamsController < ApplicationController
         if result.success?
           redirect_to(team_path(params[:id]), notice: 'Team updated')
         else
-          @team_record = TeamRecord.find(params[:id])
-          @team = find_domain_team(@team_record.id)
+          @team = find_domain_team(params[:id])
+          return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @team
+
           populate_team_dashboard_data(@team)
           @errors = result.errors
           render :show, status: error_status(result.errors)
@@ -84,7 +84,6 @@ class TeamsController < ApplicationController
       format.turbo_stream do
         if result.success?
           @team = find_domain_team(params[:id])
-          @team_record = TeamRecord.find(params[:id])
           @project = result.value
           render :link_owned_project
         else
@@ -109,8 +108,9 @@ class TeamsController < ApplicationController
       respond_to do |format|
         format.json { render json: { errors: create_result.errors }, status: :unprocessable_content }
         format.html do
-          @team_record = TeamRecord.find(params[:id])
-          @team = find_domain_team(@team_record.id)
+          @team = find_domain_team(params[:id])
+          return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @team
+
           populate_team_dashboard_data(@team)
           @errors = create_result.errors
           render :show, status: :unprocessable_content
@@ -122,13 +122,10 @@ class TeamsController < ApplicationController
       return
     end
 
-    # Find the created project record
-    project_record = ProjectRecord.find_by(name: project_name)
-
     # Link it to the team
     link_result = team_actions.link_owned_project.perform(
       team_id: params[:id],
-      project_id: project_record.id
+      project_id: create_result.value.id
     )
 
     respond_to do |format|
@@ -137,8 +134,9 @@ class TeamsController < ApplicationController
         if link_result.success?
           redirect_to(team_path(params[:id]), notice: 'Project added and linked')
         else
-          @team_record = TeamRecord.find(params[:id])
-          @team = find_domain_team(@team_record.id)
+          @team = find_domain_team(params[:id])
+          return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @team
+
           populate_team_dashboard_data(@team)
           @errors = link_result.errors
           render :show, status: :unprocessable_content
@@ -147,7 +145,6 @@ class TeamsController < ApplicationController
       format.turbo_stream do
         if link_result.success?
           @team = find_domain_team(params[:id])
-          @team_record = TeamRecord.find(params[:id])
           render :add_owned_project
         else
           render turbo_stream: turbo_stream.append("toast-container", "<div class='toast toast--error toast--visible'>Failed to link project: #{link_result.errors.join(', ')}</div>".html_safe), status: :unprocessable_content
@@ -176,8 +173,9 @@ class TeamsController < ApplicationController
         if result.success?
           redirect_to(team_path(result.value.id), notice: 'Subordinate team created')
         else
-          @team_record = TeamRecord.find(params[:id])
-          @team = find_domain_team(@team_record.id)
+          @team = find_domain_team(params[:id])
+          return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @team
+
           populate_team_dashboard_data(@team)
           @errors = result.errors
           render :show, status: :unprocessable_content
@@ -186,7 +184,6 @@ class TeamsController < ApplicationController
       format.turbo_stream do
         if result.success?
           @team = find_domain_team(params[:id])
-          @team_record = TeamRecord.find(params[:id])
           render :add_subordinate_team
         else
           render turbo_stream: turbo_stream.append("toast-container", "<div class='toast toast--error toast--visible'>Failed to create team: #{result.errors.join(', ')}</div>".html_safe), status: :unprocessable_content
@@ -313,7 +310,6 @@ class TeamsController < ApplicationController
     # Header presenter
     @header_presenter = TeamHeaderPresenter.new(
       entity: team,
-      record: @team_record,
       view_context: view_context
     )
 
@@ -349,7 +345,6 @@ class TeamsController < ApplicationController
     # Edit modal presenter
     @edit_modal_presenter = TeamEditModalPresenter.new(
       entity: team,
-      record: @team_record,
       view_context: view_context
     )
 
@@ -361,18 +356,18 @@ class TeamsController < ApplicationController
     @search_teams = []
     build_team_tree = ->(teams) do
       teams.sort_by(&:name).each do |t|
-        @search_teams << { entity: t, record: TeamRecord.find_by(name: t.name) }
+        @search_teams << { entity: t }
         build_team_tree.call(t.subordinate_teams) if t.subordinate_teams.any?
       end
     end
     build_team_tree.call(@teams)
 
     @search_initiatives = @initiatives.map do |initiative|
-      { entity: initiative, record: InitiativeRecord.find_by(name: initiative.name) }
+      { entity: initiative }
     end
 
     @search_projects = @all_projects.map do |project|
-      { entity: project, record: ProjectRecord.find_by(name: project.name) }
+      { entity: project }
     end
   end
 
@@ -397,7 +392,6 @@ class TeamsController < ApplicationController
     # Build empty presenters to avoid nil errors
     @header_presenter = TeamHeaderPresenter.new(
       entity: nil,
-      record: @team_record,
       view_context: view_context
     )
     @health_presenter = HealthPresenter.new(
@@ -417,7 +411,6 @@ class TeamsController < ApplicationController
     )
     @edit_modal_presenter = TeamEditModalPresenter.new(
       entity: nil,
-      record: @team_record,
       view_context: view_context
     )
   end

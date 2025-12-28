@@ -1,20 +1,17 @@
-<%
-  project_record = ProjectRecord.find_by(id: params[:project_id])
-%>
 <%= turbo_stream.replace "related-projects-section" do %>
   <%= render "shared/projects_section",
       frame_id: "related-projects-section",
       projects: @initiative.related_projects,
       show_form: true,
-      create_url: add_related_project_initiative_path(@initiative_record) %>
+      create_url: add_related_project_initiative_path(@initiative.id) %>
 <% end %>
-<%= turbo_stream.replace "search-project-#{params[:project_id]}" do %>
+<%= turbo_stream.replace "search-project-#{@linked_project.id}" do %>
   <li class="section__item section__item--searchable section__item--with-action"
-      id="search-project-<%= project_record&.id %>"
+      id="search-project-<%= @linked_project.id %>"
       data-search-type="project"
       data-search-name="<%= @linked_project.name.downcase %>"
       data-search-poc="<%= @linked_project.point_of_contact.to_s.downcase %>">
-    <a href="<%= project_path(project_record) %>" class="section__link" data-turbo-frame="_top">
+    <a href="<%= project_path(@linked_project.id) %>" class="section__link" data-turbo-frame="_top">
       <span class="project-item-v2__health project-item-v2__health--<%= @linked_project.health || :not_available %>"></span>
       <span class="section__name"><%= @linked_project.name %></span>
     </a>

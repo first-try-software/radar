@@ -3,7 +3,7 @@
       frame_id: "child-projects-section",
       projects: @project.children,
       show_form: true,
-      create_url: subordinates_project_path(@project_record) %>
+      create_url: subordinates_project_path(@project.id) %>
 <% end %>
 
 <%= turbo_stream.append "toast-container" do %>

@@ -2,29 +2,28 @@
 
 # Presenter for shared/_header.html.erb when displaying a Team
 class TeamHeaderPresenter
-  def initialize(entity:, record:, view_context:)
+  def initialize(entity:, view_context:)
     @entity = entity
-    @record = record
     @view_context = view_context
   end
 
   # Display attributes
   def name
-    @entity&.name || @record&.name || 'Team'
+    @entity&.name || 'Team'
   end
 
   def description
-    @entity&.description || @record&.description
+    @entity&.description
   end
 
   def description_present? = description.present?
 
   def point_of_contact
-    @entity&.effective_contact.presence || @entity&.point_of_contact || @record&.point_of_contact
+    @entity&.effective_contact.presence || @entity&.point_of_contact
   end
 
   def contact_present? = point_of_contact.present?
-  def archived? = @entity&.archived? || @record&.archived || false
+  def archived? = @entity&.archived? || false
 
   # Teams don't have state
   def show_state_badge? = false
@@ -37,9 +36,9 @@ class TeamHeaderPresenter
 
   # Navigation
   def breadcrumb
-    return [] unless @entity && @record
+    return [] unless @entity
 
-    @view_context.team_breadcrumb(@entity, @record)
+    @view_context.team_breadcrumb(@entity)
   end
 
   # Edit form

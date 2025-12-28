@@ -3,7 +3,7 @@
       frame_id: "related-projects-section",
       projects: @initiative.related_projects,
       show_form: true,
-      create_url: add_related_project_initiative_path(@initiative_record) %>
+      create_url: add_related_project_initiative_path(@initiative.id) %>
 <% end %>
 <%= turbo_stream.append "toast-container" do %>
   <div class="toast toast--success toast--visible" data-controller="toast">Related project created!</div>

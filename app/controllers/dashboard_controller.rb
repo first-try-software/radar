@@ -233,7 +233,7 @@ class DashboardController < ApplicationController
     build_team_tree = ->(teams, ancestors = []) do
       teams.sort_by(&:name).each do |team|
         path = ancestors + [team.name]
-        @search_teams << { entity: team, record: TeamRecord.find_by(name: team.name) }
+        @search_teams << { entity: team }
         build_team_tree.call(team.subordinate_teams, path) if team.subordinate_teams.any?
       end
     end
@@ -241,12 +241,12 @@ class DashboardController < ApplicationController
 
     # Build flat list of all initiatives
     @search_initiatives = @initiatives.map do |initiative|
-      { entity: initiative, record: InitiativeRecord.find_by(name: initiative.name) }
+      { entity: initiative }
     end
 
     # Build flat list of all projects
     @search_projects = @all_projects.map do |project|
-      { entity: project, record: ProjectRecord.find_by(name: project.name) }
+      { entity: project }
     end
   end
 

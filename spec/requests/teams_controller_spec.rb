@@ -129,7 +129,7 @@ RSpec.describe TeamsController, type: :request do
 
       post "/teams/#{team.id}/owned_projects/add", params: { project: { name: '' } }
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to have_http_status(:not_found)
     end
 
     it 'returns error when project created but linking fails' do
@@ -197,7 +197,7 @@ RSpec.describe TeamsController, type: :request do
 
       post "/teams/#{parent.id}/subordinate_teams", params: { team: { name: '' } }
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to have_http_status(:not_found)
     end
   end
 

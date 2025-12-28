@@ -1,6 +1,6 @@
 <%# Shared global search partial
     Expects instance variables: @search_teams, @search_initiatives, @search_projects
-    Each should be an array of hashes with :entity, :record keys %>
+    Each should be an array of hashes with :entity key %>
 
 <div class="global-search" data-controller="search">
   <input type="text"
@@ -21,7 +21,7 @@
                   data-search-type="team"
                   data-search-name="<%= entry[:entity].name.downcase %>"
                   data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
-                <a href="<%= team_path(entry[:record]) %>" class="section__link">
+                <a href="<%= team_path(entry[:entity].id) %>" class="section__link">
                   <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
                   <span class="section__name"><%= entry[:entity].name %></span>
                 </a>
@@ -39,7 +39,7 @@
                   data-search-type="initiative"
                   data-search-name="<%= entry[:entity].name.downcase %>"
                   data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
-                <a href="<%= initiative_path(entry[:record]) %>" class="section__link">
+                <a href="<%= initiative_path(entry[:entity].id) %>" class="section__link">
                   <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
                   <span class="section__name"><%= entry[:entity].name %></span>
                 </a>
@@ -57,7 +57,7 @@
                   data-search-type="project"
                   data-search-name="<%= entry[:entity].name.downcase %>"
                   data-search-poc="<%= entry[:entity].point_of_contact.to_s.downcase %>">
-                <a href="<%= project_path(entry[:record]) %>" class="section__link">
+                <a href="<%= project_path(entry[:entity].id) %>" class="section__link">
                   <span class="project-item-v2__health project-item-v2__health--<%= entry[:entity].health || :not_available %>"></span>
                   <span class="section__name"><%= entry[:entity].name %></span>
                 </a>

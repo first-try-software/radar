@@ -10,8 +10,7 @@
     <div class="modal__header">
       <h3><%= presenter.modal_title %></h3>
     </div>
-    <%= form_with model: presenter.form_model,
-                  url: presenter.update_path,
+    <%= form_with url: presenter.update_path,
                   method: presenter.form_method,
                   local: false,
                   class: "edit-project-form",

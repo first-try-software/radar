@@ -1,6 +1,5 @@
 <turbo-frame id="subordinate-teams-section">
 <%
-  team_record = local_assigns[:team_record]
   team = local_assigns[:team]
   subordinate_teams = local_assigns[:subordinate_teams] || []
   archived_child_teams = local_assigns[:archived_child_teams] || []
@@ -9,9 +8,8 @@
 <%
   health_update_repo = Rails.application.config.x.health_update_repository
   all_subteams = subordinate_teams.map do |sub_team|
-    domain_team = Rails.application.config.x.team_repository.find(sub_team.id)
-    health = domain_team&.health || :not_available
-    leaf_projects = domain_team&.all_leaf_projects || []
+    health = sub_team.health || :not_available
+    leaf_projects = sub_team.all_leaf_projects || []
     project_count = leaf_projects.size
     stale_count = leaf_projects.count do |p|
       next false unless [:in_progress, :blocked].include?(p.current_state)
@@ -20,17 +18,16 @@
     end
 
     # Get trend direction
-    trend_service = TeamTrendService.new(team: domain_team, health_update_repository: health_update_repo, current_date: Date.current)
+    trend_service = TeamTrendService.new(team: sub_team, health_update_repository: health_update_repo, current_date: Date.current)
     trend_result = trend_service.call
     trend_direction = trend_result[:trend_direction]
 
-    { record: sub_team, domain: domain_team, health: health, trend: trend_direction, projects: project_count, stale: stale_count }
-  end.sort_by { |t| [t[:health] == :off_track ? 0 : (t[:health] == :at_risk ? 1 : 2), t[:record].name.downcase] }
+    { team: sub_team, health: health, trend: trend_direction, projects: project_count, stale: stale_count }
+  end.sort_by { |t| [t[:health] == :off_track ? 0 : (t[:health] == :at_risk ? 1 : 2), t[:team].name.downcase] }
 
   archived_subteams = archived_child_teams.map do |sub_team|
-    domain_team = Rails.application.config.x.team_repository.find(sub_team.id)
-    { record: sub_team, domain: domain_team, health: :not_available, trend: :stable, projects: 0, stale: 0 }
-  end.sort_by { |t| t[:record].name.downcase }
+    { team: sub_team, health: :not_available, trend: :stable, projects: 0, stale: 0 }
+  end.sort_by { |t| t[:team].name.downcase }
 %>
   <section class="section section--projects">
     <%
@@ -58,16 +55,16 @@
         <ul class="project-list-v2" style="margin-top: 8px;">
           <% archived_subteams.each do |team_data| %>
             <li class="project-item-v2">
-              <a href="<%= team_path(team_data[:record]) %>" class="project-item-v2__link" data-turbo-frame="_top">
+              <a href="<%= team_path(team_data[:team].id) %>" class="project-item-v2__link" data-turbo-frame="_top">
                 <div class="team-item__grid">
                   <span class="team-item__col team-item__col--health">
                     <span class="project-item-v2__health project-item-v2__health--not_available"></span>
                   </span>
-                  <span class="team-item__col team-item__col--name" style="font-style: italic;"><%= team_data[:record].name %></span>
+                  <span class="team-item__col team-item__col--name" style="font-style: italic;"><%= team_data[:team].name %></span>
                   <span class="team-item__col team-item__col--trend">—</span>
                   <span class="team-item__col team-item__col--projects">—</span>
                   <span class="team-item__col team-item__col--stale">—</span>
-                  <span class="team-item__col team-item__col--contact"><%= team_data[:record].point_of_contact.presence || '—' %></span>
+                  <span class="team-item__col team-item__col--contact"><%= team_data[:team].point_of_contact.presence || '—' %></span>
                 </div>
               </a>
             </li>
@@ -78,7 +75,7 @@
 
     <!-- Create Team Form -->
     <div class="inline-create-section" data-controller="create-button">
-      <%= form_with url: subordinate_teams_team_path(team_record), method: :post, local: false, class: "inline-create-form" do |f| %>
+      <%= form_with url: subordinate_teams_team_path(team.id), method: :post, local: false, class: "inline-create-form" do |f| %>
         <div class="inline-create-form__row">
           <input type="text" name="team[name]" class="inline-create-form__input" placeholder="Team Name (required)" required data-create-button-target="input" data-action="input->create-button#inputChanged">
           <input type="text" name="team[description]" class="inline-create-form__input" placeholder="Brief Description (recommended)" data-create-button-target="input" data-action="input->create-button#inputChanged">

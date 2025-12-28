@@ -2,9 +2,8 @@
 
 # Presenter for shared/_edit_modal.html.erb when editing a Project
 class ProjectEditModalPresenter
-  def initialize(entity:, record:, view_context:)
+  def initialize(entity:, view_context:)
     @entity = entity
-    @record = record
     @view_context = view_context
   end
 
@@ -15,7 +14,6 @@ class ProjectEditModalPresenter
   def archived? = @entity.archived?
 
   # Form configuration
-  def form_model = @record
   def update_path = @view_context.project_path(@entity.id)
   def form_method = :patch
 

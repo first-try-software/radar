@@ -1,7 +1,6 @@
-<% content_for(:title) { "#{@initiative_record.name} - Radar" } %>
-<% initiative = @initiative || @initiative_record %>
+<% content_for(:title) { "#{@initiative.name} - Radar" } %>
 
-<div data-controller="edit-form" data-edit-form-url-value="<%= initiative_path(@initiative_record) %>" data-edit-form-model-type-value="initiative">
+<div data-controller="edit-form" data-edit-form-url-value="<%= initiative_path(@initiative.id) %>" data-edit-form-model-type-value="initiative">
 
 <%= render 'shared/header', presenter: @header_presenter %>
 
@@ -19,9 +18,9 @@
 
 <%= render 'shared/projects_section',
     frame_id: 'related-projects-section',
-    projects: initiative.related_projects,
+    projects: @initiative.related_projects,
     show_form: true,
-    create_url: add_related_project_initiative_path(@initiative_record) %>
+    create_url: add_related_project_initiative_path(@initiative.id) %>
 
 <%= render 'shared/edit_modal', presenter: @edit_modal_presenter %>
 

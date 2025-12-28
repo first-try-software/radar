@@ -206,7 +206,7 @@ RSpec.describe InitiativesController, type: :request do
 
       post "/initiatives/#{initiative.id}/related_projects/add", params: { project: { name: 'Another Project' } }
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to have_http_status(:not_found)
     end
   end
 
