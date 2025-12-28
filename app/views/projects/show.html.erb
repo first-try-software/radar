@@ -22,7 +22,7 @@
 <%
   # Show child projects section if: has children OR has neither children nor health updates (empty project)
   # Don't show if has health updates and no children (leaf project with updates)
-  has_children = project.respond_to?(:children) && project.children.any?
+  has_children = project.children.any?
   health_updates = @health_updates || []
   has_health_updates = health_updates.any?
   show_child_projects = has_children || (!has_children && !has_health_updates)

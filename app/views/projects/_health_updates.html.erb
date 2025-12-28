@@ -4,7 +4,7 @@
   health_updates = local_assigns[:health_updates] || []
   allowed_states = local_assigns[:allowed_states] || SetProjectState::SETTABLE_STATES
 
-  has_children = project.respond_to?(:children) && project.children.any?
+  has_children = project.children.any?
   has_health_updates = health_updates.any?
 
   # Show health updates if: has health updates OR has neither (empty project)

@@ -12,8 +12,8 @@
 %>
 <%
   all_projects = projects || []
-  direct_projects = all_projects.reject { |p| p.respond_to?(:archived?) && p.archived? }
-  archived_projects = all_projects.select { |p| p.respond_to?(:archived?) && p.archived? }
+  direct_projects = all_projects.reject(&:archived?)
+  archived_projects = all_projects.select(&:archived?)
   sorted_projects = sort_projects_canonical(direct_projects)
   sorted_archived = sort_projects_canonical(archived_projects)
 
