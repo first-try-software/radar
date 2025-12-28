@@ -1,6 +1,6 @@
 # Overview
 
-Status is a simple web application for tracking project, team, or intiative.
+Radar is a simple web application for tracking projects, organized by team or intiative.
 
 The central concept of the application is a project. Teams and initiatives are concepts layered atop projects to provide reporting structures.
 
@@ -17,6 +17,7 @@ This project follows these rules:
   * Write only enough code to make the spec pass.
   * Specs are written in RSpec.
   * We spec the software incrementally.
+  * When debugging, first write a spec to reproduce the error, then fix the spec.
 
 * Use hexagonal architecture.
   * Domain logic lives in isolation at the center of the application.
@@ -24,6 +25,7 @@ This project follows these rules:
   * Use repositories to isolate domain logic from databases.
   * Domain logic may not take references to anything outside the domain.
   * Dependencies must be passed in to the domain layer.
+  * Do NOT call Rails methods from domain code.
 
 * Develop from the inside out.
   * Always specify and build the domain logic first.
