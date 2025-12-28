@@ -3844,8 +3844,20 @@ turbo-frame + turbo-frame .section {
 }
 
 .project-item__health--not-available {
+  background: transparent;
+  position: relative;
+}
+
+.project-item__health--not-available::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 3px;
   background: var(--text-muted);
-  border-radius: 50%;
+  border-radius: 2px;
 }
 
 .project-item__name {
