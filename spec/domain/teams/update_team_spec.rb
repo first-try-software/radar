@@ -146,6 +146,16 @@ RSpec.describe UpdateTeam do
     expect(repository.find('team-123').archived?).to be(true)
   end
 
+  it 'allows explicitly setting archived status' do
+    repository = FakeTeamRepository.new
+    repository.update(id: 'team-123', team: build_team(name: 'Platform', archived: false))
+    action = described_class.new(team_repository: repository)
+
+    action.perform(id: 'team-123', archived: true)
+
+    expect(repository.find('team-123').archived?).to be(true)
+  end
+
   it 'allows setting description to empty string' do
     repository = FakeTeamRepository.new
     repository.update(id: 'team-123', team: build_team(name: 'Platform', description: 'Old desc'))

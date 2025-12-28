@@ -58,6 +58,19 @@ RSpec.describe InitiativesController, type: :request do
       expect(response.body).to include('Find or create what you are looking for...')
     end
 
+    it 'includes nested subordinate teams in search data' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      parent = TeamRecord.create!(name: 'Platform Team')
+      child = TeamRecord.create!(name: 'Mobile Team')
+      TeamsTeamRecord.create!(parent: parent, child: child, order: 0)
+
+      get "/initiatives/#{initiative.id}"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Platform Team')
+      expect(response.body).to include('Mobile Team')
+    end
+
     it 'creates via HTML and redirects' do
       post '/initiatives', params: { initiative: { name: 'Launch 2025' } }
 
@@ -89,7 +102,16 @@ RSpec.describe InitiativesController, type: :request do
       patch "/initiatives/#{record.id}", params: { initiative: { name: '' } }
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include('name must be present')
+    end
+
+    it 'returns 404 on HTML update when initiative disappears mid-request' do
+      record = InitiativeRecord.create!(name: 'Launch 2025')
+      allow_any_instance_of(UpdateInitiative).to receive(:perform).and_return(Result.failure(errors: ['update failed']))
+      allow_any_instance_of(FindInitiative).to receive(:perform).and_return(Result.failure(errors: ['initiative not found']))
+
+      patch "/initiatives/#{record.id}", params: { initiative: { name: 'New Name' } }
+
+      expect(response).to have_http_status(:not_found)
     end
 
     it 'archives via HTML and redirects' do
@@ -205,6 +227,21 @@ RSpec.describe InitiativesController, type: :request do
       )
 
       post "/initiatives/#{initiative.id}/related_projects/add", params: { project: { name: 'Another Project' } }
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 when create_project fails and initiative disappears' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+
+      allow_any_instance_of(CreateProject).to receive(:perform).and_return(
+        Result.failure(errors: ['create failed'])
+      )
+      allow_any_instance_of(FindInitiative).to receive(:perform).and_return(
+        Result.failure(errors: ['not found'])
+      )
+
+      post "/initiatives/#{initiative.id}/related_projects/add", params: { project: { name: 'Test' } }
 
       expect(response).to have_http_status(:not_found)
     end

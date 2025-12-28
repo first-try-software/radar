@@ -16,6 +16,15 @@ RSpec.describe ProjectsController, type: :request do
       expect(response.body).to include('Alpha')
     end
 
+    it 'renders the show page for a leaf project without health updates' do
+      record = ProjectRecord.create!(name: 'EmptyProject')
+
+      get "/projects/#{record.id}"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('EmptyProject')
+    end
+
     it 'renders the show page for a parent project with children' do
       parent = ProjectRecord.create!(name: 'Parent Project')
       child = ProjectRecord.create!(name: 'Child Project')
@@ -27,6 +36,21 @@ RSpec.describe ProjectsController, type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Parent Project')
       expect(response.body).to include('Projects')
+    end
+
+    it 'includes nested teams and initiatives in search data' do
+      project = ProjectRecord.create!(name: 'Solo Project')
+      parent_team = TeamRecord.create!(name: 'Parent Team')
+      child_team = TeamRecord.create!(name: 'Child Team')
+      TeamsTeamRecord.create!(parent: parent_team, child: child_team, order: 0)
+      InitiativeRecord.create!(name: 'Test Initiative')
+
+      get "/projects/#{project.id}"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Parent Team')
+      expect(response.body).to include('Child Team')
+      expect(response.body).to include('Test Initiative')
     end
 
     it 'creates health update via HTML and redirects' do

@@ -269,8 +269,6 @@ class InitiativesController < ApplicationController
   end
 
   def populate_dashboard_data(initiative)
-    return set_empty_dashboard_data unless initiative
-
     health_update_repo = Rails.application.config.x.health_update_repository
 
     dashboard = InitiativeDashboard.new(
@@ -375,51 +373,6 @@ class InitiativesController < ApplicationController
     @search_projects = @all_projects.map do |project|
       { entity: project }
     end
-  end
-
-  def set_empty_dashboard_data
-    @health_summary = { on_track: 0, at_risk: 0, off_track: 0 }
-    @total_active_projects = 0
-    @attention_required = []
-    @on_hold_projects = []
-    @never_updated_projects = []
-    @stale_projects_14 = []
-    @stale_projects_7 = []
-    @teams = []
-    @initiatives = []
-    @all_projects = []
-    @trend_data = []
-    @trend_direction = :stable
-    @trend_delta = 0.0
-    @weeks_of_data = 0
-    @confidence_score = 0
-    @confidence_level = :low
-    @confidence_factors = { biggest_drag: :insufficient_data, details: {} }
-
-    # Build empty presenters to avoid nil errors
-    @header_presenter = InitiativeHeaderPresenter.new(
-      entity: nil,
-      view_context: view_context
-    )
-    @health_presenter = HealthPresenter.new(
-      health: :not_available,
-      methodology: :initiative_rollup
-    )
-    @trend_presenter = TrendPresenter.new(
-      trend_data: [],
-      trend_direction: :stable,
-      trend_delta: 0.0,
-      weeks_of_data: 0
-    )
-    @confidence_presenter = ConfidencePresenter.new(
-      score: 0,
-      level: :low,
-      factors: {}
-    )
-    @edit_modal_presenter = InitiativeEditModalPresenter.new(
-      entity: nil,
-      view_context: view_context
-    )
   end
 
   def team_repository

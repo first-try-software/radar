@@ -263,8 +263,6 @@ class TeamsController < ApplicationController
   end
 
   def populate_team_dashboard_data(team)
-    return set_empty_team_dashboard_data unless team
-
     health_update_repo = Rails.application.config.x.health_update_repository
 
     dashboard = TeamDashboard.new(
@@ -369,50 +367,6 @@ class TeamsController < ApplicationController
     @search_projects = @all_projects.map do |project|
       { entity: project }
     end
-  end
-
-  def set_empty_team_dashboard_data
-    @health_summary = { on_track: 0, at_risk: 0, off_track: 0 }
-    @total_active_projects = 0
-    @attention_required = []
-    @on_hold_projects = []
-    @never_updated_projects = []
-    @stale_projects_14 = []
-    @stale_projects_7 = []
-    @teams = []
-    @initiatives = []
-    @all_projects = []
-    @trend_data = []
-    @trend_direction = :stable
-    @trend_delta = 0.0
-    @weeks_of_data = 0
-    @confidence_score = 0
-    @confidence_level = :low
-
-    # Build empty presenters to avoid nil errors
-    @header_presenter = TeamHeaderPresenter.new(
-      entity: nil,
-      view_context: view_context
-    )
-    @health_presenter = HealthPresenter.new(
-      health: :not_available,
-      methodology: :team_rollup
-    )
-    @trend_presenter = TrendPresenter.new(
-      trend_data: [],
-      trend_direction: :stable,
-      trend_delta: 0.0,
-      weeks_of_data: 0
-    )
-    @confidence_presenter = ConfidencePresenter.new(
-      score: 0,
-      level: :low,
-      factors: {}
-    )
-    @edit_modal_presenter = TeamEditModalPresenter.new(
-      entity: nil,
-      view_context: view_context
-    )
   end
 
   def team_repository

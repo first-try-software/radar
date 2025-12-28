@@ -35,6 +35,31 @@ RSpec.describe TeamsController, type: :request do
       expect(response.body).to include('Feature A')
     end
 
+    it 'includes nested subordinate teams in search data' do
+      parent = TeamRecord.create!(name: 'Platform Team')
+      child = TeamRecord.create!(name: 'Mobile Team')
+      grandchild = TeamRecord.create!(name: 'iOS Team')
+      TeamsTeamRecord.create!(parent: parent, child: child, order: 0)
+      TeamsTeamRecord.create!(parent: child, child: grandchild, order: 0)
+
+      get "/teams/#{parent.id}"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Platform Team')
+      expect(response.body).to include('Mobile Team')
+      expect(response.body).to include('iOS Team')
+    end
+
+    it 'includes initiatives in search data' do
+      team = TeamRecord.create!(name: 'Platform Team')
+      InitiativeRecord.create!(name: 'Q1 Launch')
+
+      get "/teams/#{team.id}"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Q1 Launch')
+    end
+
     it 'creates via HTML and redirects' do
       post '/teams', params: { team: { name: 'Platform Team' } }
 
@@ -78,6 +103,16 @@ RSpec.describe TeamsController, type: :request do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('name must be present')
+    end
+
+    it 'returns 404 on HTML update when team disappears mid-request' do
+      record = TeamRecord.create!(name: 'Platform Team')
+      allow_any_instance_of(UpdateTeam).to receive(:perform).and_return(Result.failure(errors: ['update failed']))
+      allow_any_instance_of(FindTeam).to receive(:perform).and_return(Result.failure(errors: ['team not found']))
+
+      patch "/teams/#{record.id}", params: { team: { name: 'New Name' } }
+
+      expect(response).to have_http_status(:not_found)
     end
 
     it 'archives via HTML and redirects' do
@@ -142,6 +177,21 @@ RSpec.describe TeamsController, type: :request do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('teams with subordinate teams cannot own projects')
+    end
+
+    it 'returns 404 when linking fails and team disappears' do
+      team = TeamRecord.create!(name: 'Platform Team')
+
+      allow_any_instance_of(LinkOwnedProject).to receive(:perform).and_return(
+        Result.failure(errors: ['link failed'])
+      )
+      allow_any_instance_of(FindTeam).to receive(:perform).and_return(
+        Result.failure(errors: ['not found'])
+      )
+
+      post "/teams/#{team.id}/owned_projects/add", params: { project: { name: 'New Feature' } }
+
+      expect(response).to have_http_status(:not_found)
     end
 
     it 'creates a subordinate team via HTML and redirects to the new team' do

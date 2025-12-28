@@ -153,5 +153,25 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(result).to include('breadcrumb__link--home')
       expect(result).to include('ParentProject')
     end
+
+    it 'shows initials for middle crumbs in deep hierarchy' do
+      great_grandparent_record = TeamRecord.create!(name: 'Engineering Division')
+      grandparent_record = TeamRecord.create!(name: 'Platform Team')
+      parent_record = TeamRecord.create!(name: 'Mobile Team')
+
+      great_grandparent = double('Team', name: 'Engineering Division', parent_team: nil, id: great_grandparent_record.id.to_s)
+      grandparent = double('Team', name: 'Platform Team', parent_team: great_grandparent, id: grandparent_record.id.to_s)
+      parent = double('Team', name: 'Mobile Team', parent_team: grandparent, id: parent_record.id.to_s)
+      child = double('Team', name: 'iOS Team', parent_team: parent)
+
+      result = helper.team_breadcrumb(child)
+
+      expect(result).to include('breadcrumb__link--home')
+      expect(result).to include('ED…')
+      expect(result).to include('title="Engineering Division"')
+      expect(result).to include('PT…')
+      expect(result).to include('title="Platform Team"')
+      expect(result).to include('Mobile Team')
+    end
   end
 end

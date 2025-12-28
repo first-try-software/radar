@@ -398,7 +398,7 @@ class ProjectsController < ApplicationController
 
     @health_presenter = HealthPresenter.new(
       health: @project_health || project.health,
-      raw_score: @health_summary&.dig(:raw_score),
+      raw_score: @health_summary.dig(:raw_score),
       off_track_count: off_track_count,
       at_risk_count: at_risk_count,
       total_count: total_count,
@@ -473,8 +473,6 @@ class ProjectsController < ApplicationController
   end
 
   def selected_health_for(project)
-    return health_options.first unless project
-
     health_options.include?(project.health) ? project.health : health_options.first
   end
 end

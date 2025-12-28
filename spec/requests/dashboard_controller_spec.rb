@@ -202,5 +202,37 @@ RSpec.describe DashboardController, type: :request do
 
       expect(response.body).to include('—')
     end
+
+    it 'includes archived teams in dashboard' do
+      TeamRecord.create!(name: 'Active Team')
+      TeamRecord.create!(name: 'Archived Team', archived: true)
+
+      get '/'
+
+      expect(response.body).to include('Archived Team')
+    end
+
+    it 'includes archived initiatives in dashboard' do
+      InitiativeRecord.create!(name: 'Active Initiative')
+      InitiativeRecord.create!(name: 'Archived Initiative', archived: true)
+
+      get '/'
+
+      expect(response.body).to include('Archived Initiative')
+    end
+
+    it 'includes nested subordinate teams in search data' do
+      parent = TeamRecord.create!(name: 'Parent Team')
+      child = TeamRecord.create!(name: 'Child Team')
+      grandchild = TeamRecord.create!(name: 'Grandchild Team')
+      TeamsTeamRecord.create!(parent: parent, child: child, order: 0)
+      TeamsTeamRecord.create!(parent: child, child: grandchild, order: 0)
+
+      get '/'
+
+      expect(response.body).to include('Parent Team')
+      expect(response.body).to include('Child Team')
+      expect(response.body).to include('Grandchild Team')
+    end
   end
 end
