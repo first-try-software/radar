@@ -16,7 +16,7 @@ class ProjectHeaderPresenter
   def description_present? = description.present?
   def point_of_contact = @entity.point_of_contact
   def contact_present? = point_of_contact.present?
-  def archived? = @record.archived
+  def archived? = @entity.archived?
 
   # Projects have state
   def current_state = @entity.current_state
@@ -27,7 +27,7 @@ class ProjectHeaderPresenter
   def allowed_states = ALLOWED_STATES
 
   def state_path
-    @view_context.state_project_path(@record)
+    @view_context.state_project_path(@entity.id)
   end
 
   # Navigation

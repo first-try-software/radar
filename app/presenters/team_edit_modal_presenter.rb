@@ -22,15 +22,15 @@ class TeamEditModalPresenter
   end
 
   def archived?
-    @record&.archived || false
+    @entity&.archived? || @record&.archived || false
   end
 
   # Form configuration
   def form_model = @record
   def update_path
-    return nil unless @record
+    return nil unless @entity || @record
 
-    @view_context.team_path(@record)
+    @view_context.team_path(@entity&.id || @record&.id)
   end
 
   def form_method = :patch

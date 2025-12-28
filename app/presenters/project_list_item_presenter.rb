@@ -7,7 +7,6 @@ class ProjectListItemPresenter
     @project = project
     @view_context = view_context
     @health_override = health_override
-    @record = ProjectRecord.find_by(name: project.name)
   end
 
   # Health
@@ -42,7 +41,7 @@ class ProjectListItemPresenter
 
   # Navigation
   def path
-    @view_context.project_path(@record)
+    @view_context.project_path(@project.id)
   end
 
   # Trend

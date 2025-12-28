@@ -13,13 +13,14 @@ class InitiativeRepository
   end
 
   def save(initiative)
-    InitiativeRecord.create!(
+    record = InitiativeRecord.create!(
       name: initiative.name,
       description: initiative.description,
       point_of_contact: initiative.point_of_contact,
       archived: initiative.archived?,
       current_state: initiative.current_state.to_s
     )
+    build_entity(record)
   end
 
   def update(id:, initiative:)

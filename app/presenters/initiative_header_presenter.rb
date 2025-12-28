@@ -26,7 +26,7 @@ class InitiativeHeaderPresenter
   end
 
   def contact_present? = point_of_contact.present?
-  def archived? = @record&.archived || false
+  def archived? = @entity&.archived? || @record&.archived || false
 
   # Initiatives have state
   def current_state
@@ -40,9 +40,9 @@ class InitiativeHeaderPresenter
   def allowed_states = ALLOWED_STATES
 
   def state_path
-    return nil unless @record
+    return nil unless @entity
 
-    @view_context.state_initiative_path(@record)
+    @view_context.state_initiative_path(@entity.id)
   end
 
   # Navigation

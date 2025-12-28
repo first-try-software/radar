@@ -42,11 +42,11 @@ class CreateProject
   end
 
   def save
-    project_repository.save(project)
+    @saved_project = project_repository.save(project)
   end
 
   def success
-    Result.success(value: project)
+    Result.success(value: @saved_project)
   end
 
   def failure(errors)

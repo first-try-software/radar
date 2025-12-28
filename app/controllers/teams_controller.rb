@@ -24,8 +24,7 @@ class TeamsController < ApplicationController
       format.json { render_result(result, success_status: :created) }
       format.html do
         if result.success?
-          record = TeamRecord.find_by(name: result.value.name)
-          redirect_to(team_path(record), notice: 'Team created')
+          redirect_to(team_path(result.value.id), notice: 'Team created')
         else
           redirect_to(root_path, alert: result.errors.join(', '))
         end
@@ -175,8 +174,7 @@ class TeamsController < ApplicationController
       end
       format.html do
         if result.success?
-          record = TeamRecord.find_by(name: result.value.name)
-          redirect_to(team_path(record), notice: 'Subordinate team created')
+          redirect_to(team_path(result.value.id), notice: 'Subordinate team created')
         else
           @team_record = TeamRecord.find(params[:id])
           @team = find_domain_team(@team_record.id)

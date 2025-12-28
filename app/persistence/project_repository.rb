@@ -18,13 +18,14 @@ class ProjectRepository
   end
 
   def save(project)
-    ProjectRecord.create!(
+    record = ProjectRecord.create!(
       name: project.name,
       description: project.description,
       point_of_contact: project.point_of_contact,
       archived: project.archived?,
       current_state: project.current_state
     )
+    build_entity(record)
   end
 
   def update(id:, project:)

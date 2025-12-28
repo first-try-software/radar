@@ -37,7 +37,7 @@ class CreateSubordinateTeam
   end
 
   def save_team
-    team_repository.save(team)
+    @saved_team = team_repository.save(team)
   end
 
   def link_team
@@ -46,7 +46,7 @@ class CreateSubordinateTeam
   end
 
   def success
-    Result.success(value: team)
+    Result.success(value: @saved_team)
   end
 
   def parent_not_found_failure

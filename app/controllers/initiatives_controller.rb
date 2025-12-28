@@ -24,8 +24,7 @@ class InitiativesController < ApplicationController
       format.json { render_result(result, success_status: :created) }
       format.html do
         if result.success?
-          record = InitiativeRecord.find_by(name: result.value.name)
-          redirect_to(initiative_path(record), notice: 'Initiative created')
+          redirect_to(initiative_path(result.value.id), notice: 'Initiative created')
         else
           redirect_to(root_path, alert: result.errors.join(', '))
         end

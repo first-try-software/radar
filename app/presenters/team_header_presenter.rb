@@ -24,7 +24,7 @@ class TeamHeaderPresenter
   end
 
   def contact_present? = point_of_contact.present?
-  def archived? = @record&.archived || false
+  def archived? = @entity&.archived? || @record&.archived || false
 
   # Teams don't have state
   def show_state_badge? = false

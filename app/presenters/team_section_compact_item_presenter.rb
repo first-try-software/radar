@@ -3,9 +3,8 @@
 # Presenter for Team items in shared/_section_compact.html.erb
 # Columns: Health | Name | Trend | Projects | Stale
 class TeamSectionCompactItemPresenter
-  def initialize(entity:, record:, view_context:, trend_direction: :stable, projects_count: 0, stale_count: 0)
+  def initialize(entity:, view_context:, trend_direction: :stable, projects_count: 0, stale_count: 0)
     @entity = entity
-    @record = record
     @view_context = view_context
     @trend_direction = trend_direction
     @projects_count = projects_count
@@ -32,6 +31,6 @@ class TeamSectionCompactItemPresenter
   def stale_warning? = stale_count.positive?
 
   # Navigation
-  def path = @view_context.team_path(@record)
+  def path = @view_context.team_path(@entity.id)
   def turbo_frame = "_top"
 end

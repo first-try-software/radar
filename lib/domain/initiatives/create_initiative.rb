@@ -34,11 +34,11 @@ class CreateInitiative
   end
 
   def save
-    initiative_repository.save(initiative)
+    @saved_initiative = initiative_repository.save(initiative)
   end
 
   def success
-    Result.success(value: initiative)
+    Result.success(value: @saved_initiative)
   end
 
   def failure(errors)

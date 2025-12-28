@@ -3,9 +3,8 @@
 # Presenter for Initiative items in shared/_section.html.erb
 # Columns: Health | Name | State | Trend | Projects | Stale | Contact
 class InitiativeSectionItemPresenter
-  def initialize(entity:, record:, view_context:, trend_direction: :stable, projects_count: 0, stale_count: 0)
+  def initialize(entity:, view_context:, trend_direction: :stable, projects_count: 0, stale_count: 0)
     @entity = entity
-    @record = record
     @view_context = view_context
     @trend_direction = trend_direction
     @projects_count = projects_count
@@ -41,6 +40,6 @@ class InitiativeSectionItemPresenter
   def owner = @entity.point_of_contact.presence || "—"
 
   # Navigation
-  def path = @view_context.initiative_path(@record)
+  def path = @view_context.initiative_path(@entity.id)
   def turbo_frame = "_top"
 end

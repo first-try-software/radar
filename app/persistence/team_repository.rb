@@ -13,12 +13,13 @@ class TeamRepository
   end
 
   def save(team)
-    TeamRecord.create!(
+    record = TeamRecord.create!(
       name: team.name,
       description: team.description,
       point_of_contact: team.point_of_contact,
       archived: team.archived?
     )
+    build_entity(record)
   end
 
   def update(id:, team:)

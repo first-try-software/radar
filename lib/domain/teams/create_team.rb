@@ -29,11 +29,11 @@ class CreateTeam
   end
 
   def save
-    team_repository.save(team)
+    @saved_team = team_repository.save(team)
   end
 
   def success
-    Result.success(value: team)
+    Result.success(value: @saved_team)
   end
 
   def failure(errors)

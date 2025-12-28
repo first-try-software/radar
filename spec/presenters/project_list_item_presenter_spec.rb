@@ -104,8 +104,8 @@ RSpec.describe ProjectListItemPresenter, type: :helper do
 
   describe '#path' do
     it 'returns the project path' do
-      project = double('Project', name: 'Test', health: :on_track)
       record = ProjectRecord.create!(name: 'Test')
+      project = double('Project', name: 'Test', health: :on_track, id: record.id.to_s)
 
       presenter = ProjectListItemPresenter.new(project: project, view_context: view_context)
 

@@ -28,16 +28,14 @@ class ProjectsController < ApplicationController
     respond_to do |format|
       format.json do
         if result.success?
-          record = ProjectRecord.find_by(name: result.value.name)
-          render json: project_json(result.value).merge(url: project_path(record)), status: :created
+          render json: project_json(result.value).merge(url: project_path(result.value.id)), status: :created
         else
           render json: { errors: result.errors }, status: :unprocessable_content
         end
       end
       format.html do
         if result.success?
-          record = ProjectRecord.find_by(name: result.value.name)
-          redirect_to(project_path(record), notice: 'Project created')
+          redirect_to(project_path(result.value.id), notice: 'Project created')
         else
           redirect_to(root_path, alert: result.errors.join(', '))
         end

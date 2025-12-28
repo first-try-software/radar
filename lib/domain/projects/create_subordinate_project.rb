@@ -41,15 +41,15 @@ class CreateSubordinateProject
   end
 
   def save_subordinate
-    project_repository.save(subordinate_project)
+    @saved_subordinate = project_repository.save(subordinate_project)
   end
 
   def save_relationship
-    project_repository.link_subordinate(parent_id: parent_id, child: subordinate_project, order: next_order)
+    project_repository.link_subordinate(parent_id: parent_id, child: @saved_subordinate, order: next_order)
   end
 
   def success
-    Result.success(value: subordinate_project)
+    Result.success(value: @saved_subordinate)
   end
 
   def parent_not_found_failure

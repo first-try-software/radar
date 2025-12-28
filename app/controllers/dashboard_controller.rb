@@ -253,11 +253,9 @@ class DashboardController < ApplicationController
   def build_section_presenters
     # Teams section (compact)
     @team_presenters = @sorted_teams.map do |team|
-      team_record = TeamRecord.find_by(name: team.name)
       team_info = @team_data[team.name] || {}
       TeamSectionCompactItemPresenter.new(
         entity: team,
-        record: team_record,
         view_context: view_context,
         trend_direction: team_info[:trend_direction] || :stable,
         projects_count: team_info[:projects_count] || 0,
@@ -266,21 +264,17 @@ class DashboardController < ApplicationController
     end
 
     @archived_team_presenters = @archived_teams.map do |team|
-      team_record = TeamRecord.find_by(name: team.name)
       TeamSectionCompactItemPresenter.new(
         entity: team,
-        record: team_record,
         view_context: view_context
       )
     end
 
     # Initiatives section (compact)
     @initiative_presenters = @sorted_initiatives.map do |initiative|
-      initiative_record = InitiativeRecord.find_by(name: initiative.name)
       initiative_info = @initiative_data[initiative.name] || {}
       InitiativeSectionCompactItemPresenter.new(
         entity: initiative,
-        record: initiative_record,
         view_context: view_context,
         trend_direction: initiative_info[:trend_direction] || :stable,
         projects_count: initiative_info[:projects_count] || 0,
@@ -289,10 +283,8 @@ class DashboardController < ApplicationController
     end
 
     @archived_initiative_presenters = @archived_initiatives.map do |initiative|
-      initiative_record = InitiativeRecord.find_by(name: initiative.name)
       InitiativeSectionCompactItemPresenter.new(
         entity: initiative,
-        record: initiative_record,
         view_context: view_context
       )
     end

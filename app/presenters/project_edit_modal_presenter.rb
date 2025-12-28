@@ -12,11 +12,11 @@ class ProjectEditModalPresenter
   def name = @entity.name
   def description = @entity.description
   def point_of_contact = @entity.point_of_contact
-  def archived? = @record.archived
+  def archived? = @entity.archived?
 
   # Form configuration
   def form_model = @record
-  def update_path = @view_context.project_path(@record)
+  def update_path = @view_context.project_path(@entity.id)
   def form_method = :patch
 
   # Field naming
