@@ -244,7 +244,11 @@ class TeamsController < ApplicationController
   end
 
   def update_params
-    params.fetch(:team, {}).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
+    permitted = params.fetch(:team, {}).permit(:name, :description, :point_of_contact, :archived).to_h.symbolize_keys
+    if permitted.key?(:archived)
+      permitted[:archived] = permitted[:archived] == '1' || permitted[:archived] == true || permitted[:archived] == 'true'
+    end
+    permitted
   end
 
   def populate_team_dashboard_data(team)

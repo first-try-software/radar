@@ -82,17 +82,26 @@ export default class extends Controller {
     const taglineEl = document.querySelector("[data-project-tagline]")
     const contactEl = document.querySelector("[data-project-contact]")
     const pocEl = document.querySelector("[data-project-poc]")
-    const actionsEl = document.querySelector(".project-hero__actions")
-    let archivedBadge = document.querySelector("[data-archived-badge]")
+    const heroActionsEl = document.querySelector(".project-hero__actions")
+    const stickyActionsEl = document.querySelector(".sticky-header__actions")
+    let heroBadge = document.querySelector("[data-archived-badge]")
+    let stickyBadge = document.querySelector("[data-archived-badge-sticky]")
 
     // Detect model type from form data
-    const modelType = formData.has("initiative[name]") ? "initiative" : "project"
+    let modelType = "project"
+    if (formData.has("initiative[name]")) {
+      modelType = "initiative"
+    } else if (formData.has("team[name]")) {
+      modelType = "team"
+    }
     const prefix = `${modelType}[`
 
     const name = formData.get(`${prefix}name]`)
     const description = formData.get(`${prefix}description]`)
     const poc = formData.get(`${prefix}point_of_contact]`)
-    const archived = formData.get(`${prefix}archived]`) === "1"
+    // Use getAll and check last value since hidden input comes before checkbox
+    const archivedValues = formData.getAll(`${prefix}archived]`)
+    const archived = archivedValues[archivedValues.length - 1] === "1"
 
     if (titleEl) titleEl.textContent = name
     if (taglineEl) {
@@ -104,14 +113,26 @@ export default class extends Controller {
       contactEl.hidden = !poc
     }
 
-    if (archived && !archivedBadge) {
-      archivedBadge = document.createElement("span")
-      archivedBadge.className = "badge badge--archived"
-      archivedBadge.setAttribute("data-archived-badge", "")
-      archivedBadge.textContent = "ARCHIVED"
-      actionsEl.insertBefore(archivedBadge, actionsEl.firstChild)
-    } else if (!archived && archivedBadge) {
-      archivedBadge.remove()
+    // Update hero badge
+    if (archived && !heroBadge && heroActionsEl) {
+      heroBadge = document.createElement("span")
+      heroBadge.className = "badge badge--archived"
+      heroBadge.setAttribute("data-archived-badge", "")
+      heroBadge.textContent = "ARCHIVED"
+      heroActionsEl.insertBefore(heroBadge, heroActionsEl.firstChild)
+    } else if (!archived && heroBadge) {
+      heroBadge.remove()
+    }
+
+    // Update sticky header badge
+    if (archived && !stickyBadge && stickyActionsEl) {
+      stickyBadge = document.createElement("span")
+      stickyBadge.className = "badge badge--archived"
+      stickyBadge.setAttribute("data-archived-badge-sticky", "")
+      stickyBadge.textContent = "ARCHIVED"
+      stickyActionsEl.insertBefore(stickyBadge, stickyActionsEl.firstChild)
+    } else if (!archived && stickyBadge) {
+      stickyBadge.remove()
     }
   }
 }

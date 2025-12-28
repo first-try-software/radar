@@ -114,6 +114,15 @@ RSpec.describe InitiativesController, type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
+    it 'updates initiative archived status via HTML' do
+      record = InitiativeRecord.create!(name: 'Launch 2025')
+
+      patch "/initiatives/#{record.id}", params: { initiative: { archived: '1' } }
+
+      expect(response).to have_http_status(:found)
+      expect(record.reload.archived).to be(true)
+    end
+
     it 'archives via HTML and redirects' do
       record = InitiativeRecord.create!(name: 'Launch 2025')
 

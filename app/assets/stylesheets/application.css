@@ -1903,9 +1903,14 @@ input::placeholder {
   margin-top: 16px;
 }
 
-/* Spacing between turbo-frames containing sections */
-turbo-frame + turbo-frame .section {
-  margin-top: 24px;
+/* Spacing between turbo-frames containing sections - only outside flex containers */
+.sections turbo-frame + turbo-frame .section {
+  margin-top: 16px;
+}
+
+/* Remove margin when inside flex container that uses gap */
+.initiative-dashboard > turbo-frame .section {
+  margin-top: 0;
 }
 
 .section--search-results {
@@ -3339,8 +3344,10 @@ turbo-frame + turbo-frame .section {
 
 .metric-widget__label {
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 400;
   margin-bottom: 2px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
 }
 
 .metric-widget__sublabel {
@@ -4189,7 +4196,12 @@ input.inline-create-form__input--date {
 
 /* Updates Section */
 .section--updates {
-  margin-top: 32px;
+  margin-top: 16px;
+}
+
+/* Remove margin when inside flex container that uses gap */
+.initiative-dashboard .section--updates {
+  margin-top: 0;
 }
 
 .updates-list {

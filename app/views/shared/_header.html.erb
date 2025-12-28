@@ -17,7 +17,7 @@
     <div class="sticky-header__right">
       <div class="sticky-header__actions">
         <% if presenter.archived? %>
-          <span class="badge badge--archived">ARCHIVED</span>
+          <span class="badge badge--archived" data-archived-badge-sticky>ARCHIVED</span>
         <% end %>
         <% if presenter.show_state_dropdown? %>
           <div class="state-pill-dropdown state-pill-dropdown--sticky"

@@ -115,6 +115,15 @@ RSpec.describe TeamsController, type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
+    it 'updates team archived status via HTML' do
+      record = TeamRecord.create!(name: 'Platform Team')
+
+      patch "/teams/#{record.id}", params: { team: { archived: '1' } }
+
+      expect(response).to have_http_status(:found)
+      expect(record.reload.archived).to be(true)
+    end
+
     it 'archives via HTML and redirects' do
       record = TeamRecord.create!(name: 'Platform Team')
 

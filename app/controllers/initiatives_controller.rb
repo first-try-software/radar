@@ -250,7 +250,11 @@ class InitiativesController < ApplicationController
   end
 
   def update_params
-    params.fetch(:initiative, {}).permit(:name, :description, :point_of_contact).to_h.symbolize_keys
+    permitted = params.fetch(:initiative, {}).permit(:name, :description, :point_of_contact, :archived).to_h.symbolize_keys
+    if permitted.key?(:archived)
+      permitted[:archived] = permitted[:archived] == '1' || permitted[:archived] == true || permitted[:archived] == 'true'
+    end
+    permitted
   end
 
   def populate_dashboard_data(initiative)
