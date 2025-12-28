@@ -17,15 +17,18 @@
     <%= render 'shared/section_compact',
                title: 'Teams',
                items: @team_presenters,
-               archived_items: @archived_team_presenters %>
+               archived_items: @archived_team_presenters,
+               tooltip: 'Top-level teams in your organization. Health is averaged from immediate children (owned projects as a group + each subordinate team).' %>
     <%= render 'shared/section_compact',
                title: 'Initiatives',
                items: @initiative_presenters,
-               archived_items: @archived_initiative_presenters %>
+               archived_items: @archived_initiative_presenters,
+               tooltip: 'Cross-cutting initiatives spanning multiple projects. Health is averaged from related projects in working states.' %>
   </div>
 
   <%= render 'shared/projects_section',
              title: 'Projects',
              projects: @all_projects,
-             show_form: false %>
+             show_form: false,
+             tooltip: 'All top-level projects across teams and initiatives. Each project\'s health is based on its immediate children.' %>
 </div>

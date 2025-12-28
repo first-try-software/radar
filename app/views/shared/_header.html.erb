@@ -19,10 +19,24 @@
         <% if presenter.archived? %>
           <span class="badge badge--archived">ARCHIVED</span>
         <% end %>
-        <% if presenter.show_state_badge? %>
-          <div class="sticky-header__badge">
-            <span class="badge state state--<%= presenter.state_css_class %>" data-state-badge><%= presenter.state_label.upcase %></span>
+        <% if presenter.show_state_dropdown? %>
+          <div class="state-pill-dropdown state-pill-dropdown--sticky"
+               data-controller="state-dropdown"
+               data-state-dropdown-url-value="<%= presenter.state_path %>">
+            <button class="state-pill-toggle" type="button" data-action="state-dropdown#toggle">
+              <span class="state-pill state-pill--<%= presenter.state_css_class %>" data-state-badge><%= presenter.state_label %></span>
+              <span class="state-pill-arrow">▾</span>
+            </button>
+            <div class="state-pill-menu state-pill-menu--down" data-state-dropdown-target="menu">
+              <% presenter.allowed_states.each do |state| %>
+                <button type="button" class="state-pill-option" data-state="<%= state %>" data-action="state-dropdown#select">
+                  <span class="state-pill state-pill--<%= state.to_s.tr('_', '-') %>"><%= state.to_s.tr('_', ' ').titleize %></span>
+                </button>
+              <% end %>
+            </div>
           </div>
+        <% elsif presenter.show_state_badge? %>
+          <span class="state-pill state-pill--<%= presenter.state_css_class %>"><%= presenter.state_label %></span>
         <% end %>
         <button type="button" class="sticky-header__edit-btn" data-action="<%= presenter.edit_action %>" aria-label="Edit <%= presenter.entity_type_label.downcase %>">✎</button>
       </div>

@@ -10,17 +10,18 @@
     <%= render 'shared/trend_widget', presenter: @trend_presenter %>
     <%= render 'shared/confidence_widget', presenter: @confidence_presenter %>
   </div>
+
+  <%= render 'shared/search' %>
+
+  <%= render 'shared/projects_section',
+      frame_id: 'related-projects-section',
+      projects: @initiative.related_projects,
+      show_form: true,
+      create_url: add_related_project_initiative_path(@initiative.id),
+      tooltip: 'Projects related to this initiative. Each project contributes equally to initiative health. Only top-level projects can be added.' %>
 </div>
 
 <%= render 'shared/toast_container' %>
-
-<%= render 'shared/search' %>
-
-<%= render 'shared/projects_section',
-    frame_id: 'related-projects-section',
-    projects: @initiative.related_projects,
-    show_form: true,
-    create_url: add_related_project_initiative_path(@initiative.id) %>
 
 <%= render 'shared/edit_modal', presenter: @edit_modal_presenter %>
 

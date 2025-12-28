@@ -9,7 +9,8 @@
       frame_id: "owned-projects-section",
       projects: @team.owned_projects,
       show_form: true,
-      create_url: add_owned_project_team_path(@team.id) %>
+      create_url: add_owned_project_team_path(@team.id),
+      tooltip: 'Projects owned by this team. Each project contributes equally to team health. Only top-level projects can be added.' %>
 <% end %>
 <%= turbo_stream.append "toast-container" do %>
   <div class="toast toast--success toast--visible" data-controller="toast">Owned project created!</div>

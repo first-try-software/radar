@@ -47,6 +47,8 @@ export default class extends Controller {
       const capitalizedQuery = query.charAt(0).toUpperCase() + query.slice(1)
       if (this.hasCreateNameTarget) {
         this.createNameTarget.value = capitalizedQuery
+        // Trigger input event so create-button controller updates
+        this.createNameTarget.dispatchEvent(new Event("input", { bubbles: true }))
       }
     }
 

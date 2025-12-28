@@ -12,6 +12,7 @@ export default class extends Controller {
   connect() {
     this.closeStateDropdown = this.closeStateDropdown.bind(this)
     document.addEventListener("click", this.closeStateDropdown)
+    this.updateButtonState()
   }
 
   disconnect() {
@@ -24,12 +25,26 @@ export default class extends Controller {
     if (this.hasHealthInputTarget) {
       this.healthInputTarget.value = value
     }
+    this.updateButtonState()
   }
 
   // Called when health picker dispatches "reset" event
   healthReset() {
     if (this.hasHealthInputTarget) {
       this.healthInputTarget.value = ""
+    }
+    this.updateButtonState()
+  }
+
+  // Update submit button active state based on health selection
+  updateButtonState() {
+    if (!this.hasSubmitTarget || !this.hasHealthInputTarget) return
+    
+    const hasHealth = this.healthInputTarget.value.trim() !== ""
+    if (hasHealth) {
+      this.submitTarget.classList.add("active")
+    } else {
+      this.submitTarget.classList.remove("active")
     }
   }
 
@@ -128,7 +143,7 @@ export default class extends Controller {
       console.error(error)
       this.showToast("An error occurred. Please try again.", "error")
     } finally {
-      this.submitTarget.textContent = "Add"
+      this.submitTarget.textContent = "Update"
       this.submitTarget.disabled = false
     }
   }

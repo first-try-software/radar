@@ -3,7 +3,8 @@
       frame_id: "related-projects-section",
       projects: @initiative.related_projects,
       show_form: true,
-      create_url: add_related_project_initiative_path(@initiative.id) %>
+      create_url: add_related_project_initiative_path(@initiative.id),
+      tooltip: 'Projects related to this initiative. Each project contributes equally to initiative health. Only top-level projects can be added.' %>
 <% end %>
 <%= turbo_stream.replace "search-project-#{@linked_project.id}" do %>
   <li class="section__item section__item--searchable section__item--with-action"

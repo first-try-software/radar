@@ -30,6 +30,12 @@
   end.sort_by { |t| t[:team].name.downcase }
 %>
   <section class="section section--projects">
+    <div class="info-tooltip info-tooltip--corner">
+      <span class="info-tooltip__icon">i</span>
+      <div class="info-tooltip__tooltip">
+        <div class="info-tooltip__methodology">Sub-teams within this team's hierarchy. Each sub-team contributes equally to parent team health.</div>
+      </div>
+    </div>
     <%
       has_items = all_subteams.any? || archived_subteams.any?
     %>

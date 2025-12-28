@@ -10,9 +10,18 @@
   title = local_assigns[:title] || "Items"
   items = local_assigns[:items] || []
   archived_items = local_assigns[:archived_items] || []
+  tooltip = local_assigns[:tooltip]
 %>
 
 <div class="section section--compact">
+  <% if tooltip %>
+    <div class="info-tooltip info-tooltip--corner">
+      <span class="info-tooltip__icon">i</span>
+      <div class="info-tooltip__tooltip">
+        <div class="info-tooltip__methodology"><%= tooltip %></div>
+      </div>
+    </div>
+  <% end %>
   <% if items.any? %>
     <ul class="project-list">
       <!-- Header Row -->

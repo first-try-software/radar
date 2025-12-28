@@ -3,20 +3,20 @@
 <% presenter = local_assigns[:presenter] %>
 
 <div id="health-widget" class="metric-widget metric-widget--health metric-widget--<%= presenter.health_css_class %>">
+  <div class="info-tooltip info-tooltip--corner">
+    <span class="info-tooltip__icon">i</span>
+    <div class="info-tooltip__tooltip">
+      <div class="info-tooltip__methodology"><%= presenter.methodology %></div>
+      <div class="info-tooltip__range">
+        <div>On Track = +1</div>
+        <div>At Risk = 0</div>
+        <div>Off Track = −1</div>
+      </div>
+      <div class="info-tooltip__score">Score: <%= presenter.raw_score_display %></div>
+    </div>
+  </div>
   <div class="metric-widget__title-row">
     <span class="metric-widget__title">Current Health</span>
-    <div class="info-tooltip">
-      <span class="info-tooltip__icon">i</span>
-      <div class="info-tooltip__tooltip">
-        <div class="info-tooltip__methodology"><%= presenter.methodology %></div>
-        <div class="info-tooltip__range">
-          <div>On Track = +1</div>
-          <div>At Risk = 0</div>
-          <div>Off Track = −1</div>
-        </div>
-        <div class="info-tooltip__score">Score: <%= presenter.raw_score_display %></div>
-      </div>
-    </div>
   </div>
   <div class="metric-widget__content">
     <span class="metric-widget__dot metric-widget__dot--<%= presenter.health_css_class %>"></span>

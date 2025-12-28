@@ -3,18 +3,16 @@
 <% presenter = local_assigns[:presenter] %>
 
 <div id="trend-widget" class="metric-widget metric-widget--trend metric-widget--<%= presenter.trend_css_class %>">
+  <div class="info-tooltip info-tooltip--corner">
+    <span class="info-tooltip__icon">i</span>
+    <div class="info-tooltip__tooltip">
+      <div class="info-tooltip__methodology">Weekly average health scores over the past 6 weeks.</div>
+      <div class="info-tooltip__range">Range: −1.0 to +1.0 per week</div>
+      <div class="info-tooltip__score">Delta: <%= presenter.delta_summary %></div>
+    </div>
+  </div>
   <div class="metric-widget__header">
     <span class="metric-widget__title">6-Week Trend</span>
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <div class="info-tooltip">
-        <span class="info-tooltip__icon">i</span>
-        <div class="info-tooltip__tooltip">
-          <div class="info-tooltip__methodology">Weekly average health scores over the past 6 weeks.</div>
-          <div class="info-tooltip__range">Range: −1.0 to +1.0 per week</div>
-          <div class="info-tooltip__score">Delta: <%= presenter.delta_summary %></div>
-        </div>
-      </div>
-    </div>
   </div>
   <div class="metric-widget__chart">
     <% if presenter.sufficient_data? %>

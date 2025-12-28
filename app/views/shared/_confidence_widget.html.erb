@@ -3,21 +3,21 @@
 <% presenter = local_assigns[:presenter] %>
 
 <div id="confidence-widget" class="metric-widget metric-widget--confidence metric-widget--confidence-<%= presenter.level_css_class %>">
+  <div class="info-tooltip info-tooltip--corner">
+    <span class="info-tooltip__icon">i</span>
+    <div class="info-tooltip__tooltip">
+      <div class="info-tooltip__methodology">Based on trend consistency and data freshness.</div>
+      <div class="info-tooltip__range">
+        <div>Range: 0–100</div>
+        <div>High ≥70</div>
+        <div>Medium ≥40</div>
+        <div>Low &lt;40</div>
+      </div>
+      <div class="info-tooltip__score">Score: <%= presenter.score %></div>
+    </div>
+  </div>
   <div class="metric-widget__title-row">
     <span class="metric-widget__title">Confidence</span>
-    <div class="info-tooltip">
-      <span class="info-tooltip__icon">i</span>
-      <div class="info-tooltip__tooltip">
-        <div class="info-tooltip__methodology">Based on trend consistency and data freshness.</div>
-        <div class="info-tooltip__range">
-          <div>Range: 0–100</div>
-          <div>High ≥70</div>
-          <div>Medium ≥40</div>
-          <div>Low &lt;40</div>
-        </div>
-        <div class="info-tooltip__score">Score: <%= presenter.score %></div>
-      </div>
-    </div>
   </div>
   <div class="metric-widget__content">
     <div class="confidence-ring">

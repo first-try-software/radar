@@ -4,40 +4,41 @@
 
 <%= render 'shared/header', presenter: @header_presenter %>
 
-<% if @health_summary %>
 <div class="initiative-dashboard">
+  <% if @health_summary %>
   <div class="metrics-row">
     <%= render 'shared/health_widget', presenter: @health_presenter %>
     <%= render 'shared/trend_widget', presenter: @trend_presenter %>
     <%= render 'shared/confidence_widget', presenter: @confidence_presenter %>
   </div>
+  <% end %>
+
+  <%= render 'shared/search' %>
+
+  <%
+    # Show child projects section if: has children OR has neither children nor health updates (empty project)
+    # Don't show if has health updates and no children (leaf project with updates)
+    has_children = @project.children.any?
+    health_updates = @health_updates || []
+    has_health_updates = health_updates.any?
+    show_child_projects = has_children || (!has_children && !has_health_updates)
+  %>
+  <% if show_child_projects %>
+    <%= render 'shared/projects_section',
+        frame_id: 'child-projects-section',
+        projects: @project.children,
+        show_form: true,
+        create_url: subordinates_project_path(@project.id),
+        tooltip: 'Child projects under this parent. Each child contributes equally to parent health. Adding children converts this to a parent project.' %>
+  <% end %>
+
+  <%= render 'projects/health_updates',
+      project: @project,
+      health_updates: @health_updates,
+      allowed_states: SetProjectState::SETTABLE_STATES %>
 </div>
-<% end %>
 
 <%= render 'shared/toast_container' %>
-
-<%= render 'shared/search' %>
-
-<%
-  # Show child projects section if: has children OR has neither children nor health updates (empty project)
-  # Don't show if has health updates and no children (leaf project with updates)
-  has_children = @project.children.any?
-  health_updates = @health_updates || []
-  has_health_updates = health_updates.any?
-  show_child_projects = has_children || (!has_children && !has_health_updates)
-%>
-<% if show_child_projects %>
-  <%= render 'shared/projects_section',
-      frame_id: 'child-projects-section',
-      projects: @project.children,
-      show_form: true,
-      create_url: subordinates_project_path(@project.id) %>
-<% end %>
-
-<%= render 'projects/health_updates',
-    project: @project,
-    health_updates: @health_updates,
-    allowed_states: SetProjectState::SETTABLE_STATES %>
 
 <%= render 'shared/edit_modal', presenter: @edit_modal_presenter %>
 

@@ -23,9 +23,18 @@
   title = local_assigns.fetch(:title, 'Projects')
   show_form = local_assigns.fetch(:show_form, true)
   create_url = local_assigns[:create_url]
+  tooltip = local_assigns[:tooltip]
 %>
 <% if frame_id %><turbo-frame id="<%= frame_id %>"><% end %>
   <section class="section section--projects">
+    <% if tooltip %>
+      <div class="info-tooltip info-tooltip--corner">
+        <span class="info-tooltip__icon">i</span>
+        <div class="info-tooltip__tooltip">
+          <div class="info-tooltip__methodology"><%= tooltip %></div>
+        </div>
+      </div>
+    <% end %>
     <ul class="project-list">
       <li class="project-item project-item--header">
         <div class="project-item__grid project-item__grid--header project-item__grid--parent">

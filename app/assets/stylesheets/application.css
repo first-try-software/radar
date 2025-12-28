@@ -1884,7 +1884,6 @@ input::placeholder {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  margin: 20px 0;
   align-items: start;
 }
 
@@ -1893,6 +1892,7 @@ input::placeholder {
 }
 
 .section {
+  position: relative;
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: 12px;
@@ -1900,7 +1900,7 @@ input::placeholder {
 }
 
 .section + .section {
-  margin-top: 24px;
+  margin-top: 16px;
 }
 
 /* Spacing between turbo-frames containing sections */
@@ -2138,11 +2138,8 @@ turbo-frame + turbo-frame .section {
   margin: 0;
 }
 
-/* Global Search */
-.global-search {
-  margin-bottom: 24px;
-}
 
+/* Global Search - no margin, parent gap handles spacing */
 .global-search__results-container {
   max-height: 0;
   overflow: hidden;
@@ -3267,10 +3264,10 @@ turbo-frame + turbo-frame .section {
 .metrics-row {
   display: flex;
   gap: 16px;
-  margin-bottom: 20px;
 }
 
 .metric-widget {
+  position: relative;
   flex: 1;
   background: var(--card);
   border: 1px solid var(--card-border);
@@ -3615,6 +3612,29 @@ turbo-frame + turbo-frame .section {
 .info-tooltip__tooltip--left::before {
   right: auto;
   left: 8px;
+}
+
+.info-tooltip--inline {
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.info-tooltip--inline .info-tooltip__tooltip {
+  left: 0;
+  right: auto;
+  white-space: normal;
+}
+
+.info-tooltip--inline .info-tooltip__tooltip::before {
+  right: auto;
+  left: 8px;
+}
+
+.info-tooltip--corner {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
 }
 
 .info-tooltip__methodology {
