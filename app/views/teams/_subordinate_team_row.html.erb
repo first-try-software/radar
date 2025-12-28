@@ -5,7 +5,7 @@
   <a href="<%= team_path(team_data[:team].id) %>" class="project-item-v2__link" data-turbo-frame="_top">
     <div class="team-item__grid">
       <span class="team-item__col team-item__col--health">
-        <span class="project-item-v2__health project-item-v2__health--<%= team_data[:health] %>"></span>
+        <span class="project-item-v2__health project-item-v2__health--<%= team_data[:health].to_s.tr('_', '-') %>"></span>
       </span>
       <span class="team-item__col team-item__col--name"><%= team_data[:team].name %></span>
       <span class="team-item__col team-item__col--trend">
