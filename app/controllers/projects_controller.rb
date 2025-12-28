@@ -213,7 +213,7 @@ class ProjectsController < ApplicationController
 
   def create_health_update
     attrs = health_update_attributes
-    result = project_actions.record_project_health_update.perform(
+    result = project_actions.create_project_health_update.perform(
       project_id: params[:id],
       date: attrs[:date],
       health: attrs[:health],
@@ -485,7 +485,7 @@ class ProjectsController < ApplicationController
   end
 
   def health_options
-    RecordProjectHealthUpdate::ALLOWED_HEALTHS
+    CreateProjectHealthUpdate::ALLOWED_HEALTHS
   end
 
   def selected_health_for(project)

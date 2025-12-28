@@ -3,10 +3,11 @@ require 'ostruct'
 class ProjectHealth
   SCORES = { on_track: 1, at_risk: 0, off_track: -1 }.freeze
 
-  def initialize(health_updates_loader:, weekly_health_updates_loader:, children_loader:)
+  def initialize(health_updates_loader:, weekly_health_updates_loader:, children_loader:, current_date: Date.today)
     @health_updates_loader = health_updates_loader
     @weekly_health_updates_loader = weekly_health_updates_loader
     @children_loader = children_loader
+    @current_date = current_date
     @health_updates = nil
     @weekly_health_updates = nil
     @children = nil
@@ -50,7 +51,7 @@ class ProjectHealth
   attr_reader :health_updates_loader, :weekly_health_updates_loader, :children_loader
 
   def children
-    @children ||= Array(children_loader&.call).reject { |c| c.respond_to?(:archived?) && c.archived? }
+    @children ||= Array(children_loader&.call).reject(&:archived?)
   end
 
   def health_updates
@@ -62,14 +63,10 @@ class ProjectHealth
   end
 
   def future_date?(date)
-    return false unless date.respond_to?(:to_date)
-
     date.to_date > current_date
   end
 
-  def current_date
-    Date.respond_to?(:current) ? Date.current : Date.today
-  end
+  attr_reader :current_date
 
   def subordinate_health
     @subordinate_health ||= rollup_health_values(children.map(&:health))

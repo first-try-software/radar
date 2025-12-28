@@ -306,7 +306,8 @@ class InitiativesController < ApplicationController
     # Trend data
     trend_service = InitiativeTrendService.new(
       initiative: initiative,
-      health_update_repository: health_update_repo
+      health_update_repository: health_update_repo,
+      current_date: Date.current
     )
     trend_result = trend_service.call
 

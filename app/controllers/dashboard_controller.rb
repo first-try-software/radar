@@ -43,7 +43,8 @@ class DashboardController < ApplicationController
     # System-wide trend data
     trend_service = SystemTrendService.new(
       project_repository: project_repository,
-      health_update_repository: health_update_repository
+      health_update_repository: health_update_repository,
+      current_date: Date.current
     )
     trend_result = trend_service.call
 
@@ -119,7 +120,8 @@ class DashboardController < ApplicationController
     teams.each_with_object({}) do |team, data|
       trend_service = TeamTrendService.new(
         team: team,
-        health_update_repository: health_update_repository
+        health_update_repository: health_update_repository,
+        current_date: Date.current
       )
       trend_result = trend_service.call
 
@@ -144,7 +146,8 @@ class DashboardController < ApplicationController
     initiatives.each_with_object({}) do |initiative, data|
       trend_service = InitiativeTrendService.new(
         initiative: initiative,
-        health_update_repository: health_update_repository
+        health_update_repository: health_update_repository,
+        current_date: Date.current
       )
       trend_result = trend_service.call
 

@@ -301,7 +301,8 @@ class TeamsController < ApplicationController
     # Trend data
     trend_service = TeamTrendService.new(
       team: team,
-      health_update_repository: health_update_repo
+      health_update_repository: health_update_repo,
+      current_date: Date.current
     )
     trend_result = trend_service.call
 

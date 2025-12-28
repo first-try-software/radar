@@ -9,7 +9,7 @@ Rails.application.config.to_prepare do
   require_dependency Rails.root.join('lib/domain/projects/link_subordinate_project')
   require_dependency Rails.root.join('lib/domain/projects/find_project')
   require_dependency Rails.root.join('lib/domain/projects/create_subordinate_project')
-  require_dependency Rails.root.join('lib/domain/projects/record_project_health_update')
+  require_dependency Rails.root.join('lib/domain/projects/create_project_health_update')
   require_dependency Rails.root.join('lib/domain/projects/project_trend_service')
   require_dependency Rails.root.join('lib/domain/projects/project_sorter')
   require_dependency Rails.root.join('lib/domain/initiatives/create_initiative')

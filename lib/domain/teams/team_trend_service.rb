@@ -7,9 +7,10 @@ class TeamTrendService
   COVERAGE_PENALTY_75 = 10
   COVERAGE_PENALTY_50 = 25
 
-  def initialize(team:, health_update_repository:)
+  def initialize(team:, health_update_repository:, current_date: Date.today)
     @team = team
     @health_update_repository = health_update_repository
+    @current_date = current_date
   end
 
   def call
@@ -171,7 +172,5 @@ class TeamTrendService
     end
   end
 
-  def current_date
-    Date.current
-  end
+  attr_reader :current_date
 end

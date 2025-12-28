@@ -39,7 +39,7 @@ class Project
   end
 
   def effective_contact
-    return point_of_contact if point_of_contact.present?
+    return point_of_contact if point_of_contact && !point_of_contact.empty?
     return parent.effective_contact if parent
     return owning_team.effective_contact if owning_team
 
@@ -76,7 +76,8 @@ class Project
     @project_health ||= ProjectHealth.new(
       health_updates_loader: loaders.health_updates && -> { loaders.health_updates.call(self) },
       weekly_health_updates_loader: loaders.weekly_health_updates && -> { loaders.weekly_health_updates.call(self) },
-      children_loader: -> { children }
+      children_loader: -> { children },
+      current_date: loaders.current_date || Date.today
     )
   end
 

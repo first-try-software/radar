@@ -145,7 +145,8 @@ class ProjectRepository
       weekly_health_updates: weekly_health_updates_loader_for(record),
       children: children_loader_for(record),
       parent: parent_loader_for(record),
-      owning_team: owning_team_loader_for(record)
+      owning_team: owning_team_loader_for(record),
+      current_date: Date.current
     )
     Project.new(attributes: attrs, loaders: loaders)
   end

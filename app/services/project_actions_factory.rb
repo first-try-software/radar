@@ -40,10 +40,11 @@ class ProjectActionsFactory
     LinkSubordinateProject.new(project_repository: project_repository)
   end
 
-  def record_project_health_update
-    RecordProjectHealthUpdate.new(
+  def create_project_health_update
+    CreateProjectHealthUpdate.new(
       project_repository: project_repository,
-      health_update_repository: health_update_repository
+      health_update_repository: health_update_repository,
+      current_date: Date.current
     )
   end
 

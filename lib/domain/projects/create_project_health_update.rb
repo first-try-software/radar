@@ -2,12 +2,13 @@ require 'date'
 require_relative '../support/result'
 require_relative 'health_update'
 
-class RecordProjectHealthUpdate
+class CreateProjectHealthUpdate
   ALLOWED_HEALTHS = [:on_track, :at_risk, :off_track].freeze
 
-  def initialize(project_repository:, health_update_repository:)
+  def initialize(project_repository:, health_update_repository:, current_date: Date.today)
     @project_repository = project_repository
     @health_update_repository = health_update_repository
+    @current_date = current_date
   end
 
   def perform(project_id:, date:, health:, description: nil)
@@ -27,7 +28,7 @@ class RecordProjectHealthUpdate
 
   private
 
-  attr_reader :project_repository, :health_update_repository, :project_id, :date, :health, :description
+  attr_reader :project_repository, :health_update_repository, :current_date, :project_id, :date, :health, :description
 
   def project
     @project ||= project_repository.find(project_id)
@@ -42,13 +43,7 @@ class RecordProjectHealthUpdate
   end
 
   def future_date?
-    return false unless date.respond_to?(:to_date)
-
     date.to_date > current_date
-  end
-
-  def current_date
-    Date.current
   end
 
   def project_not_found_failure

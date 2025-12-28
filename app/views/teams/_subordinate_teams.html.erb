@@ -20,7 +20,7 @@
     end
 
     # Get trend direction
-    trend_service = TeamTrendService.new(team: domain_team, health_update_repository: health_update_repo)
+    trend_service = TeamTrendService.new(team: domain_team, health_update_repository: health_update_repo, current_date: Date.current)
     trend_result = trend_service.call
     trend_direction = trend_result[:trend_direction]
 
