@@ -575,15 +575,15 @@ a:hover {
 }
 
 input[type="text"],
-input[type="date"],
 select {
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid var(--card-border);
-  background: #0e1430;
+  background: var(--bg);
   color: var(--text);
   font-size: 14px;
+  letter-spacing: 1px;
 }
 
 input::placeholder {
@@ -1502,16 +1502,27 @@ input::placeholder {
 .project-hero {
   position: relative;
   text-align: center;
-  padding: 60px 0 80px;
+  padding-bottom: 80px;
+}
+
+.project-hero__top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .project-hero__breadcrumb {
-  position: absolute;
-  top: 24px;
-  left: 0;
   display: flex;
   align-items: center;
   min-height: 32px;
+  flex: 1;
+}
+
+.project-hero__logo {
+  height: 72px;
+  width: 72px;
+  flex-shrink: 0;
 }
 
 .breadcrumb {
@@ -1525,6 +1536,26 @@ input::placeholder {
   transition: color 150ms ease;
 }
 
+.breadcrumb__link--home {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.breadcrumb__home-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  transition: color 150ms ease;
+  display: block;
+  position: relative;
+  top: 3px;
+}
+
+.breadcrumb__link--home:hover .breadcrumb__home-icon {
+  color: var(--accent);
+}
+
 .breadcrumb__link:hover {
   color: var(--accent);
 }
@@ -1532,15 +1563,15 @@ input::placeholder {
 .breadcrumb__separator {
   color: var(--text-muted);
   opacity: 0.5;
+  margin: 0 6px;
 }
 
 .project-hero__actions {
-  position: absolute;
-  top: 24px;
-  right: 0;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 12px;
+  flex: 1;
 }
 
 .project-hero__edit-btn {
@@ -1570,7 +1601,7 @@ input::placeholder {
   font-size: 48px;
   font-weight: 400;
   color: var(--text);
-  margin: 36px 0 16px 0;
+  margin: 42px 0 16px 0;
   letter-spacing: 4px;
 }
 
@@ -1587,12 +1618,13 @@ input::placeholder {
 }
 
 .project-hero__contact {
-  font-family: "Montserrat", sans-serif;
   font-size: 16px;
-  font-weight: 400;
   color: var(--text-muted);
   margin: 0;
-  letter-spacing: 1px;
+}
+
+.project-hero__contact-name {
+  color: var(--text);
 }
 
 .project-hero__contact--missing {
@@ -1637,11 +1669,28 @@ input::placeholder {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;
+}
+
+.sticky-header__logo {
+  height: 60px;
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.sticky-header__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex: 1;
 }
 
 .sticky-header__breadcrumb {
   font-size: 14px;
   color: var(--text-muted);
+  display: flex;
+  align-items: center;
 }
 
 .sticky-header__breadcrumb .breadcrumb__link {
@@ -1656,7 +1705,6 @@ input::placeholder {
 .sticky-header__breadcrumb .breadcrumb__separator {
   color: var(--text-muted);
   opacity: 0.6;
-  margin: 0 4px;
 }
 
 .sticky-header__title-row {
@@ -1665,37 +1713,31 @@ input::placeholder {
   gap: 10px;
 }
 
-.sticky-header__logo {
-  height: 26px;
-  width: 26px;
-  flex-shrink: 0;
-}
-
 .sticky-header__title {
   font-family: "Montserrat", sans-serif;
-  font-size: 36px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 400;
   line-height: 1;
   margin: 0;
   color: var(--text);
+  letter-spacing: 2px;
 }
 
-.sticky-header__right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
 
 .sticky-header__actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 12px;
 }
 
 .sticky-header__contact {
   font-size: 14px;
   color: var(--text-muted);
+}
+
+.sticky-header__contact-name {
+  color: var(--text)
 }
 
 .sticky-header__contact--missing {
@@ -2116,6 +2158,7 @@ turbo-frame + turbo-frame .section {
   padding: 12px 16px;
   font-size: 14px;
   background: var(--card);
+  letter-spacing: 1px;
   border: 1px solid var(--card-border);
   border-radius: 8px;
   color: var(--text);
@@ -2317,20 +2360,32 @@ turbo-frame + turbo-frame .section {
 }
 
 .global-search__create-btn {
-  background: var(--accent-strong);
-  color: white;
-  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  border: 1px solid var(--card-border);
   padding: 6px 16px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition: background 0.2s ease, transform 0.1s ease, color 0.2s ease, border-color 0.2s ease;
   flex-shrink: 0;
   white-space: nowrap;
 }
 
 .global-search__create-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: none;
+}
+
+.global-search__create-btn.active {
+  background: var(--accent-strong);
+  color: white;
+  border-color: transparent;
+}
+
+.global-search__create-btn.active:hover {
   background: var(--accent-hover);
   transform: translateY(-1px);
 }
@@ -3348,7 +3403,7 @@ turbo-frame + turbo-frame .section {
   font-size: 13px;
   font-weight: 400;
   color: var(--text-muted);
-  margin-top: 4px;
+  letter-spacing: 1px;
 }
 
 /* Trend Widget */
@@ -3772,23 +3827,23 @@ turbo-frame + turbo-frame .section {
   display: inline-block;
 }
 
-.project-item-v2__health--on_track {
+.project-item-v2__health--on-track {
   background: var(--success);
   border-radius: 50%;
 }
 
-.project-item-v2__health--at_risk {
+.project-item-v2__health--at-risk {
   background: var(--health-at-risk);
   border-radius: 0;
   clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
 }
 
-.project-item-v2__health--off_track {
+.project-item-v2__health--off-track {
   background: var(--danger);
   border-radius: 3px;
 }
 
-.project-item-v2__health--not_available {
+.project-item-v2__health--not-available {
   background: var(--text-muted);
   border-radius: 50%;
 }
@@ -3968,11 +4023,11 @@ turbo-frame + turbo-frame .section {
 
 /* Inline Create Form */
 .inline-create-section {
-  margin: 16px 0;
-  padding: 16px;
-  background: rgba(106, 167, 255, 0.06);
+  margin: 8px 0 0 0;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 8px;
-  border: 1px solid rgba(106, 167, 255, 0.15);
+  border: 1px solid var(--card-border);
 }
 
 .inline-create-form__title {
@@ -4247,6 +4302,32 @@ input.inline-create-form__input--date {
 .btn--small {
   padding: 8px 16px;
   font-size: 13px;
+}
+
+/* Create button - muted by default, lights up when typing */
+.btn--create {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  transition: transform 120ms ease, box-shadow 120ms ease, background 200ms ease, color 200ms ease, border-color 200ms ease;
+}
+
+.btn--create:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: none;
+  box-shadow: none;
+}
+
+.btn--create.active {
+  background: var(--accent-strong);
+  border-color: transparent;
+  color: white;
+}
+
+.btn--create.active:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(106, 167, 255, 0.25);
 }
 
 /* Health Dropdown */

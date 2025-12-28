@@ -228,6 +228,28 @@ RSpec.describe TeamRepository do
 
       expect(TeamsTeamRecord.where(parent: parent, child: child)).to be_empty
     end
+
+    it 'checks if team has subordinate teams' do
+      parent = TeamRecord.create!(name: 'Platform')
+      child = TeamRecord.create!(name: 'Mobile')
+
+      expect(repository.has_subordinate_teams?(team_id: parent.id)).to be(false)
+
+      TeamsTeamRecord.create!(parent: parent, child: child, order: 0)
+
+      expect(repository.has_subordinate_teams?(team_id: parent.id)).to be(true)
+    end
+
+    it 'checks if team has owned projects' do
+      team = TeamRecord.create!(name: 'Platform')
+      project = ProjectRecord.create!(name: 'Feature A')
+
+      expect(repository.has_owned_projects?(team_id: team.id)).to be(false)
+
+      TeamsProjectRecord.create!(team: team, project: project, order: 0)
+
+      expect(repository.has_owned_projects?(team_id: team.id)).to be(true)
+    end
   end
 
   describe '#all_active_roots' do
@@ -255,6 +277,28 @@ RSpec.describe TeamRepository do
       result = repository.all_active_roots
 
       expect(result).to eq([])
+    end
+  end
+
+  describe '#all_archived_roots' do
+    it 'returns all archived root teams' do
+      TeamRecord.create!(name: 'Root Active', archived: false)
+      TeamRecord.create!(name: 'Archived 1', archived: true)
+      TeamRecord.create!(name: 'Archived 2', archived: true)
+
+      result = repository.all_archived_roots
+
+      expect(result.map(&:name)).to match_array(['Archived 1', 'Archived 2'])
+    end
+
+    it 'excludes child teams' do
+      parent = TeamRecord.create!(name: 'Archived Parent', archived: true)
+      child = TeamRecord.create!(name: 'Archived Child', archived: true)
+      TeamsTeamRecord.create!(parent: parent, child: child, order: 0)
+
+      result = repository.all_archived_roots
+
+      expect(result.map(&:name)).to eq(['Archived Parent'])
     end
   end
 

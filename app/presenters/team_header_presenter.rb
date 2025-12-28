@@ -9,16 +9,22 @@ class TeamHeaderPresenter
   end
 
   # Display attributes
-  def name = @entity.name
-  def description = @entity.description
+  def name
+    @entity&.name || @record&.name || 'Team'
+  end
+
+  def description
+    @entity&.description || @record&.description
+  end
+
   def description_present? = description.present?
 
   def point_of_contact
-    @entity.effective_contact.presence || @entity.point_of_contact
+    @entity&.effective_contact.presence || @entity&.point_of_contact || @record&.point_of_contact
   end
 
   def contact_present? = point_of_contact.present?
-  def archived? = @record.archived
+  def archived? = @record&.archived || false
 
   # Teams don't have state
   def show_state_badge? = false
@@ -31,6 +37,8 @@ class TeamHeaderPresenter
 
   # Navigation
   def breadcrumb
+    return [] unless @entity && @record
+
     @view_context.team_breadcrumb(@entity, @record)
   end
 

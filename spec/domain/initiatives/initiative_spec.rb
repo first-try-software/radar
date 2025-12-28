@@ -237,4 +237,24 @@ RSpec.describe Initiative do
       expect(initiative.health).to eq(:at_risk)
     end
   end
+
+  describe '#health_raw_score' do
+    it 'returns the raw score from related projects' do
+      related_projects = [
+        double('Project', current_state: :in_progress, health: :on_track)
+      ]
+      initiative = described_class.new(
+        name: 'Modernize Infra',
+        related_projects_loader: ->(_initiative) { related_projects }
+      )
+
+      expect(initiative.health_raw_score).to eq(1.0)
+    end
+
+    it 'returns nil when no related projects in working state' do
+      initiative = described_class.new(name: 'Empty')
+
+      expect(initiative.health_raw_score).to be_nil
+    end
+  end
 end

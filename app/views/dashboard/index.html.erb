@@ -24,7 +24,8 @@
                archived_items: @archived_initiative_presenters %>
   </div>
 
-  <%= render 'shared/section',
+  <%= render 'shared/projects_section',
              title: 'Projects',
-             items: @project_presenters %>
+             projects: @all_projects,
+             show_form: false %>
 </div>

@@ -89,7 +89,7 @@
         </div>
         <button type="submit"
                 class="btn btn--small"
-                data-health-update-form-target="submit">Add</button>
+                data-health-update-form-target="submit">Update</button>
       </div>
     <% end %>
   </div>
@@ -112,7 +112,7 @@
     </div>
 
     <!-- Empty State -->
-    <div class="updates-empty" data-health-update-form-target="updatesEmpty"<%= ' hidden' if health_updates.any? %>>No updates yet. Add your first update above!</div>
+    <div class="updates-empty" data-health-update-form-target="updatesEmpty"<%= ' hidden' if health_updates.any? %>>No updates yet. Add your first health update above!</div>
   </div>
 </section>
 </turbo-frame>

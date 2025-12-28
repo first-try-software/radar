@@ -4,7 +4,13 @@
   archived_child_teams = all_child_teams.select(&:archived)
 %>
 <%= turbo_stream.replace "subordinate-teams-section", partial: "teams/subordinate_teams", locals: { team: @team, team_record: @team_record, subordinate_teams: subordinate_teams, archived_child_teams: archived_child_teams } %>
-<%= turbo_stream.replace "owned-projects-section", partial: "teams/owned_projects", locals: { team: @team, team_record: @team_record, subordinate_teams: subordinate_teams, archived_child_teams: archived_child_teams } %>
+<%= turbo_stream.replace "owned-projects-section" do %>
+  <%= render "shared/projects_section",
+      frame_id: "owned-projects-section",
+      projects: @team.respond_to?(:owned_projects) ? (@team.owned_projects || []) : [],
+      show_form: true,
+      create_url: add_owned_project_team_path(@team_record) %>
+<% end %>
 <%= turbo_stream.append "toast-container" do %>
   <div class="toast toast--success toast--visible" data-controller="toast">Owned project created!</div>
 <% end %>

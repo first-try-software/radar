@@ -68,16 +68,16 @@
       </div>
 
       <!-- No Results / Create Project -->
-      <div class="global-search__no-results" data-search-target="noResults" hidden data-controller="project-create" data-action="project-create:created->search#close">
+      <div class="global-search__no-results" data-search-target="noResults" hidden data-controller="project-create create-button" data-action="project-create:created->search#close">
         <h3 class="section__title">Create Project</h3>
         <div class="global-search__form-card">
           <form action="<%= projects_path %>" method="post" class="global-search__create-form" data-project-create-target="form" data-action="submit->project-create#create">
             <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
             <div class="global-search__form-fields-inline">
-              <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-search-target="createName" data-project-create-target="input name" required>
-              <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (highly recommended)" data-project-create-target="input">
-              <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (highly recommended)" data-project-create-target="input">
-              <button type="submit" class="global-search__create-btn" data-project-create-target="submit">Create Project</button>
+              <input type="text" name="project[name]" class="global-search__form-input" placeholder="Project Name (required)" data-search-target="createName" data-project-create-target="input name" data-create-button-target="input" data-action="input->create-button#inputChanged" required>
+              <input type="text" name="project[description]" class="global-search__form-input" placeholder="Description (recommended)" data-project-create-target="input" data-create-button-target="input" data-action="input->create-button#inputChanged">
+              <input type="text" name="project[point_of_contact]" class="global-search__form-input" placeholder="Contacts (recommended)" data-project-create-target="input" data-create-button-target="input" data-action="input->create-button#inputChanged">
+              <button type="submit" class="global-search__create-btn" data-project-create-target="submit" data-create-button-target="button">Create Project</button>
             </div>
           </form>
         </div>

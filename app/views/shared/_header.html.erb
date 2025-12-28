@@ -10,10 +10,10 @@
         <%= presenter.breadcrumb %>
       </div>
       <div class="sticky-header__title-row">
-        <img src="/logo-radar-animated-loop-v8.2.svg" alt="" class="sticky-header__logo">
         <h2 class="sticky-header__title"><%= presenter.name %></h2>
       </div>
     </div>
+    <img src="/logo-radar-animated-loop-v8.2.svg" alt="" class="sticky-header__logo">
     <div class="sticky-header__right">
       <div class="sticky-header__actions">
         <% if presenter.archived? %>
@@ -27,7 +27,7 @@
         <button type="button" class="sticky-header__edit-btn" data-action="<%= presenter.edit_action %>" aria-label="Edit <%= presenter.entity_type_label.downcase %>">✎</button>
       </div>
       <% if presenter.contact_present? %>
-        <span class="sticky-header__contact">Contact: <%= presenter.point_of_contact %></span>
+        <span class="sticky-header__contact">Contact: <span class="sticky-header__contact-name"><%= presenter.point_of_contact %></span></span>
       <% else %>
         <span class="sticky-header__contact sticky-header__contact--missing">No contact specified</span>
       <% end %>
@@ -37,10 +37,12 @@
 
 <!-- Hero Section -->
 <div class="project-hero" data-project-hero>
-  <div class="project-hero__breadcrumb" data-hero-breadcrumb>
-    <%= presenter.breadcrumb %>
-  </div>
-  <div class="project-hero__actions">
+  <div class="project-hero__top-row">
+    <div class="project-hero__breadcrumb" data-hero-breadcrumb>
+      <%= presenter.breadcrumb %>
+    </div>
+    <img src="/logo-radar-animated-loop-v8.2.svg" alt="" class="project-hero__logo">
+    <div class="project-hero__actions">
     <% if presenter.archived? %>
       <span class="badge badge--archived" data-archived-badge>ARCHIVED</span>
     <% end %>
@@ -64,12 +66,13 @@
       <span class="state-pill state-pill--<%= presenter.state_css_class %>"><%= presenter.state_label %></span>
     <% end %>
     <button type="button" class="project-hero__edit-btn" data-action="<%= presenter.edit_action %>" aria-label="Edit <%= presenter.entity_type_label.downcase %>">✎</button>
+    </div>
   </div>
   <h1 class="project-hero__title" data-project-title><%= presenter.name %></h1>
   <p class="project-hero__tagline" data-project-tagline<%= ' hidden' unless presenter.description_present? %>><%= presenter.description %></p>
   <% if presenter.contact_present? %>
-    <p class="project-hero__contact" data-project-contact>For more information, contact <strong data-project-poc><%= presenter.point_of_contact %></strong>.</p>
+    <p class="project-hero__contact" data-project-contact>Contact: <span class="project-hero__contact-name" data-project-poc><%= presenter.point_of_contact %></span></p>
   <% else %>
-    <p class="project-hero__contact project-hero__contact--missing" data-project-contact>Psst! Do me a favor! Tell me who to call if this thing breaks!</p>
+    <p class="project-hero__contact project-hero__contact--missing" data-project-contact>No contact specified</p>
   <% end %>
 </div>

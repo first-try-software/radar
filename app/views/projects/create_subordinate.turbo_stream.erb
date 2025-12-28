@@ -1,5 +1,9 @@
 <%= turbo_stream.replace "child-projects-section" do %>
-  <%= render "projects/child_projects", project: @project, project_record: @project_record %>
+  <%= render "shared/projects_section",
+      frame_id: "child-projects-section",
+      projects: @project.respond_to?(:children) ? (@project.children || []) : [],
+      show_form: true,
+      create_url: subordinates_project_path(@project_record) %>
 <% end %>
 
 <%= turbo_stream.append "toast-container" do %>

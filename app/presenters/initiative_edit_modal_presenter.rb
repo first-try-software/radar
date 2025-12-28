@@ -9,14 +9,30 @@ class InitiativeEditModalPresenter
   end
 
   # Display values
-  def name = @entity.name
-  def description = @entity.description
-  def point_of_contact = @entity.point_of_contact
-  def archived? = @record.archived
+  def name
+    @entity&.name || @record&.name || ''
+  end
+
+  def description
+    @entity&.description || @record&.description || ''
+  end
+
+  def point_of_contact
+    @entity&.point_of_contact || @record&.point_of_contact || ''
+  end
+
+  def archived?
+    @record&.archived || false
+  end
 
   # Form configuration
   def form_model = @record
-  def update_path = @view_context.initiative_path(@record)
+  def update_path
+    return nil unless @record
+
+    @view_context.initiative_path(@record)
+  end
+
   def form_method = :patch
 
   # Field naming

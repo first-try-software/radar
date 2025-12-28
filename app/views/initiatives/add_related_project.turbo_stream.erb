@@ -1,4 +1,10 @@
-<%= turbo_stream.replace "related-projects-section", partial: "initiatives/related_projects", locals: { initiative: @initiative, initiative_record: @initiative_record } %>
+<%= turbo_stream.replace "related-projects-section" do %>
+  <%= render "shared/projects_section",
+      frame_id: "related-projects-section",
+      projects: @initiative.respond_to?(:related_projects) ? (@initiative.related_projects || []) : [],
+      show_form: true,
+      create_url: add_related_project_initiative_path(@initiative_record) %>
+<% end %>
 <%= turbo_stream.append "toast-container" do %>
   <div class="toast toast--success toast--visible" data-controller="toast">Related project created!</div>
 <% end %>

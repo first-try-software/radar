@@ -237,6 +237,10 @@ module ApplicationHelper
     end
   end
 
+  def home_icon_svg
+    '<svg class="breadcrumb__home-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L1 7h2v7h4v-4h2v4h4V7h2L8 1z"/></svg>'.html_safe
+  end
+
   private
 
   def project_health_value(project_like)
@@ -472,8 +476,20 @@ module ApplicationHelper
   def render_breadcrumb(crumbs)
     return ''.html_safe if crumbs.empty?
 
-    links = crumbs.map do |crumb|
-      link_to(crumb[:name], crumb[:path], class: 'breadcrumb__link')
+    last_index = crumbs.length - 1
+
+    links = crumbs.each_with_index.map do |crumb, index|
+      if index == 0 && crumb[:name] == 'Radar'
+        # First crumb is home - use house icon
+        link_to(home_icon_svg, crumb[:path], class: 'breadcrumb__link breadcrumb__link--home', aria: { label: 'Home' })
+      elsif index == last_index
+        # Last crumb shows full text
+        link_to(crumb[:name], crumb[:path], class: 'breadcrumb__link')
+      else
+        # Middle crumbs show initials with ellipsis
+        initials = crumb[:name].split.map { |word| word[0] }.join
+        link_to("#{initials}…", crumb[:path], class: 'breadcrumb__link', title: crumb[:name])
+      end
     end
 
     content_tag(:nav, class: 'breadcrumb', aria: { label: 'Breadcrumb' }) do

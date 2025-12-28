@@ -38,7 +38,7 @@ RSpec.describe InitiativesController, type: :request do
       expect(response.body).to include('metric-widget')
     end
 
-    it 'renders unhealthy tab on the show page' do
+    it 'renders off-track project in the projects list' do
       initiative = InitiativeRecord.create!(name: 'Launch 2025')
       off_track = ProjectRecord.create!(name: 'Off Track Project', current_state: 'in_progress')
       HealthUpdateRecord.create!(project: off_track, date: Date.current, health: 'off_track')
@@ -46,20 +46,8 @@ RSpec.describe InitiativesController, type: :request do
 
       get "/initiatives/#{initiative.id}"
 
-      expect(response.body).to include('Unhealthy')
       expect(response.body).to include('Off Track Project')
-    end
-
-    it 'renders stale tab on the show page' do
-      initiative = InitiativeRecord.create!(name: 'Launch 2025')
-      stale_project = ProjectRecord.create!(name: 'Stale Project', current_state: 'in_progress')
-      HealthUpdateRecord.create!(project: stale_project, date: Date.current - 20, health: 'on_track')
-      InitiativesProjectRecord.create!(initiative: initiative, project: stale_project, order: 0)
-
-      get "/initiatives/#{initiative.id}"
-
-      expect(response.body).to include('Stale')
-      expect(response.body).to include('Stale Project')
+      expect(response.body).to include('project-item-v2__health--off-track')
     end
 
     it 'renders global search on the show page' do
@@ -68,19 +56,6 @@ RSpec.describe InitiativesController, type: :request do
       get "/initiatives/#{initiative.id}"
 
       expect(response.body).to include('Find or create what you are looking for...')
-    end
-
-    it 'links projects in attention sections to their show pages with initiative ref' do
-      initiative = InitiativeRecord.create!(name: 'Launch 2025')
-      project = ProjectRecord.create!(name: 'Feature A', current_state: 'in_progress')
-      # Create a never-updated project so it shows in the Needs Update section
-      InitiativesProjectRecord.create!(initiative: initiative, project: project, order: 0)
-
-      get "/initiatives/#{initiative.id}"
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include(%(href="/projects/#{project.id}"))
-      expect(response.body).to include('Feature A')
     end
 
     it 'creates via HTML and redirects' do

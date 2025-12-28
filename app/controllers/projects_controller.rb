@@ -62,9 +62,9 @@ class ProjectsController < ApplicationController
           redirect_to(project_path(params[:id]), notice: 'Project updated')
         else
           @project_record = ProjectRecord.find(params[:id])
-          @project = result.value
+          @project = result.value || project_actions.find_project.perform(id: params[:id]).value
           @errors = result.errors
-          prepare_health_form(project: @project)
+          prepare_show_for_errors
           render :show, status: error_status(result.errors)
         end
       end
@@ -85,7 +85,7 @@ class ProjectsController < ApplicationController
 
           @project = project_actions.find_project.perform(id: params[:id]).value
           @errors = result.errors
-          prepare_health_form(project: @project)
+          prepare_show_for_errors
           render :show, status: error_status(result.errors)
         end
       end
@@ -152,7 +152,7 @@ class ProjectsController < ApplicationController
 
             @project = project_actions.find_project.perform(id: params[:id]).value
             @errors = result.errors
-            prepare_health_form(project: @project)
+            prepare_show_for_errors
             render :show, status: error_status(result.errors)
           end
         end
@@ -203,7 +203,7 @@ class ProjectsController < ApplicationController
             @project_record = ProjectRecord.find(params[:id])
             @project = project_actions.find_project.perform(id: params[:id]).value
             @errors = result.errors
-            prepare_health_form(project: @project)
+            prepare_show_for_errors
             render :show, status: :unprocessable_content
           end
         end
@@ -227,7 +227,7 @@ class ProjectsController < ApplicationController
           @project_record = ProjectRecord.find(params[:id])
           @project = project_actions.find_project.perform(id: params[:id]).value
           prepare_trend_data(project: @project)
-          build_project_presenters(@project)
+          prepare_global_search_data
           render :create_health_update
         else
           render turbo_stream: turbo_stream.replace(
@@ -341,8 +341,14 @@ class ProjectsController < ApplicationController
 
     @project = project_actions.find_project.perform(id: params[:id]).value
     @errors = result.errors
-    prepare_health_form(project: @project, open: true)
+    prepare_show_for_errors
     render :show, status: error_status(result.errors)
+  end
+
+  def prepare_show_for_errors
+    prepare_health_form(project: @project, open: true)
+    prepare_trend_data(project: @project)
+    prepare_global_search_data
   end
 
   def prepare_health_form(project:, open: false)
@@ -410,7 +416,6 @@ class ProjectsController < ApplicationController
       off_track_count: off_track_count,
       at_risk_count: at_risk_count,
       total_count: total_count,
-      entity_label: "child #{'project'.pluralize(total_count)}",
       methodology: methodology
     )
 

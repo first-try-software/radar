@@ -341,7 +341,6 @@ class InitiativesController < ApplicationController
       off_track_count: off_track_count,
       at_risk_count: at_risk_count,
       total_count: active_leaves.size,
-      entity_label: "projects",
       methodology: "Weighted average of related project health scores."
     )
 
@@ -407,6 +406,33 @@ class InitiativesController < ApplicationController
     @confidence_score = 0
     @confidence_level = :low
     @confidence_factors = { biggest_drag: :insufficient_data, details: {} }
+
+    # Build empty presenters to avoid nil errors
+    @header_presenter = InitiativeHeaderPresenter.new(
+      entity: nil,
+      record: @initiative_record,
+      view_context: view_context
+    )
+    @health_presenter = HealthPresenter.new(
+      health: :not_available,
+      methodology: :initiative_rollup
+    )
+    @trend_presenter = TrendPresenter.new(
+      trend_data: [],
+      trend_direction: :stable,
+      trend_delta: 0.0,
+      weeks_of_data: 0
+    )
+    @confidence_presenter = ConfidencePresenter.new(
+      score: 0,
+      level: :low,
+      factors: {}
+    )
+    @edit_modal_presenter = InitiativeEditModalPresenter.new(
+      entity: nil,
+      record: @initiative_record,
+      view_context: view_context
+    )
   end
 
   def team_repository

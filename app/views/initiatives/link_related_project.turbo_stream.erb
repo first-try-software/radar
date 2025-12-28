@@ -1,7 +1,13 @@
 <%
   project_record = ProjectRecord.find_by(id: params[:project_id])
 %>
-<%= turbo_stream.replace "related-projects-section", partial: "initiatives/related_projects", locals: { initiative: @initiative, initiative_record: @initiative_record } %>
+<%= turbo_stream.replace "related-projects-section" do %>
+  <%= render "shared/projects_section",
+      frame_id: "related-projects-section",
+      projects: @initiative.respond_to?(:related_projects) ? (@initiative.related_projects || []) : [],
+      show_form: true,
+      create_url: add_related_project_initiative_path(@initiative_record) %>
+<% end %>
 <%= turbo_stream.replace "search-project-#{params[:project_id]}" do %>
   <li class="section__item section__item--searchable section__item--with-action"
       id="search-project-<%= project_record&.id %>"

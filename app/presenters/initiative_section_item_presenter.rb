@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Presenter for Initiative items in shared/_section.html.erb
-# Columns: Health | Name | State | Trend | Projects | Stale | Owner
+# Columns: Health | Name | State | Trend | Projects | Stale | Contact
 class InitiativeSectionItemPresenter
   def initialize(entity:, record:, view_context:, trend_direction: :stable, projects_count: 0, stale_count: 0)
     @entity = entity
@@ -37,7 +37,7 @@ class InitiativeSectionItemPresenter
 
   def stale_warning? = stale_count.positive?
 
-  # Owner/Contact
+  # Contact/Contact
   def owner = @entity.point_of_contact.presence || "—"
 
   # Navigation

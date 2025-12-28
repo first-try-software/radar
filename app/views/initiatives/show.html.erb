@@ -17,9 +17,11 @@
 
 <%= render 'shared/search' %>
 
-<%= render 'initiatives/related_projects',
-    initiative: initiative,
-    initiative_record: @initiative_record %>
+<%= render 'shared/projects_section',
+    frame_id: 'related-projects-section',
+    projects: initiative.respond_to?(:related_projects) ? (initiative.related_projects || []) : [],
+    show_form: true,
+    create_url: add_related_project_initiative_path(@initiative_record) %>
 
 <%= render 'shared/edit_modal', presenter: @edit_modal_presenter %>
 

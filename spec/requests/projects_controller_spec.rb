@@ -26,7 +26,7 @@ RSpec.describe ProjectsController, type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Parent Project')
-      expect(response.body).to include('Child Projects')
+      expect(response.body).to include('Projects')
     end
 
     it 'creates health update via HTML and redirects' do

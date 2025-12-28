@@ -1,0 +1,73 @@
+<%#
+  Unified partial for displaying a projects section across the site.
+
+  Required locals:
+    - projects: The collection of project domain objects
+
+  Optional locals:
+    - frame_id: The turbo-frame ID (default: nil, no turbo-frame wrapper)
+    - title: Section title (default: "Projects")
+    - show_form: Whether to show the create form (default: true)
+    - create_url: The URL for the create project form (required if show_form is true)
+%>
+<%
+  all_projects = projects || []
+  direct_projects = all_projects.reject { |p| p.respond_to?(:archived?) && p.archived? }
+  archived_projects = all_projects.select { |p| p.respond_to?(:archived?) && p.archived? }
+  sorted_projects = sort_projects_canonical(direct_projects)
+  sorted_archived = sort_projects_canonical(archived_projects)
+
+  has_items = direct_projects.any? || archived_projects.any?
+
+  frame_id = local_assigns[:frame_id]
+  title = local_assigns.fetch(:title, 'Projects')
+  show_form = local_assigns.fetch(:show_form, true)
+  create_url = local_assigns[:create_url]
+%>
+<% if frame_id %><turbo-frame id="<%= frame_id %>"><% end %>
+  <section class="section section--projects">
+    <ul class="project-list-v2">
+      <li class="project-item-v2 project-item-v2--header">
+        <div class="project-item-v2__grid project-item-v2__grid--header project-item-v2__grid--parent">
+          <span class="project-item-v2__col project-item-v2__col--health section__title--grid"><%= title %></span>
+          <span class="project-item-v2__col project-item-v2__col--name"></span>
+          <span class="project-item-v2__col project-item-v2__col--trend project-item-v2__header-label"><%= 'Trend' if has_items %></span>
+          <span class="project-item-v2__col project-item-v2__col--count project-item-v2__header-label"><%= 'Projects' if has_items %></span>
+          <span class="project-item-v2__col project-item-v2__col--count project-item-v2__header-label"><%= 'Stale' if has_items %></span>
+          <span class="project-item-v2__col project-item-v2__col--contact project-item-v2__header-label"><%= 'Contact' if has_items %></span>
+          <span class="project-item-v2__col project-item-v2__col--state project-item-v2__header-label"><%= 'State' if has_items %></span>
+        </div>
+      </li>
+      <% sorted_projects.each do |project| %>
+        <% presenter = ProjectListItemPresenter.new(project: project, view_context: self) %>
+        <%= render 'dashboard/project_list_item', presenter: presenter %>
+      <% end %>
+    </ul>
+
+    <% if archived_projects.any? %>
+      <details class="section__archived-details">
+        <summary class="section__archived-summary">Archived (<%= archived_projects.size %>)</summary>
+        <ul class="project-list-v2" style="margin-top: 8px;">
+          <% sorted_archived.each do |project| %>
+            <% presenter = ProjectListItemPresenter.new(project: project, view_context: self) %>
+            <%= render 'dashboard/project_list_item', presenter: presenter %>
+          <% end %>
+        </ul>
+      </details>
+    <% end %>
+
+    <% if show_form && create_url %>
+      <!-- Create Project Form -->
+      <div class="inline-create-section" data-controller="create-button">
+        <%= form_with url: create_url, method: :post, local: false, class: "inline-create-form" do |f| %>
+          <div class="inline-create-form__row">
+            <input type="text" name="project[name]" class="inline-create-form__input" placeholder="Project Name (required)" required data-create-button-target="input" data-action="input->create-button#inputChanged">
+            <input type="text" name="project[description]" class="inline-create-form__input" placeholder="Brief Description (recommended)" data-create-button-target="input" data-action="input->create-button#inputChanged">
+            <input type="text" name="project[point_of_contact]" class="inline-create-form__input" placeholder="Contacts (recommended)" data-create-button-target="input" data-action="input->create-button#inputChanged">
+            <button type="submit" class="btn btn--small btn--create" data-create-button-target="button">Create Project</button>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+<% if frame_id %></turbo-frame><% end %>

@@ -6,7 +6,7 @@ RSpec.describe DashboardController, type: :request do
       get '/'
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Active Projects')
+      expect(response.body).to include('Projects')
     end
 
     it 'shows health summary stats' do
@@ -18,57 +18,25 @@ RSpec.describe DashboardController, type: :request do
       expect(response.body).to include('On Track')
     end
 
-    it 'shows attention required section' do
+    it 'shows off-track project in projects section' do
       project = ProjectRecord.create!(name: 'Problem Project', current_state: 'in_progress')
       HealthUpdateRecord.create!(project: project, date: Date.current, health: 'off_track')
 
       get '/'
 
-      expect(response.body).to include('Needs Attention')
       expect(response.body).to include('Problem Project')
+      expect(response.body).to include('project-item-v2__health--off-track')
     end
 
-    it 'shows congratulations message when needs attention is empty' do
-      get '/'
-
-      expect(response.body).to include('Needs Attention')
-      expect(response.body).to include('Everything is on track!')
-    end
-
-    it 'shows never updated projects section' do
-      ProjectRecord.create!(name: 'Never Updated Project', current_state: 'in_progress')
+    it 'shows health widget with on-track status when team is on-track' do
+      team = TeamRecord.create!(name: 'Good Team')
+      project = ProjectRecord.create!(name: 'Good Project', current_state: 'in_progress')
+      TeamsProjectRecord.create!(team: team, project: project, order: 1)
+      HealthUpdateRecord.create!(project: project, date: Date.current, health: 'on_track')
 
       get '/'
 
-      expect(response.body).to include('Never Updated Project')
-    end
-
-    it 'shows stale projects in 14+ days section' do
-      project = ProjectRecord.create!(name: 'Very Stale Project', current_state: 'in_progress')
-      HealthUpdateRecord.create!(project: project, date: Date.current - 20, health: 'on_track')
-
-      get '/'
-
-      expect(response.body).to include('Stale')
-      expect(response.body).to include('Very Stale Project')
-    end
-
-    it 'shows stale projects in 7+ days section' do
-      project = ProjectRecord.create!(name: 'Somewhat Stale Project', current_state: 'in_progress')
-      HealthUpdateRecord.create!(project: project, date: Date.current - 10, health: 'on_track')
-
-      get '/'
-
-      expect(response.body).to include('Stale')
-      expect(response.body).to include('Somewhat Stale Project')
-    end
-
-    it 'shows orphan projects section' do
-      ProjectRecord.create!(name: 'Orphan Project', current_state: 'in_progress')
-
-      get '/'
-
-      expect(response.body).to include('Orphan Project')
+      expect(response.body).to include('metric-widget__label--on-track')
     end
 
     it 'shows quick links to other pages' do
@@ -177,7 +145,7 @@ RSpec.describe DashboardController, type: :request do
 
       get '/'
 
-      expect(response.body).to include('data-global-search')
+      expect(response.body).to include('global-search')
       expect(response.body).to include('global-search__results')
       expect(response.body).to include('Search Team')
       expect(response.body).to include('Search Initiative')
@@ -211,7 +179,7 @@ RSpec.describe DashboardController, type: :request do
       expect(response.body).to include('project-item-v2__health')
     end
 
-    it 'shows latest health update date and comment in project lists' do
+    it 'shows project health and state in project lists' do
       project = ProjectRecord.create!(name: 'Updated Project', current_state: 'in_progress')
       HealthUpdateRecord.create!(
         project: project,
@@ -222,9 +190,8 @@ RSpec.describe DashboardController, type: :request do
 
       get '/'
 
-      expect(response.body).to include('Last update')
-      expect(response.body).to include('1/5/25')
-      expect(response.body).to include('Feeling good')
+      expect(response.body).to include('Updated Project')
+      expect(response.body).to include('project-item-v2__health--on-track')
       expect(response.body).to include('In Progress')
     end
 

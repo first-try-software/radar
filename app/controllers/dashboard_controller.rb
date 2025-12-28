@@ -191,7 +191,6 @@ class DashboardController < ApplicationController
       off_track_count: off_track_count,
       at_risk_count: at_risk_count,
       total_count: total_count,
-      entity_label: "teams/initiatives",
       methodology: "Average of team and initiative health scores, equally weighted."
     )
 
@@ -295,37 +294,5 @@ class DashboardController < ApplicationController
       )
     end
 
-    # Projects section (full) - for each project row
-    @project_presenters = @sorted_all_projects.map do |project|
-      project_record = ProjectRecord.find_by(name: project.name)
-      children = project.respond_to?(:children) ? project.children : []
-      projects_count = children.size
-      stale_count = calculate_stale_count(children)
-      trend_direction = project.respond_to?(:trend) ? project.trend : :stable
-
-      ProjectSectionItemPresenter.new(
-        entity: project,
-        record: project_record,
-        view_context: view_context,
-        trend_direction: trend_direction,
-        projects_count: projects_count,
-        stale_count: stale_count
-      )
-    end
-  end
-
-  def calculate_stale_count(children)
-    active_children = children.reject { |c| c.respond_to?(:archived?) && c.archived? }
-    active_children.count do |child|
-      next false unless [:in_progress, :blocked].include?(child.current_state)
-
-      if child.respond_to?(:leaf?) && child.leaf?
-        latest = child.latest_health_update
-      else
-        leaves = child.respond_to?(:leaf_descendants) ? child.leaf_descendants : []
-        latest = leaves.map(&:latest_health_update).compact.max_by { |u| u.date.to_date }
-      end
-      latest.nil? || (Date.current - latest.date.to_date).to_i > 7
-    end
   end
 end
