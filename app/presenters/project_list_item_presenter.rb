@@ -31,7 +31,7 @@ class ProjectListItemPresenter
   end
 
   def state_css_class
-    "project-item-v2__state project-item-v2__state--#{@project.current_state}"
+    "project-item__state project-item__state--#{@project.current_state}"
   end
 
   # Contact

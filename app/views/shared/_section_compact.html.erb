@@ -14,9 +14,9 @@
 
 <div class="section section--compact">
   <% if items.any? %>
-    <ul class="project-list-v2">
+    <ul class="project-list">
       <!-- Header Row -->
-      <li class="project-item-v2 project-item-v2--header">
+      <li class="project-item project-item--header">
         <div class="team-item__grid team-item__grid--compact team-item__grid--header">
           <span class="team-item__col team-item__col--health section__title--grid"><%= title %></span>
           <span class="team-item__col team-item__col--name"></span>
@@ -28,11 +28,11 @@
 
       <!-- Item Rows -->
       <% items.each do |item| %>
-        <li class="project-item-v2">
-          <a href="<%= item.path %>" class="project-item-v2__link" data-turbo-frame="<%= item.turbo_frame %>">
+        <li class="project-item">
+          <a href="<%= item.path %>" class="project-item__link" data-turbo-frame="<%= item.turbo_frame %>">
             <div class="team-item__grid team-item__grid--compact">
               <span class="team-item__col team-item__col--health">
-                <span class="project-item-v2__health project-item-v2__health--<%= item.health_css_class %>"></span>
+                <span class="project-item__health project-item__health--<%= item.health_css_class %>"></span>
               </span>
               <span class="team-item__col team-item__col--name"><%= item.name %></span>
               <span class="team-item__col team-item__col--trend">
@@ -56,7 +56,7 @@
         <% archived_items.each do |item| %>
           <li class="section__item section__item--archived">
             <a href="<%= item.path %>" class="section__link">
-              <span class="project-item-v2__health project-item-v2__health--not_available"></span>
+              <span class="project-item__health project-item__health--not_available"></span>
               <span class="section__name"><%= item.name %></span>
             </a>
           </li>

@@ -33,8 +33,8 @@
     <%
       has_items = all_subteams.any? || archived_subteams.any?
     %>
-    <ul class="project-list-v2">
-      <li class="project-item-v2 project-item-v2--header">
+    <ul class="project-list">
+      <li class="project-item project-item--header">
         <div class="team-item__grid team-item__grid--header">
           <span class="team-item__col team-item__col--health section__title--grid">Teams</span>
           <span class="team-item__col team-item__col--name"></span>
@@ -52,13 +52,13 @@
     <% if archived_subteams.any? %>
       <details class="section__archived-details">
         <summary class="section__archived-summary">Archived (<%= archived_subteams.size %>)</summary>
-        <ul class="project-list-v2" style="margin-top: 8px;">
+        <ul class="project-list" style="margin-top: 8px;">
           <% archived_subteams.each do |team_data| %>
-            <li class="project-item-v2">
-              <a href="<%= team_path(team_data[:team].id) %>" class="project-item-v2__link" data-turbo-frame="_top">
+            <li class="project-item">
+              <a href="<%= team_path(team_data[:team].id) %>" class="project-item__link" data-turbo-frame="_top">
                 <div class="team-item__grid">
                   <span class="team-item__col team-item__col--health">
-                    <span class="project-item-v2__health project-item-v2__health--not_available"></span>
+                    <span class="project-item__health project-item__health--not_available"></span>
                   </span>
                   <span class="team-item__col team-item__col--name" style="font-style: italic;"><%= team_data[:team].name %></span>
                   <span class="team-item__col team-item__col--trend">—</span>

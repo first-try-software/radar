@@ -5,8 +5,8 @@
 <%= render 'shared/header', presenter: @header_presenter %>
 
 <% if @health_summary %>
-<div class="initiative-dashboard-v2">
-  <div class="metrics-row-v2">
+<div class="initiative-dashboard">
+  <div class="metrics-row">
     <%= render 'shared/health_widget', presenter: @health_presenter %>
     <%= render 'shared/trend_widget', presenter: @trend_presenter %>
     <%= render 'shared/confidence_widget', presenter: @confidence_presenter %>

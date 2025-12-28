@@ -34,7 +34,7 @@ RSpec.describe InitiativesController, type: :request do
 
       get "/initiatives/#{initiative.id}"
 
-      expect(response.body).to include('metrics-row-v2')
+      expect(response.body).to include('metrics-row')
       expect(response.body).to include('metric-widget')
     end
 
@@ -47,7 +47,7 @@ RSpec.describe InitiativesController, type: :request do
       get "/initiatives/#{initiative.id}"
 
       expect(response.body).to include('Off Track Project')
-      expect(response.body).to include('project-item-v2__health--off-track')
+      expect(response.body).to include('project-item__health--off-track')
     end
 
     it 'renders global search on the show page' do

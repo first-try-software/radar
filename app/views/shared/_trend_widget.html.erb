@@ -26,9 +26,9 @@
             <% end %>
           </linearGradient>
         </defs>
-        <polyline class="trend-line-v2" stroke="url(#<%= presenter.gradient_id %>)" points="<%= presenter.polyline_points %>" />
+        <polyline class="trend-line" stroke="url(#<%= presenter.gradient_id %>)" points="<%= presenter.polyline_points %>" />
         <% presenter.chart_points.each do |point| %>
-          <circle cx="<%= point[:x] %>" cy="<%= point[:y] %>" r="4" class="trend-point-v2 trend-point-v2--<%= point[:health] %>" />
+          <circle cx="<%= point[:x] %>" cy="<%= point[:y] %>" r="4" class="trend-point trend-point--<%= point[:health] %>" />
         <% end %>
       </svg>
     <% else %>

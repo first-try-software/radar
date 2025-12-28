@@ -21,7 +21,7 @@ class InitiativeSectionItemPresenter
   # Initiatives have state
   def current_state = @entity.current_state
   def state_label = current_state.to_s.tr("_", " ").titleize
-  def state_css_class = "project-item-v2__state project-item-v2__state--#{current_state}"
+  def state_css_class = "project-item__state project-item__state--#{current_state}"
   def show_state? = true
 
   # Trend

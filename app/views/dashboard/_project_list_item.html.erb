@@ -3,22 +3,22 @@
   Columns: Symbol | Name | Trend | Projects | Stale | Contact | State
 %>
 
-<li class="project-item-v2">
-  <a href="<%= presenter.path %>" class="project-item-v2__link" data-turbo-frame="_top">
-    <div class="project-item-v2__grid project-item-v2__grid--parent">
-      <span class="project-item-v2__col project-item-v2__col--health">
-        <span class="project-item-v2__health project-item-v2__health--<%= presenter.health_css_class %>"></span>
+<li class="project-item">
+  <a href="<%= presenter.path %>" class="project-item__link" data-turbo-frame="_top">
+    <div class="project-item__grid project-item__grid--parent">
+      <span class="project-item__col project-item__col--health">
+        <span class="project-item__health project-item__health--<%= presenter.health_css_class %>"></span>
       </span>
-      <span class="project-item-v2__col project-item-v2__col--name">
-        <span class="project-item-v2__name"><%= presenter.name %></span>
+      <span class="project-item__col project-item__col--name">
+        <span class="project-item__name"><%= presenter.name %></span>
       </span>
-      <span class="project-item-v2__col project-item-v2__col--trend">
+      <span class="project-item__col project-item__col--trend">
         <%= presenter.trend_arrow %>
       </span>
-      <span class="project-item-v2__col project-item-v2__col--count"><%= presenter.projects_count %></span>
-      <span class="project-item-v2__col project-item-v2__col--count"><%= presenter.stale_count %></span>
-      <span class="project-item-v2__col project-item-v2__col--contact"><%= presenter.contact %></span>
-      <span class="project-item-v2__col project-item-v2__col--state">
+      <span class="project-item__col project-item__col--count"><%= presenter.projects_count %></span>
+      <span class="project-item__col project-item__col--count"><%= presenter.stale_count %></span>
+      <span class="project-item__col project-item__col--contact"><%= presenter.contact %></span>
+      <span class="project-item__col project-item__col--state">
         <span class="<%= presenter.state_css_class %>"><%= presenter.state_label %></span>
       </span>
     </div>

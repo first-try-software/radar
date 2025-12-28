@@ -21,7 +21,7 @@ class TeamSectionItemPresenter
   # Teams don't have state
   def current_state = nil
   def state_label = "—"
-  def state_css_class = "project-item-v2__state"
+  def state_css_class = "project-item__state"
   def show_state? = false
 
   # Trend

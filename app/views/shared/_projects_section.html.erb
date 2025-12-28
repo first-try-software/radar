@@ -26,16 +26,16 @@
 %>
 <% if frame_id %><turbo-frame id="<%= frame_id %>"><% end %>
   <section class="section section--projects">
-    <ul class="project-list-v2">
-      <li class="project-item-v2 project-item-v2--header">
-        <div class="project-item-v2__grid project-item-v2__grid--header project-item-v2__grid--parent">
-          <span class="project-item-v2__col project-item-v2__col--health section__title--grid"><%= title %></span>
-          <span class="project-item-v2__col project-item-v2__col--name"></span>
-          <span class="project-item-v2__col project-item-v2__col--trend project-item-v2__header-label"><%= 'Trend' if has_items %></span>
-          <span class="project-item-v2__col project-item-v2__col--count project-item-v2__header-label"><%= 'Projects' if has_items %></span>
-          <span class="project-item-v2__col project-item-v2__col--count project-item-v2__header-label"><%= 'Stale' if has_items %></span>
-          <span class="project-item-v2__col project-item-v2__col--contact project-item-v2__header-label"><%= 'Contact' if has_items %></span>
-          <span class="project-item-v2__col project-item-v2__col--state project-item-v2__header-label"><%= 'State' if has_items %></span>
+    <ul class="project-list">
+      <li class="project-item project-item--header">
+        <div class="project-item__grid project-item__grid--header project-item__grid--parent">
+          <span class="project-item__col project-item__col--health section__title--grid"><%= title %></span>
+          <span class="project-item__col project-item__col--name"></span>
+          <span class="project-item__col project-item__col--trend project-item__header-label"><%= 'Trend' if has_items %></span>
+          <span class="project-item__col project-item__col--count project-item__header-label"><%= 'Projects' if has_items %></span>
+          <span class="project-item__col project-item__col--count project-item__header-label"><%= 'Stale' if has_items %></span>
+          <span class="project-item__col project-item__col--contact project-item__header-label"><%= 'Contact' if has_items %></span>
+          <span class="project-item__col project-item__col--state project-item__header-label"><%= 'State' if has_items %></span>
         </div>
       </li>
       <% sorted_projects.each do |project| %>
@@ -47,7 +47,7 @@
     <% if archived_projects.any? %>
       <details class="section__archived-details">
         <summary class="section__archived-summary">Archived (<%= archived_projects.size %>)</summary>
-        <ul class="project-list-v2" style="margin-top: 8px;">
+        <ul class="project-list" style="margin-top: 8px;">
           <% sorted_archived.each do |project| %>
             <% presenter = ProjectListItemPresenter.new(project: project, view_context: self) %>
             <%= render 'dashboard/project_list_item', presenter: presenter %>

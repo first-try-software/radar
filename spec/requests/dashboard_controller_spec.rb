@@ -25,7 +25,7 @@ RSpec.describe DashboardController, type: :request do
       get '/'
 
       expect(response.body).to include('Problem Project')
-      expect(response.body).to include('project-item-v2__health--off-track')
+      expect(response.body).to include('project-item__health--off-track')
     end
 
     it 'shows health widget with on-track status when team is on-track' do
@@ -123,7 +123,7 @@ RSpec.describe DashboardController, type: :request do
 
       expect(response.body).to include('Teams')
       expect(response.body).to include('Alpha Team')
-      expect(response.body).to include('project-item-v2__health')
+      expect(response.body).to include('project-item__health')
     end
 
     it 'shows only top-level teams in teams column' do
@@ -176,7 +176,7 @@ RSpec.describe DashboardController, type: :request do
 
       expect(response.body).to include('Initiatives')
       expect(response.body).to include('Beta Initiative')
-      expect(response.body).to include('project-item-v2__health')
+      expect(response.body).to include('project-item__health')
     end
 
     it 'shows project health and state in project lists' do
@@ -191,7 +191,7 @@ RSpec.describe DashboardController, type: :request do
       get '/'
 
       expect(response.body).to include('Updated Project')
-      expect(response.body).to include('project-item-v2__health--on-track')
+      expect(response.body).to include('project-item__health--on-track')
       expect(response.body).to include('In Progress')
     end
 

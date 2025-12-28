@@ -78,7 +78,7 @@ RSpec.describe ProjectListItemPresenter, type: :helper do
 
       presenter = ProjectListItemPresenter.new(project: project, view_context: view_context)
 
-      expect(presenter.state_css_class).to eq('project-item-v2__state project-item-v2__state--blocked')
+      expect(presenter.state_css_class).to eq('project-item__state project-item__state--blocked')
     end
   end
 
