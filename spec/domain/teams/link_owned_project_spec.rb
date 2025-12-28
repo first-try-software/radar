@@ -3,6 +3,7 @@ require 'domain/teams/link_owned_project'
 require_relative '../../support/domain/team_builder'
 require 'domain/projects/project'
 require 'domain/projects/project_attributes'
+require 'domain/projects/project_loaders'
 require_relative '../../support/persistence/fake_team_repository'
 require_relative '../../support/persistence/fake_project_repository'
 
@@ -32,7 +33,24 @@ RSpec.describe LinkOwnedProject do
     expect(result.errors).to eq(['project not found'])
   end
 
-  it 'returns failure when team has subordinate teams' do
+  it 'returns failure when project has a parent' do
+    team = build_team(name: 'My Team', description: '', point_of_contact: '')
+    parent_project = Project.new(attributes: ProjectAttributes.new(name: 'Parent', description: '', point_of_contact: ''))
+    child_project = Project.new(
+      attributes: ProjectAttributes.new(name: 'Child', description: '', point_of_contact: ''),
+      loaders: ProjectLoaders.new(parent: ->(_) { parent_project })
+    )
+    team_repository = FakeTeamRepository.new(teams: { '1' => team })
+    project_repository = FakeProjectRepository.new(projects: { '99' => child_project })
+    action = LinkOwnedProject.new(team_repository: team_repository, project_repository: project_repository)
+
+    result = action.perform(team_id: '1', project_id: '99')
+
+    expect(result.success?).to be(false)
+    expect(result.errors).to eq(['only top-level projects can be owned by teams'])
+  end
+
+  it 'allows teams with subordinate teams to own projects' do
     team = build_team(name: 'My Team', description: '', point_of_contact: '')
     child_team = build_team(name: 'Child Team')
     project = Project.new(attributes: ProjectAttributes.new(name: 'My Project', description: '', point_of_contact: ''))
@@ -43,8 +61,8 @@ RSpec.describe LinkOwnedProject do
 
     result = action.perform(team_id: '1', project_id: '99')
 
-    expect(result.success?).to be(false)
-    expect(result.errors).to eq(['teams with subordinate teams cannot own projects'])
+    expect(result.success?).to be(true)
+    expect(result.value.name).to eq('My Project')
   end
 
   it 'links an existing project to the team' do

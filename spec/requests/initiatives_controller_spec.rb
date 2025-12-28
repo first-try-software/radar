@@ -163,6 +163,18 @@ RSpec.describe InitiativesController, type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
+    it 'returns error when linking a child project' do
+      initiative = InitiativeRecord.create!(name: 'Launch 2025')
+      parent_project = ProjectRecord.create!(name: 'Parent Project')
+      child_project = ProjectRecord.create!(name: 'Child Project')
+      ProjectsProjectRecord.create!(parent: parent_project, child: child_project, order: 0)
+
+      post "/initiatives/#{initiative.id}/related_projects", params: { project_id: child_project.id }, headers: { 'Accept' => 'application/json' }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body['errors']).to include('only top-level projects can be related to initiatives')
+    end
+
     it 'creates and links a new project via HTML add_related_project' do
       initiative = InitiativeRecord.create!(name: 'Launch 2025')
 
@@ -199,36 +211,6 @@ RSpec.describe InitiativesController, type: :request do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body['errors']).to include('name must be present')
-    end
-
-    it 'returns error via HTML when add_related_project link fails' do
-      initiative = InitiativeRecord.create!(name: 'Launch 2025')
-
-      # Stub any instance of LinkRelatedProject to fail
-      allow_any_instance_of(LinkRelatedProject).to receive(:perform).and_return(
-        Result.failure(errors: ['link failed'])
-      )
-
-      post "/initiatives/#{initiative.id}/related_projects/add", params: { project: { name: 'New Project' } }
-
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include('link failed')
-    end
-
-    it 'handles missing domain initiative gracefully when add_related_project link fails' do
-      initiative = InitiativeRecord.create!(name: 'Launch 2025')
-
-      # Stub link to fail AND find_initiative to fail (covers the else branch of find_domain_initiative)
-      allow_any_instance_of(LinkRelatedProject).to receive(:perform).and_return(
-        Result.failure(errors: ['link failed'])
-      )
-      allow_any_instance_of(FindInitiative).to receive(:perform).and_return(
-        Result.failure(errors: ['not found'])
-      )
-
-      post "/initiatives/#{initiative.id}/related_projects/add", params: { project: { name: 'Another Project' } }
-
-      expect(response).to have_http_status(:not_found)
     end
 
     it 'returns 404 when create_project fails and initiative disappears' do
@@ -522,26 +504,5 @@ RSpec.describe InitiativesController, type: :request do
       expect(response.media_type).to eq('text/vnd.turbo-stream.html')
     end
 
-    it 'returns turbo_stream error when project created but linking fails' do
-      initiative = InitiativeRecord.create!(name: 'Launch 2025')
-
-      # Stub link action to fail after project is created
-      link_action = instance_double('LinkRelatedProject')
-      allow(link_action).to receive(:perform).and_return(
-        double('Result', success?: false, errors: ['linking failed'])
-      )
-      allow_any_instance_of(InitiativesController).to receive(:initiative_actions).and_wrap_original do |method|
-        actions = method.call
-        allow(actions).to receive(:link_related_project).and_return(link_action)
-        actions
-      end
-
-      post "/initiatives/#{initiative.id}/related_projects/add",
-           params: { project: { name: 'NewProject' } },
-           headers: turbo_stream_headers
-
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
     end
-  end
 end

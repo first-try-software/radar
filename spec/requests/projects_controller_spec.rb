@@ -626,6 +626,18 @@ RSpec.describe ProjectsController, type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
+    it 'returns error when creating health update for parent project' do
+      parent = ProjectRecord.create!(name: 'Parent', current_state: 'in_progress')
+      child = ProjectRecord.create!(name: 'Child', current_state: 'in_progress')
+      ProjectsProjectRecord.create!(parent: parent, child: child, order: 0)
+      params = { health_update: { date: Date.current, health: 'on_track' } }
+
+      post "/projects/#{parent.id}/health_updates", params: params, headers: json_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body['errors']).to include('health updates can only be created for leaf projects')
+    end
+
     it 'creates a health update via turbo_stream and returns stream response' do
       record = ProjectRecord.create!(name: 'Turbo', current_state: 'in_progress')
       params = { health_update: { date: Date.current, health: 'on_track', description: 'All good' } }

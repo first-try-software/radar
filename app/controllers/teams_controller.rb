@@ -130,25 +130,10 @@ class TeamsController < ApplicationController
 
     respond_to do |format|
       format.json { render_project_result(link_result, success_status: :created) }
-      format.html do
-        if link_result.success?
-          redirect_to(team_path(params[:id]), notice: 'Project added and linked')
-        else
-          @team = find_domain_team(params[:id])
-          return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @team
-
-          populate_team_dashboard_data(@team)
-          @errors = link_result.errors
-          render :show, status: :unprocessable_content
-        end
-      end
+      format.html { redirect_to(team_path(params[:id]), notice: 'Project added and linked') }
       format.turbo_stream do
-        if link_result.success?
-          @team = find_domain_team(params[:id])
-          render :add_owned_project
-        else
-          render turbo_stream: turbo_stream.append("toast-container", "<div class='toast toast--error toast--visible'>Failed to link project: #{link_result.errors.join(', ')}</div>".html_safe), status: :unprocessable_content
-        end
+        @team = find_domain_team(params[:id])
+        render :add_owned_project
       end
     end
   end

@@ -18,6 +18,7 @@ class CreateProjectHealthUpdate
     @description = description
 
     return project_not_found_failure unless project
+    return not_a_leaf_failure unless project.leaf?
     return missing_date_failure unless date_present?
     return future_date_failure if future_date?
     return invalid_health_failure unless allowed_health?
@@ -48,6 +49,10 @@ class CreateProjectHealthUpdate
 
   def project_not_found_failure
     failure('project not found')
+  end
+
+  def not_a_leaf_failure
+    failure('health updates can only be created for leaf projects')
   end
 
   def missing_date_failure

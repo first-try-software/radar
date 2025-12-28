@@ -11,8 +11,8 @@ class LinkOwnedProject
     @project_id = project_id
 
     return team_not_found_failure unless team
-    return team_has_subordinates_failure if team_has_subordinates?
     return project_not_found_failure unless project
+    return project_has_parent_failure if project_has_parent?
 
     link_project
     success
@@ -47,11 +47,11 @@ class LinkOwnedProject
     Result.failure(errors: 'project not found')
   end
 
-  def team_has_subordinates?
-    team_repository.has_subordinate_teams?(team_id: team_id)
+  def project_has_parent?
+    project.parent != nil
   end
 
-  def team_has_subordinates_failure
-    Result.failure(errors: 'teams with subordinate teams cannot own projects')
+  def project_has_parent_failure
+    Result.failure(errors: 'only top-level projects can be owned by teams')
   end
 end

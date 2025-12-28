@@ -20,6 +20,22 @@ RSpec.describe CreateProjectHealthUpdate do
     expect(result.errors).to eq(['project not found'])
   end
 
+  it 'fails when the project is not a leaf' do
+    child = ProjectBuilder.build(name: 'Child')
+    parent = ProjectBuilder.build(name: 'Parent', children_loader: ->(_) { [child] })
+    project_repository = FakeProjectRepository.new(projects: { 'parent-id' => parent })
+    health_repository = FakeHealthUpdateRepository.new
+    action = described_class.new(
+      project_repository: project_repository,
+      health_update_repository: health_repository
+    )
+
+    result = action.perform(project_id: 'parent-id', date: Date.today, health: :on_track)
+
+    expect(result.success?).to be(false)
+    expect(result.errors).to eq(['health updates can only be created for leaf projects'])
+  end
+
   it 'fails when the date is missing' do
     project = ProjectBuilder.build(name: 'Status')
     project_repository = FakeProjectRepository.new(projects: { '123' => project })

@@ -12,6 +12,7 @@ class LinkRelatedProject
 
     return initiative_not_found_failure unless initiative
     return project_not_found_failure unless project
+    return project_has_parent_failure if project_has_parent?
 
     link_project
     success
@@ -44,5 +45,13 @@ class LinkRelatedProject
 
   def project_not_found_failure
     Result.failure(errors: 'project not found')
+  end
+
+  def project_has_parent?
+    project.parent != nil
+  end
+
+  def project_has_parent_failure
+    Result.failure(errors: 'only top-level projects can be related to initiatives')
   end
 end

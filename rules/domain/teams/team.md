@@ -7,6 +7,7 @@ Identifiers and attributes
 
 Structure and ordering
 - A team may own projects AND/OR have subordinate teams (not mutually exclusive).
+- Teams may only own top-level (parentless) projects; child projects cannot be owned by teams.
 - Owns an ordered set of projects (`owned_projects`) loaded lazily; order is persisted as integers within the team scope.
 - Manages an ordered set of subordinate teams (`subordinate_teams`) loaded lazily.
 

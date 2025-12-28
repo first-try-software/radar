@@ -167,31 +167,28 @@ RSpec.describe TeamsController, type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
-    it 'returns error when project created but linking fails' do
+    it 'allows teams with subordinate teams to own projects' do
       team = TeamRecord.create!(name: 'Platform Team')
       child_team = TeamRecord.create!(name: 'Child Team')
       TeamsTeamRecord.create!(parent: team, child: child_team, order: 0)
 
-      # Team has subordinate teams, so linking will fail
       post "/teams/#{team.id}/owned_projects/add", params: { project: { name: 'New Feature' } }
 
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include('teams with subordinate teams cannot own projects')
+      expect(response).to have_http_status(:found)
+      follow_redirect!
+      expect(response.body).to include('New Feature')
     end
 
-    it 'returns 404 when linking fails and team disappears' do
+    it 'returns error when linking a child project' do
       team = TeamRecord.create!(name: 'Platform Team')
+      parent_project = ProjectRecord.create!(name: 'Parent Project')
+      child_project = ProjectRecord.create!(name: 'Child Project')
+      ProjectsProjectRecord.create!(parent: parent_project, child: child_project, order: 0)
 
-      allow_any_instance_of(LinkOwnedProject).to receive(:perform).and_return(
-        Result.failure(errors: ['link failed'])
-      )
-      allow_any_instance_of(FindTeam).to receive(:perform).and_return(
-        Result.failure(errors: ['not found'])
-      )
+      post "/teams/#{team.id}/owned_projects", params: { project_id: child_project.id }, headers: { 'Accept' => 'application/json' }
 
-      post "/teams/#{team.id}/owned_projects/add", params: { project: { name: 'New Feature' } }
-
-      expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body['errors']).to include('only top-level projects can be owned by teams')
     end
 
     it 'creates a subordinate team via HTML and redirects to the new team' do
@@ -504,26 +501,5 @@ RSpec.describe TeamsController, type: :request do
       expect(response.media_type).to eq('text/vnd.turbo-stream.html')
     end
 
-    it 'returns turbo_stream error when project created but linking fails' do
-      team = TeamRecord.create!(name: 'Platform Team')
-
-      # Stub link action to fail after project is created
-      link_action = instance_double('LinkOwnedProject')
-      allow(link_action).to receive(:perform).and_return(
-        double('Result', success?: false, errors: ['linking failed'])
-      )
-      allow_any_instance_of(TeamsController).to receive(:team_actions).and_wrap_original do |method|
-        actions = method.call
-        allow(actions).to receive(:link_owned_project).and_return(link_action)
-        actions
-      end
-
-      post "/teams/#{team.id}/owned_projects/add",
-           params: { project: { name: 'NewProject' } },
-           headers: turbo_stream_headers
-
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
     end
-  end
 end

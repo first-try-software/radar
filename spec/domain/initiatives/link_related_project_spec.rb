@@ -5,6 +5,7 @@ require 'domain/initiatives/initiative_attributes'
 require 'domain/initiatives/initiative_loaders'
 require 'domain/projects/project'
 require 'domain/projects/project_attributes'
+require 'domain/projects/project_loaders'
 require 'support/persistence/fake_initiative_repository'
 require 'support/persistence/fake_project_repository'
 
@@ -50,6 +51,28 @@ RSpec.describe LinkRelatedProject do
 
     expect(result.success?).to be(false)
     expect(result.errors).to include('project not found')
+  end
+
+  it 'fails when the project has a parent' do
+    initiative = build_initiative(name: 'Launch 2025')
+    initiative_repository = FakeInitiativeRepository.new(initiatives: { '1' => initiative })
+    project_repository = FakeProjectRepository.new
+    parent_project = build_project('Parent')
+    child_project = Project.new(
+      attributes: ProjectAttributes.new(name: 'Child'),
+      loaders: ProjectLoaders.new(parent: ->(_) { parent_project })
+    )
+    project_repository.save(child_project)
+
+    action = described_class.new(
+      initiative_repository: initiative_repository,
+      project_repository: project_repository
+    )
+
+    result = action.perform(initiative_id: '1', project_id: 'Child')
+
+    expect(result.success?).to be(false)
+    expect(result.errors).to include('only top-level projects can be related to initiatives')
   end
 
   it 'links an existing project to the initiative' do

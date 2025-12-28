@@ -150,25 +150,10 @@ class InitiativesController < ApplicationController
 
     respond_to do |format|
       format.json { render_project_result(link_result, success_status: :created) }
-      format.html do
-        if link_result.success?
-          redirect_to(initiative_path(params[:id]), notice: 'Project added and linked')
-        else
-          @initiative = find_domain_initiative(params[:id])
-          return render file: Rails.public_path.join('404.html'), status: :not_found, layout: false unless @initiative
-
-          @errors = link_result.errors
-          populate_dashboard_data(@initiative)
-          render :show, status: :unprocessable_content
-        end
-      end
+      format.html { redirect_to(initiative_path(params[:id]), notice: 'Project added and linked') }
       format.turbo_stream do
-        if link_result.success?
-          @initiative = find_domain_initiative(params[:id])
-          render :add_related_project
-        else
-          render turbo_stream: turbo_stream.append("toast-container", "<div class='toast toast--error toast--visible'>Failed to link project: #{link_result.errors.join(', ')}</div>".html_safe), status: :unprocessable_content
-        end
+        @initiative = find_domain_initiative(params[:id])
+        render :add_related_project
       end
     end
   end

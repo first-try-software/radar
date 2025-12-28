@@ -7,6 +7,7 @@ Identifiers and attributes
 
 Structure and ordering
 - Holds an ordered set of related projects loaded lazily; ordering is persisted within the initiative scope.
+- Initiatives may only relate to top-level (parentless) projects; child projects cannot be related to initiatives.
 
 Health model
 - Uses health rollup scoring (`:on_track => 1`, `:at_risk => 0`, `:off_track => -1`; thresholds >0 `:on_track`, <0 `:off_track`, else `:at_risk`); `:not_available` related project health is ignored.
