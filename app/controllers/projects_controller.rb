@@ -7,7 +7,6 @@ class ProjectsController < ApplicationController
       format.html do
         if result.success?
           @project = result.value
-          prepare_health_form(project: @project)
           prepare_trend_data(project: @project)
           prepare_global_search_data
           if @project.leaf?
@@ -332,15 +331,8 @@ class ProjectsController < ApplicationController
   end
 
   def prepare_show_for_errors
-    prepare_health_form(project: @project, open: true)
     prepare_trend_data(project: @project)
     prepare_global_search_data
-  end
-
-  def prepare_health_form(project:, open: false)
-    @health_options = health_options
-    @selected_health = selected_health_for(project)
-    @show_health_update_form = open
   end
 
   def prepare_trend_data(project:)
@@ -466,13 +458,5 @@ class ProjectsController < ApplicationController
 
   def health_update_repository
     Rails.application.config.x.health_update_repository
-  end
-
-  def health_options
-    CreateProjectHealthUpdate::ALLOWED_HEALTHS
-  end
-
-  def selected_health_for(project)
-    health_options.include?(project.health) ? project.health : health_options.first
   end
 end

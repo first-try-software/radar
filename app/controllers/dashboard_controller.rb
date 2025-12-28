@@ -2,33 +2,7 @@ class DashboardController < ApplicationController
   include ApplicationHelper
 
   def index
-    @health_summary = dashboard.health_summary
-    @total_active_projects = dashboard.total_active_projects
-    @total_projects = project_repository.all_active_roots.size
-    @attention_required = dashboard.attention_required
-    @attention_required_initiatives = dashboard.attention_required_initiatives
-    @attention_required_teams = dashboard.attention_required_teams
-    @on_hold_projects = dashboard.on_hold_projects
-    @never_updated_projects = dashboard.never_updated_projects
-    @stale_projects_14 = dashboard.stale_projects(days: 14)
-    @stale_projects_7 = dashboard.stale_projects_between(min_days: 7, max_days: 14)
-    @orphan_projects = dashboard.orphan_projects
-
-    # Active and inactive project lists for tabs
-    all_root_projects = project_repository.all_active_roots
-    @active_projects = all_root_projects.select { |p| [:in_progress, :blocked].include?(p.current_state) }
-    @inactive_projects = all_root_projects.reject { |p| [:in_progress, :blocked].include?(p.current_state) }
-
-    # All projects for global search
-    @all_projects = all_root_projects
-    @sorted_all_projects = sort_projects_canonical(@all_projects)
-    @sorted_attention_required = sort_projects_canonical(@attention_required)
-    @sorted_never_updated_projects = sort_projects_canonical(@never_updated_projects)
-    @sorted_stale_projects_14 = sort_projects_canonical(@stale_projects_14)
-    @sorted_stale_projects_7 = sort_projects_canonical(@stale_projects_7)
-    @sorted_active_projects = sort_projects_canonical(@active_projects)
-    @sorted_inactive_projects = sort_projects_canonical(@inactive_projects)
-    @sorted_orphan_projects = sort_projects_canonical(@orphan_projects)
+    @all_projects = project_repository.all_active_roots
 
     # Teams and initiatives for columns with trend/confidence data
     @teams = team_repository.all_active_roots
@@ -66,10 +40,6 @@ class DashboardController < ApplicationController
   end
 
   private
-
-  def dashboard
-    Rails.application.config.x.dashboard
-  end
 
   def project_repository
     Rails.application.config.x.project_repository

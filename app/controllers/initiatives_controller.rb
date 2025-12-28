@@ -263,12 +263,6 @@ class InitiativesController < ApplicationController
     )
 
     @health_summary = dashboard.health_summary
-    @total_active_projects = dashboard.total_active_projects
-    @attention_required = dashboard.attention_required
-    @on_hold_projects = dashboard.on_hold_projects
-    @never_updated_projects = dashboard.never_updated_projects
-    @stale_projects_14 = dashboard.stale_projects(days: 14)
-    @stale_projects_7 = dashboard.stale_projects_between(min_days: 7, max_days: 14)
 
     # Global search data
     @teams = team_repository.all_active_roots
