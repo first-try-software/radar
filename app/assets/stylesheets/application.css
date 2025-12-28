@@ -1598,16 +1598,18 @@ input::placeholder {
 
 .project-hero__title {
   font-family: "Montserrat", sans-serif;
-  font-size: 48px;
+  font-size: 60px;
   font-weight: 400;
   color: var(--text);
   margin: 42px 0 16px 0;
   letter-spacing: 4px;
+  text-transform: lowercase;
+  font-variant: small-caps;
 }
 
 .project-hero__tagline {
   font-family: "Montserrat", sans-serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 400;
   color: var(--text-muted);
   margin: 0 0 16px 0;
@@ -1618,7 +1620,7 @@ input::placeholder {
 }
 
 .project-hero__contact {
-  font-size: 16px;
+  font-size: 14px;
   color: var(--text-muted);
   margin: 0;
 }
