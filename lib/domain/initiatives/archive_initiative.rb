@@ -1,5 +1,6 @@
 require_relative '../support/result'
 require_relative 'initiative'
+require_relative 'initiative_attributes'
 
 class ArchiveInitiative
   def initialize(initiative_repository:)
@@ -25,10 +26,13 @@ class ArchiveInitiative
 
   def archived_initiative
     @archived_initiative ||= Initiative.new(
-      name: initiative.name,
-      description: initiative.description,
-      point_of_contact: initiative.point_of_contact,
-      archived: true
+      attributes: InitiativeAttributes.new(
+        id: initiative.id,
+        name: initiative.name,
+        description: initiative.description,
+        point_of_contact: initiative.point_of_contact,
+        archived: true
+      )
     )
   end
 

@@ -1,5 +1,6 @@
 require_relative '../support/result'
 require_relative 'team'
+require_relative 'team_attributes'
 
 class CreateSubordinateTeam
   def initialize(team_repository:)
@@ -8,7 +9,7 @@ class CreateSubordinateTeam
 
   def perform(parent_id:, name:, description: '', point_of_contact: '')
     @parent_id = parent_id
-    @attributes = { name:, description:, point_of_contact: }
+    @attrs = TeamAttributes.new(name:, description:, point_of_contact:)
 
     return parent_not_found_failure unless parent_team
     return invalid_team_failure unless team.valid?
@@ -21,14 +22,14 @@ class CreateSubordinateTeam
 
   private
 
-  attr_reader :team_repository, :parent_id, :attributes
+  attr_reader :team_repository, :parent_id, :attrs
 
   def parent_team
     @parent_team ||= team_repository.find(parent_id)
   end
 
   def team
-    @team ||= Team.new(**attributes)
+    @team ||= Team.new(attributes: attrs)
   end
 
   def unique_name?

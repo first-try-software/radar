@@ -1,5 +1,7 @@
 require 'rails_helper'
 require 'domain/teams/team'
+require 'domain/teams/team_attributes'
+require 'domain/teams/team_loaders'
 require 'domain/projects/project'
 require 'domain/projects/project_attributes'
 require Rails.root.join('app/persistence/team_repository')
@@ -11,8 +13,9 @@ RSpec.describe TeamRepository do
   let(:project_repository) { ProjectRepository.new(health_update_repository: health_repository) }
   subject(:repository) { described_class.new(project_repository: project_repository) }
 
-  def build_team(name)
-    Team.new(name: name)
+  def build_team(name, **kwargs)
+    attrs = TeamAttributes.new(name: name, **kwargs)
+    Team.new(attributes: attrs)
   end
 
   def build_project(name)
@@ -62,7 +65,7 @@ RSpec.describe TeamRepository do
     end
 
     it 'saves description and point_of_contact' do
-      team = Team.new(name: 'Team', description: 'Description', point_of_contact: 'POC')
+      team = build_team('Team', description: 'Description', point_of_contact: 'POC')
 
       repository.save(team)
 
@@ -75,7 +78,7 @@ RSpec.describe TeamRepository do
   describe '#update' do
     it 'updates teams by id' do
       record = TeamRecord.create!(name: 'Platform Team')
-      updated = Team.new(name: 'Infra Team', description: 'Updated description')
+      updated = build_team('Infra Team', description: 'Updated description')
 
       repository.update(id: record.id, team: updated)
 

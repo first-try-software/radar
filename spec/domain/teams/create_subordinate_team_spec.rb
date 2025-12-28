@@ -1,9 +1,12 @@
 require 'spec_helper'
 require 'domain/teams/create_subordinate_team'
 require 'domain/teams/team'
+require_relative '../../support/domain/team_builder'
 require_relative '../../support/persistence/fake_team_repository'
 
 RSpec.describe CreateSubordinateTeam do
+  include TeamBuilder
+
   it 'fails when the parent team cannot be found' do
     repository = FakeTeamRepository.new
     action = described_class.new(team_repository: repository)
@@ -15,7 +18,7 @@ RSpec.describe CreateSubordinateTeam do
   end
 
   it 'fails when the subordinate team is invalid' do
-    parent = Team.new(name: 'Platform')
+    parent = build_team(name: 'Platform')
     repository = FakeTeamRepository.new(teams: { 'team-123' => parent })
     action = described_class.new(team_repository: repository)
 
@@ -26,9 +29,9 @@ RSpec.describe CreateSubordinateTeam do
   end
 
   it 'fails when the subordinate team name already exists' do
-    parent = Team.new(name: 'Platform')
+    parent = build_team(name: 'Platform')
     repository = FakeTeamRepository.new(
-      teams: { 'team-123' => parent, 'team-456' => Team.new(name: 'Child Team') }
+      teams: { 'team-123' => parent, 'team-456' => build_team(name: 'Child Team') }
     )
     action = described_class.new(team_repository: repository)
 
@@ -39,7 +42,7 @@ RSpec.describe CreateSubordinateTeam do
   end
 
   it 'succeeds when the parent team owns projects' do
-    parent = Team.new(name: 'Platform')
+    parent = build_team(name: 'Platform')
     repository = FakeTeamRepository.new(teams: { 'team-123' => parent })
     repository.link_owned_project(team_id: 'team-123', project: double('Project', name: 'Project'), order: 0)
     action = described_class.new(team_repository: repository)
@@ -51,7 +54,7 @@ RSpec.describe CreateSubordinateTeam do
   end
 
   it 'saves the team and links it to the parent team' do
-    parent = Team.new(name: 'Platform')
+    parent = build_team(name: 'Platform')
     repository = FakeTeamRepository.new(teams: { 'team-123' => parent })
     action = described_class.new(team_repository: repository)
 
@@ -71,9 +74,9 @@ RSpec.describe CreateSubordinateTeam do
   end
 
   it 'assigns the next order when the parent already has subordinates' do
-    parent = Team.new(name: 'Platform')
+    parent = build_team(name: 'Platform')
     repository = FakeTeamRepository.new(teams: { 'team-123' => parent })
-    repository.link_subordinate_team(parent_id: 'team-123', child: Team.new(name: 'Existing'), order: 0)
+    repository.link_subordinate_team(parent_id: 'team-123', child: build_team(name: 'Existing'), order: 0)
     action = described_class.new(team_repository: repository)
 
     action.perform(parent_id: 'team-123', name: 'Second Child', description: 'Support')
@@ -82,7 +85,7 @@ RSpec.describe CreateSubordinateTeam do
   end
 
   it 'fails when a newly saved subordinate team has the same name' do
-    parent = Team.new(name: 'Platform')
+    parent = build_team(name: 'Platform')
     repository = FakeTeamRepository.new(teams: { 'team-123' => parent })
     action = described_class.new(team_repository: repository)
 

@@ -1,12 +1,13 @@
 require 'spec_helper'
 require 'domain/initiatives/create_related_project'
-require 'domain/initiatives/initiative'
-require 'domain/projects/project'
+require_relative '../../support/domain/initiative_builder'
 require_relative '../../support/persistence/fake_initiative_repository'
 require_relative '../../support/persistence/fake_project_repository'
 require_relative '../../support/project_builder'
 
 RSpec.describe CreateRelatedProject do
+  include InitiativeBuilder
+
   it 'fails when the initiative cannot be found' do
     initiative_repository = FakeInitiativeRepository.new
     project_repository = FakeProjectRepository.new
@@ -22,7 +23,7 @@ RSpec.describe CreateRelatedProject do
   end
 
   it 'fails when the project is invalid' do
-    initiative = Initiative.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
     initiative_repository = FakeInitiativeRepository.new(initiatives: { 'init-123' => initiative })
     project_repository = FakeProjectRepository.new
     action = described_class.new(
@@ -37,7 +38,7 @@ RSpec.describe CreateRelatedProject do
   end
 
   it 'fails when the project name already exists' do
-    initiative = Initiative.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
     initiative_repository = FakeInitiativeRepository.new(initiatives: { 'init-123' => initiative })
     project_repository = FakeProjectRepository.new
     project_repository.save(ProjectBuilder.build(name: 'Project'))
@@ -53,7 +54,7 @@ RSpec.describe CreateRelatedProject do
   end
 
   it 'saves the project and links it to the initiative' do
-    initiative = Initiative.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
     initiative_repository = FakeInitiativeRepository.new(initiatives: { 'init-123' => initiative })
     project_repository = FakeProjectRepository.new
     action = described_class.new(

@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'domain/initiatives/link_related_project'
 require 'domain/initiatives/initiative'
+require 'domain/initiatives/initiative_attributes'
+require 'domain/initiatives/initiative_loaders'
 require 'domain/projects/project'
 require 'domain/projects/project_attributes'
 require 'support/persistence/fake_initiative_repository'
@@ -10,6 +12,11 @@ RSpec.describe LinkRelatedProject do
   def build_project(name)
     attrs = ProjectAttributes.new(name: name)
     Project.new(attributes: attrs)
+  end
+
+  def build_initiative(name:)
+    attrs = InitiativeAttributes.new(name: name)
+    Initiative.new(attributes: attrs)
   end
 
   it 'fails when the initiative cannot be found' do
@@ -30,7 +37,7 @@ RSpec.describe LinkRelatedProject do
   end
 
   it 'fails when the project cannot be found' do
-    initiative = Initiative.new(name: 'Launch 2025')
+    initiative = build_initiative(name: 'Launch 2025')
     initiative_repository = FakeInitiativeRepository.new(initiatives: { '1' => initiative })
     project_repository = FakeProjectRepository.new
 
@@ -46,7 +53,7 @@ RSpec.describe LinkRelatedProject do
   end
 
   it 'links an existing project to the initiative' do
-    initiative = Initiative.new(name: 'Launch 2025')
+    initiative = build_initiative(name: 'Launch 2025')
     initiative_repository = FakeInitiativeRepository.new(initiatives: { '1' => initiative })
     project_repository = FakeProjectRepository.new
     project = build_project('Feature A')
@@ -67,7 +74,7 @@ RSpec.describe LinkRelatedProject do
   end
 
   it 'assigns order to linked projects incrementally' do
-    initiative = Initiative.new(name: 'Launch 2025')
+    initiative = build_initiative(name: 'Launch 2025')
     initiative_repository = FakeInitiativeRepository.new(initiatives: { '1' => initiative })
     project_repository = FakeProjectRepository.new
     project_a = build_project('Feature A')

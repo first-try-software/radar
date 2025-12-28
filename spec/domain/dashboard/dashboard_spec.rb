@@ -6,7 +6,11 @@ require 'domain/projects/project_attributes'
 require 'domain/projects/project_loaders'
 require 'domain/projects/health_update'
 require 'domain/initiatives/initiative'
+require 'domain/initiatives/initiative_attributes'
+require 'domain/initiatives/initiative_loaders'
 require 'domain/teams/team'
+require 'domain/teams/team_attributes'
+require 'domain/teams/team_loaders'
 require_relative '../../support/persistence/fake_project_repository'
 require_relative '../../support/persistence/fake_health_update_repository'
 require_relative '../../support/persistence/fake_initiative_repository'
@@ -212,12 +216,9 @@ RSpec.describe Dashboard do
                    []
                  end
 
-      Initiative.new(
-        name: name,
-        current_state: state,
-        archived: archived,
-        related_projects_loader: ->(_i) { projects }
-      )
+      attrs = InitiativeAttributes.new(name: name, current_state: state, archived: archived)
+      loaders = InitiativeLoaders.new(related_projects: ->(_i) { projects })
+      Initiative.new(attributes: attrs, loaders: loaders)
     end
 
     it 'returns off-track initiatives' do
@@ -303,11 +304,9 @@ RSpec.describe Dashboard do
                    []
                  end
 
-      Team.new(
-        name: name,
-        archived: archived,
-        owned_projects_loader: ->(_t) { projects }
-      )
+      attrs = TeamAttributes.new(name: name, archived: archived)
+      loaders = TeamLoaders.new(owned_projects: ->(_t) { projects })
+      Team.new(attributes: attrs, loaders: loaders)
     end
 
     it 'returns off-track teams' do

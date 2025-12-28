@@ -1,21 +1,23 @@
 require 'spec_helper'
 require 'domain/teams/archive_team'
-require 'domain/teams/team'
+require_relative '../../support/domain/team_builder'
 require_relative '../../support/persistence/fake_team_repository'
 
 RSpec.describe ArchiveTeam do
+  include TeamBuilder
+
   it 'looks up the team by id' do
     repository = FakeTeamRepository.new
     action = described_class.new(team_repository: repository)
 
-    expect(repository).to receive(:find).with('team-123').and_return(Team.new(name: 'Platform'))
+    expect(repository).to receive(:find).with('team-123').and_return(build_team(name: 'Platform'))
 
     action.perform(id: 'team-123')
   end
 
   it 'archives the team and saves it' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform'))
     action = described_class.new(team_repository: repository)
 
     action.perform(id: 'team-123')
@@ -26,7 +28,7 @@ RSpec.describe ArchiveTeam do
 
   it 'returns a successful result when the team is archived' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform'))
     action = described_class.new(team_repository: repository)
 
     result = action.perform(id: 'team-123')
@@ -36,7 +38,7 @@ RSpec.describe ArchiveTeam do
 
   it 'returns the archived team as the result value' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform'))
     action = described_class.new(team_repository: repository)
 
     result = action.perform(id: 'team-123')
@@ -46,7 +48,7 @@ RSpec.describe ArchiveTeam do
 
   it 'returns no errors when the team is archived' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform'))
     action = described_class.new(team_repository: repository)
 
     result = action.perform(id: 'team-123')

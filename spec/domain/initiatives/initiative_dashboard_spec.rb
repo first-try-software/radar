@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'date'
 require 'domain/initiatives/initiative_dashboard'
 require 'domain/initiatives/initiative'
+require 'domain/initiatives/initiative_attributes'
+require 'domain/initiatives/initiative_loaders'
 require 'domain/projects/project'
 require 'domain/projects/project_attributes'
 require 'domain/projects/project_loaders'
@@ -35,10 +37,9 @@ RSpec.describe InitiativeDashboard do
   end
 
   def build_initiative(name:, projects:)
-    Initiative.new(
-      name: name,
-      related_projects_loader: ->(_i) { projects }
-    )
+    attrs = InitiativeAttributes.new(name: name)
+    loaders = InitiativeLoaders.new(related_projects: ->(_i) { projects })
+    Initiative.new(attributes: attrs, loaders: loaders)
   end
 
   describe '#health_summary' do

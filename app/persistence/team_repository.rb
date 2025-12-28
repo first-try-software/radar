@@ -136,15 +136,19 @@ class TeamRepository
   attr_reader :project_repository
 
   def build_entity(record)
-    Team.new(
+    attributes = TeamAttributes.new(
+      id: record.id.to_s,
       name: record.name,
       description: record.description,
       point_of_contact: record.point_of_contact,
-      archived: record.archived,
-      owned_projects_loader: owned_projects_loader_for(record),
-      subordinate_teams_loader: subordinate_teams_loader_for(record),
-      parent_team_loader: parent_team_loader_for(record)
+      archived: record.archived
     )
+    loaders = TeamLoaders.new(
+      owned_projects: owned_projects_loader_for(record),
+      subordinate_teams: subordinate_teams_loader_for(record),
+      parent_team: parent_team_loader_for(record)
+    )
+    Team.new(attributes: attributes, loaders: loaders)
   end
 
   def owned_projects_loader_for(record)

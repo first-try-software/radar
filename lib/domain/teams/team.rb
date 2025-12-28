@@ -1,41 +1,28 @@
 require_relative '../support/health_rollup'
+require_relative 'team_attributes'
+require_relative 'team_loaders'
 
 class Team
-  attr_reader :name, :description, :point_of_contact
-
-  def initialize(
-    name:,
-    description: '',
-    point_of_contact: '',
-    archived: false,
-    owned_projects_loader: nil,
-    subordinate_teams_loader: nil,
-    parent_team_loader: nil
-  )
-    @name = name.to_s
-    @description = description.to_s
-    @point_of_contact = point_of_contact.to_s
-    @archived = archived
-    @owned_projects_loader = owned_projects_loader
-    @subordinate_teams_loader = subordinate_teams_loader
-    @parent_team_loader = parent_team_loader
+  def initialize(attributes:, loaders: TeamLoaders.new)
+    @attributes = attributes
+    @loaders = loaders
     @owned_projects = nil
     @subordinate_teams = nil
     @parent_team = nil
   end
 
+  def id = attributes.id
+  def name = attributes.name
+  def description = attributes.description
+  def point_of_contact = attributes.point_of_contact
+  def archived? = attributes.archived?
+
   def valid?
-    !name.strip.empty?
+    attributes.valid?
   end
 
   def errors
-    return [] if valid?
-
-    ['name must be present']
-  end
-
-  def archived?
-    !!@archived
+    attributes.errors
   end
 
   def owned_projects
@@ -89,7 +76,7 @@ class Team
   HEALTH_SCORES = { on_track: 1, at_risk: 0, off_track: -1 }.freeze
   WORKING_STATES = [:in_progress, :blocked].freeze
 
-  attr_reader :owned_projects_loader, :subordinate_teams_loader, :parent_team_loader
+  attr_reader :attributes, :loaders
 
   def collect_health_values
     # Virtual child approach: local projects as a group get equal weight to each child team
@@ -119,14 +106,14 @@ class Team
   end
 
   def load_owned_projects
-    owned_projects_loader ? Array(owned_projects_loader.call(self)) : []
+    loaders.owned_projects ? Array(loaders.owned_projects.call(self)) : []
   end
 
   def load_subordinate_teams
-    subordinate_teams_loader ? Array(subordinate_teams_loader.call(self)) : []
+    loaders.subordinate_teams ? Array(loaders.subordinate_teams.call(self)) : []
   end
 
   def load_parent_team
-    parent_team_loader ? parent_team_loader.call(self) : nil
+    loaders.parent_team ? loaders.parent_team.call(self) : nil
   end
 end

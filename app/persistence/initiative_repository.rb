@@ -97,14 +97,18 @@ class InitiativeRepository
   attr_reader :project_repository
 
   def build_entity(record)
-    Initiative.new(
+    attributes = InitiativeAttributes.new(
+      id: record.id.to_s,
       name: record.name,
       description: record.description,
       point_of_contact: record.point_of_contact,
       archived: record.archived,
-      current_state: record.current_state.to_sym,
-      related_projects_loader: related_projects_loader_for(record)
+      current_state: record.current_state.to_sym
     )
+    loaders = InitiativeLoaders.new(
+      related_projects: related_projects_loader_for(record)
+    )
+    Initiative.new(attributes: attributes, loaders: loaders)
   end
 
   def related_projects_loader_for(record)

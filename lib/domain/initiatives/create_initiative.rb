@@ -1,5 +1,6 @@
 require_relative '../support/result'
 require_relative 'initiative'
+require_relative 'initiative_attributes'
 
 class CreateInitiative
   def initialize(initiative_repository:)
@@ -7,7 +8,7 @@ class CreateInitiative
   end
 
   def perform(name:, description: '', point_of_contact: '')
-    @attributes = { name:, description:, point_of_contact: }
+    @attrs = InitiativeAttributes.new(name:, description:, point_of_contact:)
 
     return invalid_initiative_failure unless initiative.valid?
     return duplicate_name_failure if initiative_repository.exists_with_name?(initiative.name)
@@ -18,10 +19,10 @@ class CreateInitiative
 
   private
 
-  attr_reader :initiative_repository, :attributes
+  attr_reader :initiative_repository, :attrs
 
   def initiative
-    @initiative ||= Initiative.new(**attributes)
+    @initiative ||= Initiative.new(attributes: attrs)
   end
 
   def invalid_initiative_failure

@@ -1,35 +1,29 @@
 require_relative '../support/health_rollup'
+require_relative 'initiative_attributes'
+require_relative 'initiative_loaders'
 
 class Initiative
-  ALLOWED_STATES = [:new, :todo, :in_progress, :blocked, :on_hold, :done].freeze
   CASCADING_STATES = [:todo, :on_hold, :done].freeze
   STATE_PRIORITY = [:blocked, :in_progress, :on_hold, :todo, :new, :done].freeze
 
-  attr_reader :name, :description, :point_of_contact, :current_state
-
-  def initialize(name:, description: '', point_of_contact: '', archived: false, current_state: :new, related_projects_loader: nil)
-    @name = name.to_s
-    @description = description.to_s
-    @point_of_contact = point_of_contact.to_s
-    @archived = archived
-    @current_state = current_state.to_s.to_sym
-    @related_projects_loader = related_projects_loader
-    @related_projects = nil
+  def initialize(attributes:, loaders: InitiativeLoaders.new)
+    @attributes = attributes
+    @loaders = loaders
   end
 
+  def id = attributes.id
+  def name = attributes.name
+  def description = attributes.description
+  def point_of_contact = attributes.point_of_contact
+  def archived? = attributes.archived?
+  def current_state = attributes.current_state
+
   def valid?
-    name_valid? && state_valid?
+    attributes.valid?
   end
 
   def errors
-    errs = []
-    errs << 'name must be present' unless name_valid?
-    errs << 'state must be valid' unless state_valid?
-    errs
-  end
-
-  def archived?
-    !!@archived
+    attributes.errors
   end
 
   def related_projects
@@ -67,29 +61,14 @@ class Initiative
   end
 
   def with_state(state)
-    self.class.new(
-      name: name,
-      description: description,
-      point_of_contact: point_of_contact,
-      archived: archived?,
-      current_state: state,
-      related_projects_loader: related_projects_loader
-    )
+    self.class.new(attributes: attributes.with_state(state), loaders: loaders)
   end
 
   private
 
-  attr_reader :related_projects_loader
-
-  def name_valid?
-    !name.strip.empty?
-  end
-
-  def state_valid?
-    ALLOWED_STATES.include?(current_state)
-  end
+  attr_reader :attributes, :loaders
 
   def load_related_projects
-    related_projects_loader ? Array(related_projects_loader.call(self)) : []
+    loaders.related_projects ? Array(loaders.related_projects.call(self)) : []
   end
 end

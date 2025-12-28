@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'domain/initiatives/set_initiative_state'
 require 'domain/initiatives/initiative'
+require 'domain/initiatives/initiative_attributes'
+require 'domain/initiatives/initiative_loaders'
 require 'support/persistence/fake_initiative_repository'
 require 'support/persistence/fake_project_repository'
 
@@ -13,11 +15,9 @@ RSpec.describe SetInitiativeState do
   end
 
   def build_initiative(name:, state: :new, projects: [])
-    Initiative.new(
-      name: name,
-      current_state: state,
-      related_projects_loader: ->(_) { projects }
-    )
+    attrs = InitiativeAttributes.new(name: name, current_state: state)
+    loaders = InitiativeLoaders.new(related_projects: ->(_) { projects })
+    Initiative.new(attributes: attrs, loaders: loaders)
   end
 
   it 'updates initiative state' do

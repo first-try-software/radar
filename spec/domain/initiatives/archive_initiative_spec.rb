@@ -1,14 +1,16 @@
 require 'spec_helper'
 require 'domain/initiatives/archive_initiative'
-require 'domain/initiatives/initiative'
+require_relative '../../support/domain/initiative_builder'
 require_relative '../../support/persistence/fake_initiative_repository'
 
 RSpec.describe ArchiveInitiative do
+  include InitiativeBuilder
+
   it 'looks up the initiative by id' do
     repository = FakeInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
 
-    expect(repository).to receive(:find).with('init-123').and_return(Initiative.new(name: 'Modernize Infra'))
+    expect(repository).to receive(:find).with('init-123').and_return(build_initiative(name: 'Modernize Infra'))
 
     action.perform(id: 'init-123')
   end
@@ -17,7 +19,7 @@ RSpec.describe ArchiveInitiative do
     repository = FakeInitiativeRepository.new
     repository.update(
       id: 'init-123',
-      initiative: Initiative.new(name: 'Modernize Infra', point_of_contact: 'Jordan')
+      initiative: build_initiative(name: 'Modernize Infra', point_of_contact: 'Jordan')
     )
     action = described_class.new(initiative_repository: repository)
 
@@ -32,7 +34,7 @@ RSpec.describe ArchiveInitiative do
     repository = FakeInitiativeRepository.new
     repository.update(
       id: 'init-123',
-      initiative: Initiative.new(name: 'Modernize Infra', point_of_contact: 'Jordan')
+      initiative: build_initiative(name: 'Modernize Infra', point_of_contact: 'Jordan')
     )
     action = described_class.new(initiative_repository: repository)
 
@@ -45,7 +47,7 @@ RSpec.describe ArchiveInitiative do
     repository = FakeInitiativeRepository.new
     repository.update(
       id: 'init-123',
-      initiative: Initiative.new(name: 'Modernize Infra', point_of_contact: 'Jordan')
+      initiative: build_initiative(name: 'Modernize Infra', point_of_contact: 'Jordan')
     )
     action = described_class.new(initiative_repository: repository)
 
@@ -56,7 +58,7 @@ RSpec.describe ArchiveInitiative do
 
   it 'returns no errors when the initiative is archived' do
     repository = FakeInitiativeRepository.new
-    repository.update(id: 'init-123', initiative: Initiative.new(name: 'Modernize Infra'))
+    repository.update(id: 'init-123', initiative: build_initiative(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(id: 'init-123')

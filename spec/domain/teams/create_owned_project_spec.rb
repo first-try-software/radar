@@ -2,11 +2,14 @@ require 'spec_helper'
 require 'domain/teams/create_owned_project'
 require 'domain/teams/team'
 require 'domain/projects/project'
+require_relative '../../support/domain/team_builder'
 require_relative '../../support/persistence/fake_team_repository'
 require_relative '../../support/persistence/fake_project_repository'
 require_relative '../../support/project_builder'
 
 RSpec.describe CreateOwnedProject do
+  include TeamBuilder
+
   it 'fails when the team cannot be found' do
     team_repository = FakeTeamRepository.new
     project_repository = FakeProjectRepository.new
@@ -19,7 +22,7 @@ RSpec.describe CreateOwnedProject do
   end
 
   it 'fails when the project is invalid' do
-    team = Team.new(name: 'Platform')
+    team = build_team(name: 'Platform')
     team_repository = FakeTeamRepository.new(teams: { 'team-123' => team })
     project_repository = FakeProjectRepository.new
     action = described_class.new(team_repository: team_repository, project_repository: project_repository)
@@ -31,7 +34,7 @@ RSpec.describe CreateOwnedProject do
   end
 
   it 'fails when the project name already exists' do
-    team = Team.new(name: 'Platform')
+    team = build_team(name: 'Platform')
     team_repository = FakeTeamRepository.new(teams: { 'team-123' => team })
     project_repository = FakeProjectRepository.new
     project_repository.save(ProjectBuilder.build(name: 'Project'))
@@ -44,8 +47,8 @@ RSpec.describe CreateOwnedProject do
   end
 
   it 'succeeds when the team has subordinate teams' do
-    team = Team.new(name: 'Platform')
-    child_team = Team.new(name: 'Child')
+    team = build_team(name: 'Platform')
+    child_team = build_team(name: 'Child')
     team_repository = FakeTeamRepository.new(teams: { 'team-123' => team, 'child' => child_team })
     team_repository.link_subordinate_team(parent_id: 'team-123', child: child_team, order: 0)
     project_repository = FakeProjectRepository.new
@@ -58,7 +61,7 @@ RSpec.describe CreateOwnedProject do
   end
 
   it 'saves the project and links it to the team' do
-    team = Team.new(name: 'Platform')
+    team = build_team(name: 'Platform')
     team_repository = FakeTeamRepository.new(teams: { 'team-123' => team })
     project_repository = FakeProjectRepository.new
     action = described_class.new(team_repository: team_repository, project_repository: project_repository)

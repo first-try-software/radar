@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'date'
 require 'domain/teams/team_dashboard'
 require 'domain/teams/team'
+require 'domain/teams/team_attributes'
+require 'domain/teams/team_loaders'
 require 'domain/projects/project'
 require 'domain/projects/project_attributes'
 require 'domain/projects/project_loaders'
@@ -35,11 +37,12 @@ RSpec.describe TeamDashboard do
   end
 
   def build_team(name:, owned_projects: [], subordinate_teams: [])
-    Team.new(
-      name: name,
-      owned_projects_loader: ->(_t) { owned_projects },
-      subordinate_teams_loader: ->(_t) { subordinate_teams }
+    attrs = TeamAttributes.new(name: name)
+    loaders = TeamLoaders.new(
+      owned_projects: ->(_t) { owned_projects },
+      subordinate_teams: ->(_t) { subordinate_teams }
     )
+    Team.new(attributes: attrs, loaders: loaders)
   end
 
   describe '#health_summary' do

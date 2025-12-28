@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'domain/initiatives/unlink_related_project'
 require 'domain/initiatives/initiative'
+require 'domain/initiatives/initiative_attributes'
+require 'domain/initiatives/initiative_loaders'
 require 'domain/projects/project'
 require 'domain/projects/project_attributes'
 require 'support/persistence/fake_initiative_repository'
@@ -10,6 +12,11 @@ RSpec.describe UnlinkRelatedProject do
   def build_project(name)
     attrs = ProjectAttributes.new(name: name)
     Project.new(attributes: attrs)
+  end
+
+  def build_initiative(name:)
+    attrs = InitiativeAttributes.new(name: name)
+    Initiative.new(attributes: attrs)
   end
 
   it 'fails when the initiative cannot be found' do
@@ -24,7 +31,7 @@ RSpec.describe UnlinkRelatedProject do
   end
 
   it 'fails when the project is not linked to the initiative' do
-    initiative = Initiative.new(name: 'Launch 2025')
+    initiative = build_initiative(name: 'Launch 2025')
     initiative_repository = FakeInitiativeRepository.new(initiatives: { '1' => initiative })
 
     action = described_class.new(initiative_repository: initiative_repository)
@@ -36,7 +43,7 @@ RSpec.describe UnlinkRelatedProject do
   end
 
   it 'unlinks an existing project from the initiative' do
-    initiative = Initiative.new(name: 'Launch 2025')
+    initiative = build_initiative(name: 'Launch 2025')
     initiative_repository = FakeInitiativeRepository.new(initiatives: { '1' => initiative })
     project = build_project('Feature A')
     initiative_repository.link_related_project(initiative_id: '1', project: project, order: 0)
@@ -51,7 +58,7 @@ RSpec.describe UnlinkRelatedProject do
   end
 
   it 'returns the initiative on success' do
-    initiative = Initiative.new(name: 'Launch 2025')
+    initiative = build_initiative(name: 'Launch 2025')
     initiative_repository = FakeInitiativeRepository.new(initiatives: { '1' => initiative })
     project = build_project('Feature A')
     initiative_repository.link_related_project(initiative_id: '1', project: project, order: 0)

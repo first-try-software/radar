@@ -1,9 +1,11 @@
 require 'spec_helper'
 require 'domain/initiatives/create_initiative'
-require 'domain/initiatives/initiative'
+require_relative '../../support/domain/initiative_builder'
 require_relative '../../support/persistence/fake_initiative_repository'
 
 RSpec.describe CreateInitiative do
+  include InitiativeBuilder
+
   it 'stores the created initiative in the repository' do
     repository = FakeInitiativeRepository.new
     action = described_class.new(initiative_repository: repository)
@@ -75,7 +77,7 @@ RSpec.describe CreateInitiative do
 
   it 'fails when the name conflicts with an existing initiative' do
     repository = FakeInitiativeRepository.new
-    repository.save(Initiative.new(name: 'Modernize Infra'))
+    repository.save(build_initiative(name: 'Modernize Infra'))
     action = described_class.new(initiative_repository: repository)
 
     result = action.perform(name: 'Modernize Infra')

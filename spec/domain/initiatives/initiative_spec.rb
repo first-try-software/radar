@@ -1,76 +1,96 @@
 require 'spec_helper'
-require 'domain/initiatives/initiative'
+require_relative '../../support/domain/initiative_builder'
 
 RSpec.describe Initiative do
+  include InitiativeBuilder
+
+  it 'returns its id' do
+    initiative = build_initiative(id: '42', name: 'Modernize Infra')
+
+    expect(initiative.id).to eq('42')
+  end
+
+  it 'defaults id to nil' do
+    initiative = build_initiative(name: 'Modernize Infra')
+
+    expect(initiative.id).to be_nil
+  end
+
+  it 'converts id to string' do
+    initiative = build_initiative(id: 42, name: 'Modernize Infra')
+
+    expect(initiative.id).to eq('42')
+  end
+
   it 'returns its name' do
-    initiative = described_class.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
 
     expect(initiative.name).to eq('Modernize Infra')
   end
 
   it 'returns its description' do
-    initiative = described_class.new(name: 'Modernize Infra', description: 'Refresh all platform services')
+    initiative = build_initiative(name: 'Modernize Infra', description: 'Refresh all platform services')
 
     expect(initiative.description).to eq('Refresh all platform services')
   end
 
   it 'defaults description to an empty string' do
-    initiative = described_class.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
 
     expect(initiative.description).to eq('')
   end
 
   it 'returns its point of contact' do
-    initiative = described_class.new(name: 'Modernize Infra', point_of_contact: 'Jordan')
+    initiative = build_initiative(name: 'Modernize Infra', point_of_contact: 'Jordan')
 
     expect(initiative.point_of_contact).to eq('Jordan')
   end
 
   it 'defaults point_of_contact to an empty string' do
-    initiative = described_class.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
 
     expect(initiative.point_of_contact).to eq('')
   end
 
   it 'records whether it is archived' do
-    initiative = described_class.new(name: 'Modernize Infra', archived: true)
+    initiative = build_initiative(name: 'Modernize Infra', archived: true)
 
     expect(initiative).to be_archived
   end
 
   it 'defaults archived to false' do
-    initiative = described_class.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
 
     expect(initiative).not_to be_archived
   end
 
   it 'returns its current_state' do
-    initiative = described_class.new(name: 'Modernize Infra', current_state: :in_progress)
+    initiative = build_initiative(name: 'Modernize Infra', current_state: :in_progress)
 
     expect(initiative.current_state).to eq(:in_progress)
   end
 
   it 'defaults current_state to :new' do
-    initiative = described_class.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
 
     expect(initiative.current_state).to eq(:new)
   end
 
   it 'converts string state to symbol' do
-    initiative = described_class.new(name: 'Modernize Infra', current_state: 'in_progress')
+    initiative = build_initiative(name: 'Modernize Infra', current_state: 'in_progress')
 
     expect(initiative.current_state).to eq(:in_progress)
   end
 
   it 'is invalid when state is not allowed' do
-    initiative = described_class.new(name: 'Modernize Infra', current_state: :invalid_state)
+    initiative = build_initiative(name: 'Modernize Infra', current_state: :invalid_state)
 
     expect(initiative.valid?).to be(false)
     expect(initiative.errors).to include('state must be valid')
   end
 
   it 'returns cascades_state? true for cascading states' do
-    initiative = described_class.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
 
     expect(initiative.cascades_state?(:on_hold)).to be(true)
     expect(initiative.cascades_state?(:done)).to be(true)
@@ -78,7 +98,7 @@ RSpec.describe Initiative do
   end
 
   it 'returns cascades_state? false for non-cascading states' do
-    initiative = described_class.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
 
     expect(initiative.cascades_state?(:in_progress)).to be(false)
     expect(initiative.cascades_state?(:blocked)).to be(false)
@@ -86,7 +106,7 @@ RSpec.describe Initiative do
   end
 
   it 'creates a copy with new state using with_state' do
-    initiative = described_class.new(name: 'Modernize Infra', current_state: :new)
+    initiative = build_initiative(name: 'Modernize Infra', current_state: :new)
 
     updated = initiative.with_state(:in_progress)
 
@@ -95,9 +115,17 @@ RSpec.describe Initiative do
     expect(initiative.current_state).to eq(:new)
   end
 
+  it 'preserves id when using with_state' do
+    initiative = build_initiative(id: '42', name: 'Modernize Infra', current_state: :new)
+
+    updated = initiative.with_state(:in_progress)
+
+    expect(updated.id).to eq('42')
+  end
+
   describe '#derived_state' do
     it 'returns current_state when no related projects' do
-      initiative = described_class.new(name: 'Modernize Infra', current_state: :todo)
+      initiative = build_initiative(name: 'Modernize Infra', current_state: :todo)
 
       expect(initiative.derived_state).to eq(:todo)
     end
@@ -108,7 +136,7 @@ RSpec.describe Initiative do
         double('Project', current_state: :blocked),
         double('Project', current_state: :in_progress)
       ]
-      initiative = described_class.new(
+      initiative = build_initiative(
         name: 'Modernize Infra',
         current_state: :todo,
         related_projects_loader: ->(_initiative) { related_projects }
@@ -123,7 +151,7 @@ RSpec.describe Initiative do
       blocked_project = double('Project', current_state: :blocked)
       active_project = double('Project', current_state: :in_progress)
       related_projects = [blocked_project, active_project]
-      initiative = described_class.new(
+      initiative = build_initiative(
         name: 'Modernize Infra',
         related_projects_loader: ->(_initiative) { related_projects }
       )
@@ -135,38 +163,38 @@ RSpec.describe Initiative do
   end
 
   it 'is valid when it has a name' do
-    initiative = described_class.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
 
     expect(initiative.valid?).to be(true)
   end
 
   it 'is invalid when its name is blank' do
-    initiative = described_class.new(name: '')
+    initiative = build_initiative(name: '')
 
     expect(initiative.valid?).to be(false)
   end
 
   it 'returns validation errors when invalid' do
-    initiative = described_class.new(name: '')
+    initiative = build_initiative(name: '')
 
     expect(initiative.errors).to eq(['name must be present'])
   end
 
   it 'returns no validation errors when valid' do
-    initiative = described_class.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
 
     expect(initiative.errors).to eq([])
   end
 
   it 'returns empty related projects when no loader provided' do
-    initiative = described_class.new(name: 'Modernize Infra')
+    initiative = build_initiative(name: 'Modernize Infra')
 
     expect(initiative.related_projects).to eq([])
   end
 
   it 'lazy loads related projects via the loader' do
     loader = ->(_initiative) { [double('Project')] }
-    initiative = described_class.new(name: 'Modernize Infra', related_projects_loader: loader)
+    initiative = build_initiative(name: 'Modernize Infra', related_projects_loader: loader)
 
     expect(initiative.related_projects.length).to eq(1)
   end
@@ -174,7 +202,7 @@ RSpec.describe Initiative do
   describe '#leaf_projects' do
     it 'returns leaf projects directly when related project is a leaf' do
       leaf_project = double('LeafProject', id: 1, leaf?: true)
-      initiative = described_class.new(
+      initiative = build_initiative(
         name: 'Modernize Infra',
         related_projects_loader: ->(_initiative) { [leaf_project] }
       )
@@ -186,7 +214,7 @@ RSpec.describe Initiative do
       child_a = double('ChildA', id: 2, name: 'A')
       child_b = double('ChildB', id: 3, name: 'B')
       parent_project = double('ParentProject', id: 1, leaf?: false, leaf_descendants: [child_a, child_b])
-      initiative = described_class.new(
+      initiative = build_initiative(
         name: 'Modernize Infra',
         related_projects_loader: ->(_initiative) { [parent_project] }
       )
@@ -202,7 +230,7 @@ RSpec.describe Initiative do
         double('Project', current_state: :blocked, health: :off_track),
         double('Project', current_state: :todo, health: :on_track)
       ]
-      initiative = described_class.new(
+      initiative = build_initiative(
         name: 'Modernize Infra',
         related_projects_loader: ->(_initiative) { related_projects }
       )
@@ -215,7 +243,7 @@ RSpec.describe Initiative do
         double('Project', current_state: :todo, health: :on_track),
         double('Project', current_state: :done, health: :off_track)
       ]
-      initiative = described_class.new(
+      initiative = build_initiative(
         name: 'Modernize Infra',
         related_projects_loader: ->(_initiative) { related_projects }
       )
@@ -228,7 +256,7 @@ RSpec.describe Initiative do
       leaf_project = double('LeafProject', current_state: :in_progress, health: :off_track)
       parent_project = double('ParentProject', current_state: :in_progress, health: :on_track)
 
-      initiative = described_class.new(
+      initiative = build_initiative(
         name: 'Modernize Infra',
         related_projects_loader: ->(_initiative) { [leaf_project, parent_project] }
       )
@@ -243,7 +271,7 @@ RSpec.describe Initiative do
       related_projects = [
         double('Project', current_state: :in_progress, health: :on_track)
       ]
-      initiative = described_class.new(
+      initiative = build_initiative(
         name: 'Modernize Infra',
         related_projects_loader: ->(_initiative) { related_projects }
       )
@@ -252,7 +280,7 @@ RSpec.describe Initiative do
     end
 
     it 'returns nil when no related projects in working state' do
-      initiative = described_class.new(name: 'Empty')
+      initiative = build_initiative(name: 'Empty')
 
       expect(initiative.health_raw_score).to be_nil
     end

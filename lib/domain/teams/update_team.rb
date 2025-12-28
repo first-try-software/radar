@@ -1,5 +1,6 @@
 require_relative '../support/result'
 require_relative 'team'
+require_relative 'team_attributes'
 
 class UpdateTeam
   def initialize(team_repository:)
@@ -26,16 +27,17 @@ class UpdateTeam
   end
 
   def merged_attributes
-    {
+    TeamAttributes.new(
+      id: existing_team.id,
       name: provided_attrs[:name] || existing_team.name,
       description: provided_attrs[:description].nil? ? existing_team.description : provided_attrs[:description],
       point_of_contact: provided_attrs[:point_of_contact].nil? ? existing_team.point_of_contact : provided_attrs[:point_of_contact],
       archived: provided_attrs[:archived].nil? ? existing_team.archived? : provided_attrs[:archived]
-    }
+    )
   end
 
   def updated_team
-    @updated_team ||= Team.new(**merged_attributes)
+    @updated_team ||= Team.new(attributes: merged_attributes)
   end
 
   def team_not_found_failure

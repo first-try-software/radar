@@ -1,21 +1,24 @@
 require 'spec_helper'
 require 'domain/teams/update_team'
 require 'domain/teams/team'
+require_relative '../../support/domain/team_builder'
 require_relative '../../support/persistence/fake_team_repository'
 
 RSpec.describe UpdateTeam do
+  include TeamBuilder
+
   it 'looks up the existing team by id' do
     repository = FakeTeamRepository.new
     action = described_class.new(team_repository: repository)
 
-    expect(repository).to receive(:find).with('team-123').and_return(Team.new(name: 'Platform'))
+    expect(repository).to receive(:find).with('team-123').and_return(build_team(name: 'Platform'))
 
     action.perform(id: 'team-123', name: 'Platform 2')
   end
 
   it 'stores the new team over the existing record' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform'))
     action = described_class.new(team_repository: repository)
 
     action.perform(id: 'team-123', name: 'Platform 2', description: 'New description', point_of_contact: 'Casey')
@@ -26,7 +29,7 @@ RSpec.describe UpdateTeam do
 
   it 'returns a successful result when the update succeeds' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform'))
     action = described_class.new(team_repository: repository)
 
     result = action.perform(id: 'team-123', name: 'Platform 2')
@@ -36,7 +39,7 @@ RSpec.describe UpdateTeam do
 
   it 'returns the updated team as the result value' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform'))
     action = described_class.new(team_repository: repository)
 
     result = action.perform(id: 'team-123', name: 'Platform 2')
@@ -46,7 +49,7 @@ RSpec.describe UpdateTeam do
 
   it 'returns no errors when the update succeeds' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform'))
     action = described_class.new(team_repository: repository)
 
     result = action.perform(id: 'team-123', name: 'Platform 2')
@@ -74,7 +77,7 @@ RSpec.describe UpdateTeam do
 
   it 'returns a failure result when the new team is invalid' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform'))
     action = described_class.new(team_repository: repository)
 
     result = action.perform(id: 'team-123', name: '')
@@ -84,7 +87,7 @@ RSpec.describe UpdateTeam do
 
   it 'does not store a new team when it is invalid' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform'))
     action = described_class.new(team_repository: repository)
 
     action.perform(id: 'team-123', name: '')
@@ -94,7 +97,7 @@ RSpec.describe UpdateTeam do
 
   it 'returns validation errors when the new team is invalid' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform'))
     action = described_class.new(team_repository: repository)
 
     result = action.perform(id: 'team-123', name: '')
@@ -104,7 +107,7 @@ RSpec.describe UpdateTeam do
 
   it 'preserves existing name when name is not provided' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform', description: 'Old desc'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform', description: 'Old desc'))
     action = described_class.new(team_repository: repository)
 
     action.perform(id: 'team-123', description: 'New desc')
@@ -115,7 +118,7 @@ RSpec.describe UpdateTeam do
 
   it 'preserves existing description when description is not provided' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform', description: 'Old desc'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform', description: 'Old desc'))
     action = described_class.new(team_repository: repository)
 
     action.perform(id: 'team-123', name: 'New Name')
@@ -125,7 +128,7 @@ RSpec.describe UpdateTeam do
 
   it 'preserves existing point_of_contact when not provided' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform', point_of_contact: 'Casey'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform', point_of_contact: 'Casey'))
     action = described_class.new(team_repository: repository)
 
     action.perform(id: 'team-123', name: 'New Name')
@@ -135,7 +138,7 @@ RSpec.describe UpdateTeam do
 
   it 'preserves existing archived status when not provided' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform', archived: true))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform', archived: true))
     action = described_class.new(team_repository: repository)
 
     action.perform(id: 'team-123', name: 'New Name')
@@ -145,7 +148,7 @@ RSpec.describe UpdateTeam do
 
   it 'allows setting description to empty string' do
     repository = FakeTeamRepository.new
-    repository.update(id: 'team-123', team: Team.new(name: 'Platform', description: 'Old desc'))
+    repository.update(id: 'team-123', team: build_team(name: 'Platform', description: 'Old desc'))
     action = described_class.new(team_repository: repository)
 
     action.perform(id: 'team-123', description: '')

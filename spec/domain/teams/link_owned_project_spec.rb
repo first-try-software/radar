@@ -1,12 +1,14 @@
 require 'spec_helper'
 require 'domain/teams/link_owned_project'
-require 'domain/teams/team'
+require_relative '../../support/domain/team_builder'
 require 'domain/projects/project'
 require 'domain/projects/project_attributes'
 require_relative '../../support/persistence/fake_team_repository'
 require_relative '../../support/persistence/fake_project_repository'
 
 RSpec.describe LinkOwnedProject do
+  include TeamBuilder
+
   it 'returns failure when team is not found' do
     team_repository = FakeTeamRepository.new
     project_repository = FakeProjectRepository.new
@@ -19,7 +21,7 @@ RSpec.describe LinkOwnedProject do
   end
 
   it 'returns failure when project is not found' do
-    team = Team.new(name: 'My Team', description: '', point_of_contact: '')
+    team = build_team(name: 'My Team', description: '', point_of_contact: '')
     team_repository = FakeTeamRepository.new(teams: { '1' => team })
     project_repository = FakeProjectRepository.new
     action = LinkOwnedProject.new(team_repository: team_repository, project_repository: project_repository)
@@ -31,8 +33,8 @@ RSpec.describe LinkOwnedProject do
   end
 
   it 'returns failure when team has subordinate teams' do
-    team = Team.new(name: 'My Team', description: '', point_of_contact: '')
-    child_team = Team.new(name: 'Child Team')
+    team = build_team(name: 'My Team', description: '', point_of_contact: '')
+    child_team = build_team(name: 'Child Team')
     project = Project.new(attributes: ProjectAttributes.new(name: 'My Project', description: '', point_of_contact: ''))
     team_repository = FakeTeamRepository.new(teams: { '1' => team, 'child' => child_team })
     team_repository.link_subordinate_team(parent_id: '1', child: child_team, order: 0)
@@ -46,7 +48,7 @@ RSpec.describe LinkOwnedProject do
   end
 
   it 'links an existing project to the team' do
-    team = Team.new(name: 'My Team', description: '', point_of_contact: '')
+    team = build_team(name: 'My Team', description: '', point_of_contact: '')
     project = Project.new(attributes: ProjectAttributes.new(name: 'My Project', description: '', point_of_contact: ''))
     team_repository = FakeTeamRepository.new(teams: { '1' => team })
     project_repository = FakeProjectRepository.new(projects: { '99' => project })
@@ -59,7 +61,7 @@ RSpec.describe LinkOwnedProject do
   end
 
   it 'creates the relationship in the repository' do
-    team = Team.new(name: 'My Team', description: '', point_of_contact: '')
+    team = build_team(name: 'My Team', description: '', point_of_contact: '')
     project = Project.new(attributes: ProjectAttributes.new(name: 'My Project', description: '', point_of_contact: ''))
     team_repository = FakeTeamRepository.new(teams: { '1' => team })
     project_repository = FakeProjectRepository.new(projects: { '99' => project })
@@ -74,7 +76,7 @@ RSpec.describe LinkOwnedProject do
   end
 
   it 'assigns the next order value when linking' do
-    team = Team.new(name: 'My Team', description: '', point_of_contact: '')
+    team = build_team(name: 'My Team', description: '', point_of_contact: '')
     first_project = Project.new(attributes: ProjectAttributes.new(name: 'First Project', description: '', point_of_contact: ''))
     second_project = Project.new(attributes: ProjectAttributes.new(name: 'Second Project', description: '', point_of_contact: ''))
     team_repository = FakeTeamRepository.new(teams: { '1' => team })
