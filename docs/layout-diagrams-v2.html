@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Radar - Layout Diagrams v2 (Implemented)</title>
+  <title>Radar - Layout Diagrams v2 (Current State)</title>
   <style>
     :root {
       --bg: #1a1a2e;
@@ -17,6 +17,7 @@
       --amber: #f59e0b;
       --blue: #3b82f6;
       --purple: #a855f7;
+      --red: #ef4444;
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -50,42 +51,14 @@
     }
     
     .status-banner {
-      background: linear-gradient(135deg, var(--green), #16a34a);
-      color: #000;
+      background: linear-gradient(135deg, var(--blue), #2563eb);
+      color: #fff;
       text-align: center;
       padding: 16px;
       border-radius: 8px;
       margin-bottom: 30px;
       font-weight: 600;
       font-size: 1.1rem;
-    }
-    
-    .phase-list {
-      background: var(--surface);
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 30px;
-    }
-    
-    .phase-list h3 {
-      margin-bottom: 12px;
-    }
-    
-    .phase-list ol {
-      margin: 0;
-      padding-left: 24px;
-    }
-    
-    .phase-list li {
-      margin: 8px 0;
-    }
-    
-    .phase-list .completed {
-      color: var(--green);
-    }
-    
-    .phase-list .completed::after {
-      content: ' ✓';
     }
     
     .page-diagram {
@@ -201,6 +174,18 @@
       font-family: 'Fira Code', 'Consolas', monospace;
     }
     
+    .sub-partial {
+      margin-top: 8px;
+      padding: 8px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 4px;
+      border-left: 3px solid var(--purple);
+    }
+    
+    .sub-partial code {
+      font-size: 0.8rem;
+    }
+    
     code {
       font-family: 'Fira Code', 'Consolas', monospace;
       font-size: 0.85rem;
@@ -281,35 +266,29 @@
       color: #fff;
     }
     
-    .badge--inline {
-      background: var(--amber);
-      color: #000;
+    .badge--dead {
+      background: var(--red);
+      color: #fff;
     }
     
-    .badge--removed {
-      background: var(--accent);
-      color: #fff;
+    .dead-code-section {
+      background: rgba(239, 68, 68, 0.1);
+      border: 2px solid var(--red);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    .dead-code-section h3 {
+      color: var(--red);
     }
   </style>
 </head>
 <body>
-  <h1>Radar - Layout Diagrams v2 (Implemented)</h1>
+  <h1>Radar - Layout Diagrams v2 (Current State)</h1>
   
   <div class="status-banner">
-    ✓ All 7 Phases Complete — Layout Restructure Finished
-  </div>
-  
-  <div class="phase-list">
-    <h3 style="color: var(--accent);">Implementation Phases</h3>
-    <ol>
-      <li class="completed">Phase 1 — Create shared partials</li>
-      <li class="completed">Phase 2 — Create entity-specific presenters</li>
-      <li class="completed">Phase 3 — Update page layouts (Dashboard → Teams → Initiatives → Projects)</li>
-      <li class="completed">Phase 4 — CSS updates</li>
-      <li class="completed">Phase 5 — Delete obsolete partials</li>
-      <li class="completed">Phase 6 — Update turbo streams</li>
-      <li class="completed">Phase 7 — Remove tabs (simplify entity lists)</li>
-    </ol>
+    📋 Document Updated: December 2025 — Reflects actual implementation
   </div>
   
   <div class="legend">
@@ -335,90 +314,83 @@
   <p style="color: var(--text-muted); margin-bottom: 20px;"><code>app/views/dashboard/index.html.erb</code></p>
   
   <div class="page-diagram">
-    <h3>Implemented Layout Structure</h3>
+    <h3>Layout Structure</h3>
     
     <!-- Toast Container -->
     <div class="layout-box layout-box--solid layout-box--partial">
-      <div class="box-label">Toast Container <span class="badge badge--done">Done</span></div>
+      <div class="box-label">Toast Container</div>
       <code>shared/_toast_container.html.erb</code>
       <div class="box-desc">Container for toast notifications</div>
     </div>
     
     <!-- Row 1: Home Hero -->
     <div class="row">
-      <div class="row-label">Row (1 column) <span class="badge badge--inline">Inline</span></div>
+      <div class="row-label">Row (1 column)</div>
       <div class="row-columns row-columns--1">
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Home Hero <span class="badge badge--done">Done</span></div>
+          <div class="box-label">Home Hero</div>
           <code>dashboard/_home_hero.html.erb</code>
-          <div class="box-desc">Logo + "Radar" title + tagline. Fills container.</div>
+          <div class="box-desc">Logo + "Radar" title + tagline</div>
         </div>
       </div>
     </div>
     
     <!-- Row 2: Metrics -->
     <div class="row">
-      <div class="row-label">Row (3 columns) <span class="badge badge--inline">Inline</span></div>
+      <div class="row-label">Row (3 columns)</div>
       <div class="row-columns row-columns--3">
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Health Widget <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Health Widget</div>
           <code>shared/_health_widget.html.erb</code>
-          <div class="box-desc">Current health status with dot indicator</div>
-          <div class="box-params">
-            presenter: HealthPresenter
-          </div>
+          <div class="box-params">presenter: HealthPresenter</div>
         </div>
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Trend Widget <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Trend Widget</div>
           <code>shared/_trend_widget.html.erb</code>
-          <div class="box-desc">6-week trend SVG sparkline</div>
-          <div class="box-params">
-            presenter: TrendPresenter
-          </div>
+          <div class="box-params">presenter: TrendPresenter</div>
         </div>
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Confidence Widget <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Confidence Widget</div>
           <code>shared/_confidence_widget.html.erb</code>
-          <div class="box-desc">Confidence ring with score</div>
-          <div class="box-params">
-            presenter: ConfidencePresenter
-          </div>
+          <div class="box-params">presenter: ConfidencePresenter</div>
         </div>
       </div>
     </div>
     
     <!-- Row 3: Search -->
     <div class="row">
-      <div class="row-label">Row (1 column) <span class="badge badge--inline">Inline</span></div>
+      <div class="row-label">Row (1 column)</div>
       <div class="row-columns row-columns--1">
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Search <span class="badge badge--done">Done</span></div>
+          <div class="box-label">Search</div>
           <code>shared/_search.html.erb</code>
-          <div class="box-desc">Global search: 3-column results (Teams, Initiatives, Projects) + Create Project form</div>
+          <div class="box-desc">Global search with 3-column results</div>
         </div>
       </div>
     </div>
     
     <!-- Row 4: Teams & Initiatives -->
     <div class="row">
-      <div class="row-label">Row (2 columns) <span class="badge badge--inline">Inline</span></div>
+      <div class="row-label">Row (2 columns)</div>
       <div class="row-columns row-columns--2">
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Teams <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Teams (Compact)</div>
           <code>shared/_section_compact.html.erb</code>
           <div class="box-desc">Grid: Health | Name | Trend | Projects | Stale</div>
-          <div class="box-desc" style="margin-top: 4px;">+ Archived collapsible (no tabs)</div>
           <div class="box-params">
-            title:, items: [TeamSectionCompactItemPresenter], archived_items:
+            title: "Teams"<br>
+            items: [TeamSectionCompactItemPresenter]<br>
+            archived_items: [TeamSectionCompactItemPresenter]
           </div>
         </div>
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Initiatives <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Initiatives (Compact)</div>
           <code>shared/_section_compact.html.erb</code>
           <div class="box-desc">Grid: Health | Name | Trend | Projects | Stale</div>
-          <div class="box-desc" style="margin-top: 4px;">+ Archived collapsible (no tabs)</div>
           <div class="box-params">
-            title:, items: [InitiativeSectionCompactItemPresenter], archived_items:
+            title: "Initiatives"<br>
+            items: [InitiativeSectionCompactItemPresenter]<br>
+            archived_items: [InitiativeSectionCompactItemPresenter]
           </div>
         </div>
       </div>
@@ -426,14 +398,20 @@
     
     <!-- Row 5: Projects -->
     <div class="row">
-      <div class="row-label">Row (1 column) <span class="badge badge--inline">Inline</span></div>
+      <div class="row-label">Row (1 column)</div>
       <div class="row-columns row-columns--1">
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Projects <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
-          <code>shared/_section.html.erb</code>
-          <div class="box-desc">All projects list with header + items (no tabs)</div>
+          <div class="box-label">Projects Section</div>
+          <code>shared/_projects_section.html.erb</code>
+          <div class="box-desc">All projects list with header + items</div>
           <div class="box-params">
-            title:, items: [ProjectSectionItemPresenter]
+            title: "Projects"<br>
+            projects: [Project]<br>
+            show_form: false
+          </div>
+          <div class="sub-partial">
+            <strong>Sub-partial:</strong> <code>dashboard/_project_list_item.html.erb</code><br>
+            <span style="color: var(--text-muted);">Presenter: ProjectListItemPresenter</span>
           </div>
         </div>
       </div>
@@ -444,81 +422,96 @@
   <p style="color: var(--text-muted); margin-bottom: 20px;"><code>app/views/teams/show.html.erb</code></p>
   
   <div class="page-diagram">
-    <h3>Implemented Layout Structure</h3>
+    <h3>Layout Structure</h3>
     
-    <!-- Toast Container -->
+    <!-- Header -->
     <div class="layout-box layout-box--solid layout-box--partial">
-      <div class="box-label">Toast Container <span class="badge badge--done">Done</span></div>
-      <code>shared/_toast_container.html.erb</code>
+      <div class="box-label">Header</div>
+      <code>shared/_header.html.erb</code>
+      <div class="box-params">presenter: TeamHeaderPresenter</div>
     </div>
     
-    <!-- Row 1: Header -->
+    <!-- Metrics Row -->
     <div class="row">
-      <div class="row-label">Row (1 column) <span class="badge badge--inline">Inline</span></div>
-      <div class="row-columns row-columns--1">
-        <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Header <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
-          <code>shared/_header.html.erb</code>
-          <div class="box-desc">Sticky header + Hero (breadcrumb, title, description, contact, state badge)</div>
-          <div class="box-params">
-            presenter: TeamHeaderPresenter
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Row 2: Metrics -->
-    <div class="row">
-      <div class="row-label">Row (3 columns) <span class="badge badge--inline">Inline</span></div>
+      <div class="row-label">Row (3 columns)</div>
       <div class="row-columns row-columns--3">
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Health Widget <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Health Widget</div>
           <code>shared/_health_widget.html.erb</code>
           <div class="box-params">presenter: HealthPresenter</div>
         </div>
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Trend Widget <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Trend Widget</div>
           <code>shared/_trend_widget.html.erb</code>
           <div class="box-params">presenter: TrendPresenter</div>
         </div>
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Confidence Widget <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Confidence Widget</div>
           <code>shared/_confidence_widget.html.erb</code>
           <div class="box-params">presenter: ConfidencePresenter</div>
         </div>
       </div>
     </div>
     
-    <!-- Row 3: Search -->
+    <!-- Toast + Search -->
+    <div class="layout-box layout-box--solid layout-box--partial">
+      <div class="box-label">Toast Container</div>
+      <code>shared/_toast_container.html.erb</code>
+    </div>
+    
+    <div class="layout-box layout-box--solid layout-box--partial">
+      <div class="box-label">Search</div>
+      <code>shared/_search.html.erb</code>
+    </div>
+    
+    <!-- Content: Subordinate Teams -->
     <div class="row">
-      <div class="row-label">Row (1 column) <span class="badge badge--inline">Inline</span></div>
+      <div class="row-label">Content Section (always shown)</div>
       <div class="row-columns row-columns--1">
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Search <span class="badge badge--done">Done</span></div>
-          <code>shared/_search.html.erb</code>
-          <div class="box-desc">Global search: 3-column results + Create Project form</div>
+          <div class="box-label">Subordinate Teams</div>
+          <code>teams/_subordinate_teams.html.erb</code>
+          <div class="box-desc">Active teams list + Archived collapsible + Create form</div>
+          <div class="box-params">
+            team: Team<br>
+            team_record: TeamRecord<br>
+            subordinate_teams: [TeamRecord]<br>
+            archived_child_teams: [TeamRecord]
+          </div>
+          <div class="sub-partial">
+            <strong>Sub-partial:</strong> <code>teams/_subordinate_team_row.html.erb</code><br>
+            <span style="color: var(--text-muted);">Receives: team_data hash (inline, no presenter)</span>
+          </div>
         </div>
       </div>
     </div>
     
-    <!-- Row 4: Content Section -->
+    <!-- Content: Owned Projects -->
     <div class="row">
-      <div class="row-label">Row (1 column) <span class="badge badge--inline">Inline</span></div>
+      <div class="row-label">Content Section (always shown)</div>
       <div class="row-columns row-columns--1">
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Subordinate Teams OR Owned Projects <span class="badge badge--done">Done</span></div>
-          <code>teams/_subordinate_teams.html.erb OR teams/_owned_projects.html.erb</code>
-          <div class="box-desc">Active items list + Archived collapsible (no tabs)</div>
-          <div class="box-desc" style="margin-top: 4px; font-style: italic;">Mutually exclusive: teams with subteams show subteams, leaf teams show owned projects</div>
+          <div class="box-label">Owned Projects</div>
+          <code>shared/_projects_section.html.erb</code>
+          <div class="box-params">
+            frame_id: "owned-projects-section"<br>
+            projects: team.owned_projects<br>
+            show_form: true<br>
+            create_url: add_owned_project_team_path
+          </div>
+          <div class="sub-partial">
+            <strong>Sub-partial:</strong> <code>dashboard/_project_list_item.html.erb</code><br>
+            <span style="color: var(--text-muted);">Presenter: ProjectListItemPresenter</span>
+          </div>
         </div>
       </div>
     </div>
     
     <!-- Edit Modal -->
     <div class="layout-box layout-box--solid layout-box--partial">
-      <div class="box-label">Edit Modal <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+      <div class="box-label">Edit Modal</div>
       <code>shared/_edit_modal.html.erb</code>
-      <div class="box-params">presenter: EditModalPresenter</div>
+      <div class="box-params">presenter: TeamEditModalPresenter</div>
     </div>
   </div>
 
@@ -526,83 +519,78 @@
   <p style="color: var(--text-muted); margin-bottom: 20px;"><code>app/views/initiatives/show.html.erb</code></p>
   
   <div class="page-diagram">
-    <h3>Implemented Layout Structure</h3>
+    <h3>Layout Structure</h3>
     
-    <!-- Toast Container -->
+    <!-- Header -->
     <div class="layout-box layout-box--solid layout-box--partial">
-      <div class="box-label">Toast Container <span class="badge badge--done">Done</span></div>
-      <code>shared/_toast_container.html.erb</code>
+      <div class="box-label">Header</div>
+      <code>shared/_header.html.erb</code>
+      <div class="box-params">presenter: InitiativeHeaderPresenter</div>
     </div>
     
-    <!-- Row 1: Header -->
+    <!-- Metrics Row -->
     <div class="row">
-      <div class="row-label">Row (1 column) <span class="badge badge--inline">Inline</span></div>
-      <div class="row-columns row-columns--1">
-        <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Header <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
-          <code>shared/_header.html.erb</code>
-          <div class="box-desc">Sticky header + Hero (breadcrumb, title, description, contact, state badge)</div>
-          <div class="box-params">presenter: InitiativeHeaderPresenter</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Row 2: Metrics -->
-    <div class="row">
-      <div class="row-label">Row (3 columns) <span class="badge badge--inline">Inline</span></div>
+      <div class="row-label">Row (3 columns)</div>
       <div class="row-columns row-columns--3">
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Health Widget <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Health Widget</div>
           <code>shared/_health_widget.html.erb</code>
           <div class="box-params">presenter: HealthPresenter</div>
         </div>
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Trend Widget <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Trend Widget</div>
           <code>shared/_trend_widget.html.erb</code>
           <div class="box-params">presenter: TrendPresenter</div>
         </div>
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Confidence Widget <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Confidence Widget</div>
           <code>shared/_confidence_widget.html.erb</code>
           <div class="box-params">presenter: ConfidencePresenter</div>
         </div>
       </div>
     </div>
     
-    <!-- Row 3: Search -->
-    <div class="row">
-      <div class="row-label">Row (1 column) <span class="badge badge--inline">Inline</span></div>
-      <div class="row-columns row-columns--1">
-        <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Search <span class="badge badge--done">Done</span></div>
-          <code>shared/_search.html.erb</code>
-          <div class="box-desc">Global search: 3-column results + Create Project form</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Row 4: Content Section -->
-    <div class="row">
-      <div class="row-label">Row (1 column) <span class="badge badge--inline">Inline</span></div>
-      <div class="row-columns row-columns--1">
-        <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Related Projects <span class="badge badge--done">Done</span></div>
-          <code>initiatives/_related_projects.html.erb</code>
-          <div class="box-desc">Active projects list + Archived collapsible (no tabs)</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Edit Modal -->
+    <!-- Toast + Search -->
     <div class="layout-box layout-box--solid layout-box--partial">
-      <div class="box-label">Edit Modal <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+      <div class="box-label">Toast Container</div>
+      <code>shared/_toast_container.html.erb</code>
+    </div>
+    
+    <div class="layout-box layout-box--solid layout-box--partial">
+      <div class="box-label">Search</div>
+      <code>shared/_search.html.erb</code>
+    </div>
+    
+    <!-- Content: Related Projects -->
+    <div class="row">
+      <div class="row-label">Content Section</div>
+      <div class="row-columns row-columns--1">
+        <div class="layout-box layout-box--solid layout-box--partial">
+          <div class="box-label">Related Projects</div>
+          <code>shared/_projects_section.html.erb</code>
+          <div class="box-params">
+            frame_id: "related-projects-section"<br>
+            projects: initiative.related_projects<br>
+            show_form: true<br>
+            create_url: add_related_project_initiative_path
+          </div>
+          <div class="sub-partial">
+            <strong>Sub-partial:</strong> <code>dashboard/_project_list_item.html.erb</code><br>
+            <span style="color: var(--text-muted);">Presenter: ProjectListItemPresenter</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modals -->
+    <div class="layout-box layout-box--solid layout-box--partial">
+      <div class="box-label">Edit Modal</div>
       <code>shared/_edit_modal.html.erb</code>
-      <div class="box-params">presenter: EditModalPresenter</div>
+      <div class="box-params">presenter: InitiativeEditModalPresenter</div>
     </div>
     
-    <!-- Cascade Modal -->
     <div class="layout-box layout-box--solid layout-box--partial">
-      <div class="box-label">Cascade Modal <span class="badge badge--done">Done</span></div>
+      <div class="box-label">Cascade Modal</div>
       <code>initiatives/_cascade_modal.html.erb</code>
       <div class="box-desc">Confirmation for state changes that cascade to related projects</div>
     </div>
@@ -612,90 +600,107 @@
   <p style="color: var(--text-muted); margin-bottom: 20px;"><code>app/views/projects/show.html.erb</code></p>
   
   <div class="page-diagram">
-    <h3>Implemented Layout Structure</h3>
+    <h3>Layout Structure</h3>
     
-    <!-- Toast Container -->
+    <!-- Header -->
     <div class="layout-box layout-box--solid layout-box--partial">
-      <div class="box-label">Toast Container <span class="badge badge--done">Done</span></div>
-      <code>shared/_toast_container.html.erb</code>
+      <div class="box-label">Header</div>
+      <code>shared/_header.html.erb</code>
+      <div class="box-params">presenter: ProjectHeaderPresenter</div>
     </div>
     
-    <!-- Row 1: Header -->
+    <!-- Metrics Row (conditional) -->
     <div class="row">
-      <div class="row-label">Row (1 column) <span class="badge badge--inline">Inline</span></div>
-      <div class="row-columns row-columns--1">
-        <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Header <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
-          <code>shared/_header.html.erb</code>
-          <div class="box-desc">Sticky header + Hero (breadcrumb, title, description, contact, state badge)</div>
-          <div class="box-params">presenter: ProjectHeaderPresenter</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Row 2: Metrics -->
-    <div class="row">
-      <div class="row-label">Row (3 columns) <span class="badge badge--inline">Inline</span></div>
+      <div class="row-label">Row (3 columns) — Conditional: only if @health_summary exists</div>
       <div class="row-columns row-columns--3">
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Health Widget <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Health Widget</div>
           <code>shared/_health_widget.html.erb</code>
           <div class="box-params">presenter: HealthPresenter</div>
         </div>
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Trend Widget <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Trend Widget</div>
           <code>shared/_trend_widget.html.erb</code>
           <div class="box-params">presenter: TrendPresenter</div>
         </div>
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Confidence Widget <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+          <div class="box-label">Confidence Widget</div>
           <code>shared/_confidence_widget.html.erb</code>
           <div class="box-params">presenter: ConfidencePresenter</div>
         </div>
       </div>
     </div>
     
-    <!-- Row 3: Search -->
+    <!-- Toast + Search -->
+    <div class="layout-box layout-box--solid layout-box--partial">
+      <div class="box-label">Toast Container</div>
+      <code>shared/_toast_container.html.erb</code>
+    </div>
+    
+    <div class="layout-box layout-box--solid layout-box--partial">
+      <div class="box-label">Search</div>
+      <code>shared/_search.html.erb</code>
+    </div>
+    
+    <!-- Content: Child Projects (conditional) -->
     <div class="row">
-      <div class="row-label">Row (1 column) <span class="badge badge--inline">Inline</span></div>
+      <div class="row-label">Content Section — Conditional: if has children OR (no children AND no health updates)</div>
       <div class="row-columns row-columns--1">
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Search <span class="badge badge--done">Done</span></div>
-          <code>shared/_search.html.erb</code>
-          <div class="box-desc">Global search: 3-column results + Create Project form</div>
+          <div class="box-label">Child Projects</div>
+          <code>shared/_projects_section.html.erb</code>
+          <div class="box-params">
+            frame_id: "child-projects-section"<br>
+            projects: project.children<br>
+            show_form: true<br>
+            create_url: subordinates_project_path
+          </div>
+          <div class="sub-partial">
+            <strong>Sub-partial:</strong> <code>dashboard/_project_list_item.html.erb</code><br>
+            <span style="color: var(--text-muted);">Presenter: ProjectListItemPresenter</span>
+          </div>
         </div>
       </div>
     </div>
     
-    <!-- Row 4: Content Section -->
+    <!-- Content: Health Updates (always rendered, visibility controlled by partial) -->
     <div class="row">
-      <div class="row-label">Row (1 column) <span class="badge badge--inline">Inline</span></div>
+      <div class="row-label">Content Section — Always rendered</div>
       <div class="row-columns row-columns--1">
         <div class="layout-box layout-box--solid layout-box--partial">
-          <div class="box-label">Child Projects OR Health Updates <span class="badge badge--done">Done</span></div>
-          <code>projects/_child_projects.html.erb OR projects/_health_updates.html.erb</code>
-          <div class="box-desc">Active items list + Archived collapsible (no tabs)</div>
-          <div class="box-desc" style="margin-top: 4px; font-style: italic;">Mutually exclusive: parent projects show children, leaf projects show health updates</div>
+          <div class="box-label">Health Updates</div>
+          <code>projects/_health_updates.html.erb</code>
+          <div class="box-desc">Health update form + list for leaf projects</div>
+          <div class="box-params">
+            project: Project<br>
+            project_record: ProjectRecord<br>
+            health_updates: [HealthUpdate]<br>
+            allowed_states: SetProjectState::SETTABLE_STATES
+          </div>
+          <div class="sub-partial">
+            <strong>Sub-partial:</strong> <code>projects/_update_row.html.erb</code><br>
+            <span style="color: var(--text-muted);">Renders individual health update rows</span>
+          </div>
         </div>
       </div>
     </div>
     
     <!-- Edit Modal -->
     <div class="layout-box layout-box--solid layout-box--partial">
-      <div class="box-label">Edit Modal <span class="badge badge--done">Done</span><span class="badge badge--param">Param</span></div>
+      <div class="box-label">Edit Modal</div>
       <code>shared/_edit_modal.html.erb</code>
-      <div class="box-params">presenter: EditModalPresenter</div>
+      <div class="box-params">presenter: ProjectEditModalPresenter</div>
     </div>
   </div>
 
-  <h2>Shared Partials</h2>
+  <h2>All Partials Inventory</h2>
   
   <table>
     <thead>
       <tr>
         <th>Partial</th>
         <th>Location</th>
-        <th>Presenter</th>
+        <th>Presenter(s)</th>
         <th>Description</th>
       </tr>
     </thead>
@@ -710,7 +715,7 @@
         <td><code>_home_hero</code></td>
         <td><code>dashboard/</code></td>
         <td>None</td>
-        <td>Logo, app title "Radar", tagline. Dashboard-specific hero.</td>
+        <td>Logo, app title "Radar", tagline. Dashboard only.</td>
       </tr>
       <tr>
         <td><code>_header</code></td>
@@ -720,41 +725,31 @@
           <code>InitiativeHeaderPresenter</code><br>
           <code>ProjectHeaderPresenter</code>
         </td>
-        <td>Sticky header + Hero section. Entity-specific presenters for different breadcrumb paths.</td>
+        <td>Sticky header + Hero section with breadcrumb, title, description.</td>
       </tr>
       <tr>
         <td><code>_health_widget</code></td>
         <td><code>shared/</code></td>
-        <td><code>HealthPresenter</code> (generic)</td>
-        <td>Health status widget. Takes pre-computed health data.</td>
+        <td><code>HealthPresenter</code></td>
+        <td>Health status widget with dot indicator.</td>
       </tr>
       <tr>
         <td><code>_trend_widget</code></td>
         <td><code>shared/</code></td>
-        <td><code>TrendPresenter</code> (generic)</td>
-        <td>6-week trend sparkline. Takes pre-computed trend data.</td>
+        <td><code>TrendPresenter</code></td>
+        <td>6-week trend sparkline.</td>
       </tr>
       <tr>
         <td><code>_confidence_widget</code></td>
         <td><code>shared/</code></td>
-        <td><code>ConfidencePresenter</code> (generic)</td>
-        <td>Confidence ring indicator. Takes pre-computed confidence data.</td>
+        <td><code>ConfidencePresenter</code></td>
+        <td>Confidence ring indicator.</td>
       </tr>
       <tr>
         <td><code>_search</code></td>
         <td><code>shared/</code></td>
         <td>None (uses instance variables)</td>
-        <td>Global search: 3-column results (Teams, Initiatives, Projects) + Create Project form.</td>
-      </tr>
-      <tr>
-        <td><code>_section</code></td>
-        <td><code>shared/</code></td>
-        <td>
-          <code>TeamSectionItemPresenter</code><br>
-          <code>InitiativeSectionItemPresenter</code><br>
-          <code>ProjectSectionItemPresenter</code>
-        </td>
-        <td>Full list: Health | Name | State | Trend | Projects | Stale | Owner. No tabs.</td>
+        <td>Global search with 3-column results.</td>
       </tr>
       <tr>
         <td><code>_section_compact</code></td>
@@ -763,13 +758,31 @@
           <code>TeamSectionCompactItemPresenter</code><br>
           <code>InitiativeSectionCompactItemPresenter</code>
         </td>
-        <td>Compact list: Health | Name | Trend | Projects | Stale. No tabs, collapsible archived.</td>
+        <td>Compact list: Health | Name | Trend | Projects | Stale. Dashboard only.</td>
       </tr>
       <tr>
-        <td><code>_edit_modal</code></td>
+        <td><code>_projects_section</code></td>
         <td><code>shared/</code></td>
-        <td><code>EditModalPresenter</code> (generic)</td>
-        <td>Edit form modal. Works with any entity type.</td>
+        <td><code>ProjectListItemPresenter</code></td>
+        <td>Full project list with create form. Used everywhere projects are shown.</td>
+      </tr>
+      <tr>
+        <td><code>_project_list_item</code></td>
+        <td><code>dashboard/</code></td>
+        <td><code>ProjectListItemPresenter</code></td>
+        <td>Individual project row. Sub-partial of _projects_section.</td>
+      </tr>
+      <tr>
+        <td><code>_subordinate_teams</code></td>
+        <td><code>teams/</code></td>
+        <td>None (inline data hash)</td>
+        <td>Subordinate teams list for team show page.</td>
+      </tr>
+      <tr>
+        <td><code>_subordinate_team_row</code></td>
+        <td><code>teams/</code></td>
+        <td>None (inline data hash)</td>
+        <td>Individual team row. Sub-partial of _subordinate_teams.</td>
       </tr>
       <tr>
         <td><code>_health_updates</code></td>
@@ -778,96 +791,37 @@
         <td>Health update form + list. Leaf projects only.</td>
       </tr>
       <tr>
+        <td><code>_update_row</code></td>
+        <td><code>projects/</code></td>
+        <td>None</td>
+        <td>Individual health update row. Sub-partial of _health_updates.</td>
+      </tr>
+      <tr>
+        <td><code>_health_update_errors</code></td>
+        <td><code>projects/</code></td>
+        <td>None</td>
+        <td>Error display for health update form.</td>
+      </tr>
+      <tr>
+        <td><code>_edit_modal</code></td>
+        <td><code>shared/</code></td>
+        <td>
+          <code>TeamEditModalPresenter</code><br>
+          <code>InitiativeEditModalPresenter</code><br>
+          <code>ProjectEditModalPresenter</code>
+        </td>
+        <td>Edit form modal. Works with any entity type.</td>
+      </tr>
+      <tr>
         <td><code>_cascade_modal</code></td>
         <td><code>initiatives/</code></td>
         <td>None</td>
-        <td>Confirmation dialog for cascading state changes.</td>
+        <td>Confirmation dialog for cascading state changes. Initiatives only.</td>
       </tr>
     </tbody>
   </table>
 
-  <h2>Visual Structure Summary</h2>
-  
-  <h3 style="color: var(--green); margin-top: 30px;">Dashboard</h3>
-  <pre style="background: var(--surface); padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.8;">
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  DASHBOARD (dashboard/index.html.erb)                                       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  shared/_toast_container [partial]                                          │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ROW (1 col) [inline]                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │ dashboard/_home_hero [partial]                                          ││
-│  └─────────────────────────────────────────────────────────────────────────┘│
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ROW (3 cols) [inline]                                                      │
-│  ┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐   │
-│  │ shared/             │ │ shared/             │ │ shared/             │   │
-│  │ _health_widget      │ │ _trend_widget       │ │ _confidence_widget  │   │
-│  │ HealthPresenter     │ │ TrendPresenter      │ │ ConfidencePresenter │   │
-│  └─────────────────────┘ └─────────────────────┘ └─────────────────────┘   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ROW (1 col) [inline]                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │ shared/_search [partial]                                                ││
-│  └─────────────────────────────────────────────────────────────────────────┘│
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ROW (2 cols) [inline]                                                      │
-│  ┌─────────────────────────────────────┐ ┌─────────────────────────────────┐│
-│  │ shared/_section_compact             │ │ shared/_section_compact         ││
-│  │ TeamSectionCompactItemPresenter[]   │ │ InitiativeSectionCompact...[]   ││
-│  │ (active + archived collapsible)     │ │ (active + archived collapsible) ││
-│  └─────────────────────────────────────┘ └─────────────────────────────────┘│
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ROW (1 col) [inline]                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │ shared/_section                                                         ││
-│  │ ProjectSectionItemPresenter[] (no tabs)                                 ││
-│  └─────────────────────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────────────────────┘
-  </pre>
-
-  <h3 style="color: var(--green); margin-top: 30px;">Entity Pages (Team / Initiative / Project)</h3>
-  <pre style="background: var(--surface); padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.8;">
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  ENTITY SHOW (teams|initiatives|projects/show.html.erb)                     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  shared/_toast_container [partial]                                          │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ROW (1 col) [inline]                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │ shared/_header [partial]                                                ││
-│  │ presenter: Team|Initiative|ProjectHeaderPresenter                       ││
-│  └─────────────────────────────────────────────────────────────────────────┘│
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ROW (3 cols) [inline]                                                      │
-│  ┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐   │
-│  │ shared/             │ │ shared/             │ │ shared/             │   │
-│  │ _health_widget      │ │ _trend_widget       │ │ _confidence_widget  │   │
-│  │ HealthPresenter     │ │ TrendPresenter      │ │ ConfidencePresenter │   │
-│  └─────────────────────┘ └─────────────────────┘ └─────────────────────┘   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ROW (1 col) [inline]                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │ shared/_search [partial]                                                ││
-│  └─────────────────────────────────────────────────────────────────────────┘│
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ROW (1 col) [inline]                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │ Entity-specific content partial:                                        ││
-│  │   - teams/_subordinate_teams OR teams/_owned_projects                   ││
-│  │   - initiatives/_related_projects                                       ││
-│  │   - projects/_child_projects OR projects/_health_updates                ││
-│  │ (Active items + &lt;details&gt; archived collapsible — NO TABS)               ││
-│  └─────────────────────────────────────────────────────────────────────────┘│
-├─────────────────────────────────────────────────────────────────────────────┤
-│  shared/_edit_modal [partial] presenter: EditModalPresenter                 │
-│  (+ initiatives/_cascade_modal for initiatives only)                        │
-└─────────────────────────────────────────────────────────────────────────────┘
-  </pre>
-
   <h2>Presenter Architecture</h2>
-  <p style="color: var(--text-muted); margin-bottom: 20px;">Entity-specific presenters for partials with conditional logic. Generic presenters for partials that work uniformly.</p>
   
   <table>
     <thead>
@@ -879,7 +833,7 @@
     </thead>
     <tbody>
       <tr>
-        <td><strong>Entity-Specific Header</strong></td>
+        <td><strong>Header Presenters</strong></td>
         <td>
           <code>TeamHeaderPresenter</code><br>
           <code>InitiativeHeaderPresenter</code><br>
@@ -888,16 +842,16 @@
         <td><code>shared/_header</code></td>
       </tr>
       <tr>
-        <td><strong>Entity-Specific Section Item</strong></td>
+        <td><strong>Edit Modal Presenters</strong></td>
         <td>
-          <code>TeamSectionItemPresenter</code><br>
-          <code>InitiativeSectionItemPresenter</code><br>
-          <code>ProjectSectionItemPresenter</code>
+          <code>TeamEditModalPresenter</code><br>
+          <code>InitiativeEditModalPresenter</code><br>
+          <code>ProjectEditModalPresenter</code>
         </td>
-        <td><code>shared/_section</code></td>
+        <td><code>shared/_edit_modal</code></td>
       </tr>
       <tr>
-        <td><strong>Entity-Specific Section Compact Item</strong></td>
+        <td><strong>Dashboard Compact Item Presenters</strong></td>
         <td>
           <code>TeamSectionCompactItemPresenter</code><br>
           <code>InitiativeSectionCompactItemPresenter</code>
@@ -905,95 +859,277 @@
         <td><code>shared/_section_compact</code></td>
       </tr>
       <tr>
-        <td><strong>Generic Health</strong></td>
-        <td><code>HealthPresenter</code></td>
-        <td><code>shared/_health_widget</code></td>
+        <td><strong>Project List Presenter</strong></td>
+        <td><code>ProjectListItemPresenter</code></td>
+        <td><code>dashboard/_project_list_item</code> (via <code>shared/_projects_section</code>)</td>
       </tr>
       <tr>
-        <td><strong>Generic Trend</strong></td>
-        <td><code>TrendPresenter</code></td>
-        <td><code>shared/_trend_widget</code></td>
-      </tr>
-      <tr>
-        <td><strong>Generic Confidence</strong></td>
-        <td><code>ConfidencePresenter</code></td>
-        <td><code>shared/_confidence_widget</code></td>
-      </tr>
-      <tr>
-        <td><strong>Generic Edit Modal</strong></td>
-        <td><code>EditModalPresenter</code></td>
-        <td><code>shared/_edit_modal</code></td>
+        <td><strong>Widget Presenters</strong></td>
+        <td>
+          <code>HealthPresenter</code><br>
+          <code>TrendPresenter</code><br>
+          <code>ConfidencePresenter</code>
+        </td>
+        <td><code>shared/_health_widget</code>, <code>shared/_trend_widget</code>, <code>shared/_confidence_widget</code></td>
       </tr>
     </tbody>
   </table>
 
-  <h2>Removed Infrastructure <span class="badge badge--removed">Phase 7</span></h2>
+  <h2>Turbo Stream Templates</h2>
   
   <table>
     <thead>
       <tr>
-        <th>Removed</th>
+        <th>Template</th>
         <th>Location</th>
-        <th>Reason</th>
+        <th>Updates</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td><code>tabs_controller.js</code></td>
-        <td><code>app/javascript/controllers/</code></td>
-        <td>Stimulus controller for tab switching — no longer needed</td>
+        <td><code>add_related_project.turbo_stream.erb</code></td>
+        <td><code>initiatives/</code></td>
+        <td>Replaces <code>#related-projects-section</code> with updated projects list</td>
       </tr>
       <tr>
-        <td>Tab HTML structure</td>
-        <td>Entity list partials</td>
-        <td>Replaced with simple list + <code>&lt;details&gt;</code> collapsible</td>
+        <td><code>link_related_project.turbo_stream.erb</code></td>
+        <td><code>initiatives/</code></td>
+        <td>Replaces <code>#related-projects-section</code> with updated projects list</td>
       </tr>
       <tr>
-        <td>Tab CSS classes</td>
-        <td><code>application.css</code></td>
-        <td>
-          Removed: <code>.dashboard-tabs-v2</code>, <code>.dashboard-tab-v2</code>,<br>
-          <code>.tab-content-v2</code>, <code>.tab-section-v2</code>
-        </td>
+        <td><code>create_subordinate.turbo_stream.erb</code></td>
+        <td><code>projects/</code></td>
+        <td>Replaces <code>#child-projects-section</code> with updated projects list</td>
+      </tr>
+      <tr>
+        <td><code>create_health_update.turbo_stream.erb</code></td>
+        <td><code>projects/</code></td>
+        <td>Updates health update list</td>
+      </tr>
+      <tr>
+        <td><code>add_owned_project.turbo_stream.erb</code></td>
+        <td><code>teams/</code></td>
+        <td>Replaces <code>#owned-projects-section</code> with updated projects list</td>
+      </tr>
+      <tr>
+        <td><code>link_owned_project.turbo_stream.erb</code></td>
+        <td><code>teams/</code></td>
+        <td>Replaces <code>#owned-projects-section</code> with updated projects list</td>
+      </tr>
+      <tr>
+        <td><code>add_subordinate_team.turbo_stream.erb</code></td>
+        <td><code>teams/</code></td>
+        <td>Replaces <code>#subordinate-teams-section</code> + <code>#owned-projects-section</code></td>
       </tr>
     </tbody>
   </table>
 
-  <h2>Design Principles</h2>
-  
-  <div style="background: var(--surface); padding: 20px; border-radius: 8px; margin-top: 20px;">
-    <ol style="margin: 0; padding-left: 20px; line-height: 2;">
-      <li><strong>Pages = Layout</strong> — Pages only define rows and columns, never content</li>
-      <li><strong>Partials = Content</strong> — All content comes from partials, nothing inline</li>
-      <li><strong>Shared by Default</strong> — Components live in <code>shared/</code> unless page-specific</li>
-      <li><strong>Entity-Specific Presenters</strong> — Partials with conditional logic get entity-specific presenters</li>
-      <li><strong>Generic Presenters</strong> — Partials that work uniformly get generic presenters</li>
-      <li><strong>No Fixed Dimensions</strong> — Partials use min/max only, never fixed width/height</li>
-      <li><strong>Container Agnostic</strong> — Partials don't know about their layout context</li>
-      <li><strong>No Tabs</strong> — Entity lists show active items directly, archived in collapsible <code>&lt;details&gt;</code></li>
-    </ol>
+  <div class="dead-code-section">
+    <h2 style="color: var(--red); border-bottom-color: var(--red);">☠️ Dead Code — Partials & Presenters Never Used</h2>
+    
+    <h3>Dead Presenters</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>app/presenters/initiative_section_item_presenter.rb</code></td>
+          <td>Created for <code>shared/_section.html.erb</code> which was never implemented</td>
+        </tr>
+        <tr>
+          <td><code>app/presenters/team_section_item_presenter.rb</code></td>
+          <td>Created for <code>shared/_section.html.erb</code> which was never implemented</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <h3>Dead Partials/Layouts</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>app/views/layouts/mailer.html.erb</code></td>
+          <td>No mailers exist in the application</td>
+        </tr>
+        <tr>
+          <td><code>app/views/layouts/mailer.text.erb</code></td>
+          <td>No mailers exist in the application</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <h3>Dead Mailer Infrastructure</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>app/mailers/application_mailer.rb</code></td>
+          <td>No mailers inherit from it</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <h3>Partials That Never Existed (referenced in old docs)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Phantom Partial</th>
+          <th>Reality</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>shared/_section.html.erb</code></td>
+          <td>Never created. Projects use <code>shared/_projects_section.html.erb</code> instead.</td>
+        </tr>
+        <tr>
+          <td><code>teams/_owned_projects.html.erb</code></td>
+          <td>Never created. Uses <code>shared/_projects_section.html.erb</code> instead.</td>
+        </tr>
+        <tr>
+          <td><code>initiatives/_related_projects.html.erb</code></td>
+          <td>Never created. Uses <code>shared/_projects_section.html.erb</code> instead.</td>
+        </tr>
+        <tr>
+          <td><code>projects/_child_projects.html.erb</code></td>
+          <td>Never created. Uses <code>shared/_projects_section.html.erb</code> instead.</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <h3>Dead Presenter That Never Existed</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Phantom Presenter</th>
+          <th>Reality</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>ProjectSectionItemPresenter</code></td>
+          <td>Never created. Projects use <code>ProjectListItemPresenter</code>.</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
-  <h2>Section Column Definitions</h2>
+  <h2>Visual Structure Summary</h2>
   
-  <table>
-    <thead>
-      <tr>
-        <th>Column</th>
-        <th>_section</th>
-        <th>_section_compact</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>Health Indicator</td><td>✓</td><td>✓</td></tr>
-      <tr><td>Entity Name</td><td>✓</td><td>✓</td></tr>
-      <tr><td>State</td><td>✓</td><td>—</td></tr>
-      <tr><td>Trend</td><td>✓</td><td>✓</td></tr>
-      <tr><td>Projects (count)</td><td>✓</td><td>✓</td></tr>
-      <tr><td>Stale (count)</td><td>✓</td><td>✓</td></tr>
-      <tr><td>Owner</td><td>✓</td><td>—</td></tr>
-    </tbody>
-  </table>
+  <h3 style="color: var(--green); margin-top: 30px;">Dashboard</h3>
+  <pre style="background: var(--surface); padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.8;">
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  DASHBOARD (dashboard/index.html.erb)                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_toast_container                                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  dashboard/_home_hero                                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐   │
+│  │ shared/             │ │ shared/             │ │ shared/             │   │
+│  │ _health_widget      │ │ _trend_widget       │ │ _confidence_widget  │   │
+│  │ HealthPresenter     │ │ TrendPresenter      │ │ ConfidencePresenter │   │
+│  └─────────────────────┘ └─────────────────────┘ └─────────────────────┘   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_search                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────┐ ┌─────────────────────────────────┐│
+│  │ shared/_section_compact             │ │ shared/_section_compact         ││
+│  │ TeamSectionCompactItemPresenter[]   │ │ InitiativeSectionCompact...[]   ││
+│  └─────────────────────────────────────┘ └─────────────────────────────────┘│
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_projects_section                                                   │
+│    └─► dashboard/_project_list_item (ProjectListItemPresenter)              │
+└─────────────────────────────────────────────────────────────────────────────┘
+  </pre>
+
+  <h3 style="color: var(--green); margin-top: 30px;">Team Show</h3>
+  <pre style="background: var(--surface); padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.8;">
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  TEAM SHOW (teams/show.html.erb)                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_header (TeamHeaderPresenter)                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐   │
+│  │ _health_widget      │ │ _trend_widget       │ │ _confidence_widget  │   │
+│  └─────────────────────┘ └─────────────────────┘ └─────────────────────┘   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_toast_container                                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_search                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  teams/_subordinate_teams                                                   │
+│    └─► teams/_subordinate_team_row (inline hash, no presenter)              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_projects_section (owned projects)                                  │
+│    └─► dashboard/_project_list_item (ProjectListItemPresenter)              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_edit_modal (TeamEditModalPresenter)                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+  </pre>
+
+  <h3 style="color: var(--green); margin-top: 30px;">Initiative Show</h3>
+  <pre style="background: var(--surface); padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.8;">
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  INITIATIVE SHOW (initiatives/show.html.erb)                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_header (InitiativeHeaderPresenter)                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐   │
+│  │ _health_widget      │ │ _trend_widget       │ │ _confidence_widget  │   │
+│  └─────────────────────┘ └─────────────────────┘ └─────────────────────┘   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_toast_container                                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_search                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_projects_section (related projects)                                │
+│    └─► dashboard/_project_list_item (ProjectListItemPresenter)              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_edit_modal (InitiativeEditModalPresenter)                          │
+│  initiatives/_cascade_modal                                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+  </pre>
+
+  <h3 style="color: var(--green); margin-top: 30px;">Project Show</h3>
+  <pre style="background: var(--surface); padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.8;">
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  PROJECT SHOW (projects/show.html.erb)                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_header (ProjectHeaderPresenter)                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐   │
+│  │ _health_widget      │ │ _trend_widget       │ │ _confidence_widget  │   │
+│  └─────────────────────┘ └─────────────────────┘ └─────────────────────┘   │
+│  (Conditional: only if @health_summary exists)                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_toast_container                                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_search                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_projects_section (child projects) — if has children or empty      │
+│    └─► dashboard/_project_list_item (ProjectListItemPresenter)              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  projects/_health_updates — always rendered                                 │
+│    └─► projects/_update_row                                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  shared/_edit_modal (ProjectEditModalPresenter)                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+  </pre>
 
 </body>
 </html>
