@@ -758,18 +758,4 @@ RSpec.describe Dashboard do
     end
   end
 
-  describe '#current_date' do
-    it 'uses Date.today when Date.current is not available' do
-      project_repo = FakeProjectRepository.new
-      dashboard = described_class.new(project_repository: project_repo)
-
-      # Temporarily make Date not respond to :current
-      allow(Date).to receive(:respond_to?).and_call_original
-      allow(Date).to receive(:respond_to?).with(:current).and_return(false)
-
-      result = dashboard.current_date
-
-      expect(result).to eq(Date.today)
-    end
-  end
 end

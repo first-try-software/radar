@@ -1,9 +1,10 @@
 class InitiativeDashboard
   HEALTH_SEVERITY = { off_track: 0, at_risk: 1, on_track: 2, not_available: 3 }.freeze
 
-  def initialize(initiative:, health_update_repository: nil)
+  def initialize(initiative:, health_update_repository: nil, current_date: Date.today)
     @initiative = initiative
     @health_update_repository = health_update_repository
+    @current_date = current_date
   end
 
   def health_summary
@@ -70,13 +71,9 @@ class InitiativeDashboard
     end
   end
 
-  def current_date
-    Date.respond_to?(:current) ? Date.current : Date.today
-  end
-
   private
 
-  attr_reader :initiative, :health_update_repository
+  attr_reader :initiative, :health_update_repository, :current_date
 
   def all_leaf_projects
     @all_leaf_projects ||= collect_leaf_projects.reject(&:archived?)

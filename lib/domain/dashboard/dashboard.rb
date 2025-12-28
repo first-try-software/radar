@@ -136,7 +136,7 @@ class Dashboard
   end
 
   def current_date
-    Date.respond_to?(:current) ? Date.current : Date.today
+    Date.today
   end
 
   private

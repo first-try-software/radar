@@ -13,7 +13,7 @@ class ProjectListItemPresenter
   # Health
   def health
     return @health_override if @health_override
-    return :not_available unless @project.respond_to?(:health)
+
     @project.health || :not_available
   end
 
@@ -37,7 +37,7 @@ class ProjectListItemPresenter
 
   # Contact
   def contact
-    @project.respond_to?(:point_of_contact) ? (@project.point_of_contact.presence || "—") : "—"
+    @project.point_of_contact.presence || "—"
   end
 
   # Navigation
@@ -47,7 +47,7 @@ class ProjectListItemPresenter
 
   # Trend
   def trend_direction
-    @trend_direction ||= @project.respond_to?(:trend) ? @project.trend : :stable
+    @trend_direction ||= trend_service_result[:trend_direction]
   end
 
   def trend_arrow
@@ -66,12 +66,24 @@ class ProjectListItemPresenter
 
   private
 
+  def trend_service_result
+    @trend_service_result ||= ProjectTrendService.new(
+      project: @project,
+      health_update_repository: health_update_repository,
+      current_date: Date.current
+    ).call
+  end
+
+  def health_update_repository
+    Rails.application.config.x.health_update_repository
+  end
+
   def children
-    @children ||= @project.respond_to?(:children) ? @project.children : []
+    @children ||= @project.children
   end
 
   def active_children
-    @active_children ||= children.reject { |c| c.respond_to?(:archived?) && c.archived? }
+    @active_children ||= children.reject(&:archived?)
   end
 
   def calculate_stale_count
@@ -79,11 +91,11 @@ class ProjectListItemPresenter
       next false unless [:in_progress, :blocked].include?(child.current_state)
 
       # Get the effective latest update (child's own if leaf, or from its descendants)
-      if child.respond_to?(:leaf?) && child.leaf?
+      if child.leaf?
         latest = child.latest_health_update
       else
         # For child parents, find most recent update from their leaf descendants
-        leaves = child.respond_to?(:leaf_descendants) ? child.leaf_descendants : []
+        leaves = child.leaf_descendants
         latest = leaves.map(&:latest_health_update).compact.max_by { |u| u.date.to_date }
       end
       latest.nil? || (Date.current - latest.date.to_date).to_i > 7

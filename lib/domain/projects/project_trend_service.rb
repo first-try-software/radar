@@ -7,9 +7,10 @@ class ProjectTrendService
   COVERAGE_PENALTY_75 = 10
   COVERAGE_PENALTY_50 = 25
 
-  def initialize(project:, health_update_repository:)
+  def initialize(project:, health_update_repository:, current_date: Date.today)
     @project = project
     @health_update_repository = health_update_repository
+    @current_date = current_date
   end
 
   def call
@@ -28,7 +29,7 @@ class ProjectTrendService
 
   private
 
-  attr_reader :project, :health_update_repository
+  attr_reader :project, :health_update_repository, :current_date
 
   def leaf_projects
     @leaf_projects ||= project.leaf? ? [project] : project.leaf_descendants
@@ -231,9 +232,5 @@ class ProjectTrendService
         projects_needing_update: projects_needing_update
       }
     }
-  end
-
-  def current_date
-    Date.respond_to?(:current) ? Date.current : Date.today
   end
 end

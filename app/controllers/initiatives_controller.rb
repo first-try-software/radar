@@ -286,7 +286,8 @@ class InitiativesController < ApplicationController
 
     dashboard = InitiativeDashboard.new(
       initiative: initiative,
-      health_update_repository: health_update_repo
+      health_update_repository: health_update_repo,
+      current_date: Date.current
     )
 
     @health_summary = dashboard.health_summary

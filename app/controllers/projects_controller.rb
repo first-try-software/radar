@@ -360,7 +360,8 @@ class ProjectsController < ApplicationController
   def prepare_trend_data(project:)
     trend_service = ProjectTrendService.new(
       project: project,
-      health_update_repository: health_update_repository
+      health_update_repository: health_update_repository,
+      current_date: Date.current
     )
     trend_result = trend_service.call
 
@@ -393,7 +394,7 @@ class ProjectsController < ApplicationController
     )
 
     # Metric presenters
-    is_leaf = project.respond_to?(:children) ? project.children.empty? : true
+    is_leaf = project.leaf?
 
     if is_leaf
       methodology = "Based on the most recent health update for this project."

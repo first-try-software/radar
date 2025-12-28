@@ -281,7 +281,8 @@ class TeamsController < ApplicationController
 
     dashboard = TeamDashboard.new(
       team: team,
-      health_update_repository: health_update_repo
+      health_update_repository: health_update_repo,
+      current_date: Date.current
     )
 
     @health_summary = dashboard.health_summary

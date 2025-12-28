@@ -437,17 +437,4 @@ RSpec.describe TeamDashboard do
     end
   end
 
-  describe '#current_date' do
-    it 'uses Date.today when Date.current is not available' do
-      team = build_team(name: 'Test', owned_projects: [])
-      dashboard = described_class.new(team: team)
-
-      allow(Date).to receive(:respond_to?).and_call_original
-      allow(Date).to receive(:respond_to?).with(:current).and_return(false)
-
-      result = dashboard.current_date
-
-      expect(result).to eq(Date.today)
-    end
-  end
 end
