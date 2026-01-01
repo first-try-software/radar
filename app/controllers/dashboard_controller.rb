@@ -2,6 +2,17 @@ class DashboardController < ApplicationController
   include ApplicationHelper
 
   def index
+    load_dashboard_data
+  end
+
+  def zen
+    load_dashboard_data
+    render :zen
+  end
+
+  private
+
+  def load_dashboard_data
     @all_projects = project_repository.all_active_roots
 
     # Teams and initiatives for columns with trend/confidence data
@@ -38,8 +49,6 @@ class DashboardController < ApplicationController
     build_search_data
     build_section_presenters
   end
-
-  private
 
   def project_repository
     Rails.application.config.x.project_repository

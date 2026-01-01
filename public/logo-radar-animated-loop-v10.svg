@@ -1,0 +1,129 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Status Logo - Animated Radar Sweep (Infinite Loop) - V10 -->
+  <!-- V10: Darker background/ring baked in, repositioned symbols, sweep-triggered lighting -->
+  <defs>
+    <!-- Sweep gradient -->
+    <linearGradient id="sweepGradientV10" gradientUnits="userSpaceOnUse" x1="90" y1="90" x2="45" y2="50">
+      <stop offset="0%" stop-color="#6aa7ff" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#6aa7ff" stop-opacity="0.5"/>
+    </linearGradient>
+    
+    <!-- Glow filters for each symbol color -->
+    <filter id="glowGreen" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glowYellow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glowRed" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <style>
+    @keyframes radar-sweep { 
+      from { transform: rotate(0deg); } 
+      to { transform: rotate(360deg); } 
+    }
+    
+    /* Sweep-triggered blip animations - 3s cycle matches sweep */
+    /* Each blip: lights up, stays lit 50%, fades from 50% to 100% */
+    
+    /* Green circle at ~315° (87.5%) */
+    /* Lit: 87.5% → 37.5% (50%), Fade: 37.5% → 87.5% (50%) */
+    @keyframes blip-green1 {
+      0% { opacity: 1; filter: url(#glowGreen); }
+      37.5% { opacity: 1; filter: url(#glowGreen); }
+      40% { opacity: 0.9; filter: none; }
+      55% { opacity: 0.6; }
+      70% { opacity: 0.4; }
+      87.5% { opacity: 0.3; }
+      90% { opacity: 1; filter: url(#glowGreen); }
+      100% { opacity: 1; filter: url(#glowGreen); }
+    }
+    
+    /* Yellow triangle at ~40° (11%) */
+    /* Lit: 11% → 61% (50%), Fade: 61% → 11% (50%) */
+    @keyframes blip-yellow {
+      0% { opacity: 0.35; }
+      11% { opacity: 0.3; }
+      14% { opacity: 1; filter: url(#glowYellow); }
+      61% { opacity: 1; filter: url(#glowYellow); }
+      64% { opacity: 0.9; filter: none; }
+      75% { opacity: 0.6; }
+      90% { opacity: 0.4; }
+      100% { opacity: 0.35; }
+    }
+    
+    /* Red square at ~135° (37.5%) */
+    /* Lit: 37.5% → 87.5% (50%), Fade: 87.5% → 37.5% (50%) */
+    @keyframes blip-red {
+      0% { opacity: 0.5; }
+      20% { opacity: 0.35; }
+      37.5% { opacity: 0.3; }
+      40% { opacity: 1; filter: url(#glowRed); }
+      87.5% { opacity: 1; filter: url(#glowRed); }
+      90% { opacity: 0.9; filter: none; }
+      100% { opacity: 0.5; }
+    }
+    
+    .sweep { 
+      transform-origin: 90px 90px; 
+      animation: radar-sweep 3s linear infinite;
+    }
+    
+    .blip-green1 { 
+      animation: blip-green1 3s linear infinite;
+    }
+    .blip-yellow { 
+      animation: blip-yellow 3s linear infinite;
+    }
+    .blip-red { 
+      animation: blip-red 3s linear infinite;
+    }
+  </style>
+  
+  <!-- Outer ring -->
+  <circle cx="90" cy="90" r="89" stroke="#6aa7ff" stroke-width="1" fill="none"/>
+  
+  <!-- Radar background -->
+  <circle cx="90" cy="90" r="84" fill="#1a1f3c"/>
+  
+  <!-- Radar rings -->
+  <circle cx="90" cy="90" r="62" stroke="#3d5a99" stroke-width="1" fill="none" opacity="0.3"/>
+  <circle cx="90" cy="90" r="42" stroke="#3d5a99" stroke-width="1" fill="none" opacity="0.3"/>
+  <circle cx="90" cy="90" r="22" stroke="#3d5a99" stroke-width="1" fill="none" opacity="0.3"/>
+  
+  <!-- Crosshairs -->
+  <line x1="90" y1="7" x2="90" y2="173" stroke="#3d5a99" stroke-width="1" opacity="0.2"/>
+  <line x1="7" y1="90" x2="173" y2="90" stroke="#3d5a99" stroke-width="1" opacity="0.2"/>
+  
+  <!-- Radar sweep -->
+  <g class="sweep">
+    <path d="M90 90 L90 18 A72 72 0 0 0 38 46 Z" fill="url(#sweepGradientV10)"/>
+    <line x1="90" y1="90" x2="90" y2="18" stroke="#6aa7ff" stroke-width="2"/>
+  </g>
+  
+  <!-- Status blips - positioned to avoid D overlap, with sweep-triggered lighting -->
+  <!-- Green circle: upper-left area (~315°) -->
+  <circle class="blip-green1" cx="55" cy="50" r="8" fill="#22c55e"/>
+  
+  <!-- Yellow triangle: moved up and right (~40°) to avoid D -->
+  <polygon class="blip-yellow" points="125,42 133,58 117,58" fill="#ffd166"/>
+  
+  <!-- Red square: lower-right (~135°) -->
+  <rect class="blip-red" x="120" y="115" width="14" height="14" rx="2" fill="#ef4444"/>
+</svg>
+

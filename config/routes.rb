@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   root 'dashboard#index'
+  get 'zen', to: 'dashboard#zen'
 
   resources :projects, only: [:show, :create, :update] do
     member do

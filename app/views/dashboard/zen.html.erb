@@ -1,0 +1,30 @@
+<%# Zen Dashboard - Cinematic splash screen %>
+
+<%= render 'shared/toast_container' %>
+
+<div class="zen-dashboard" data-controller="zen-intro">
+  <div class="zen-tagline" data-zen-intro-target="tagline">
+    Know what's up
+  </div>
+  <div class="zen-dashboard__hero" data-zen-intro-target="hero">
+    <div class="zen-wordmark" data-zen-intro-target="wordmark">
+      <span class="zen-wordmark__letter">R</span>
+      <span class="zen-wordmark__letter">A</span>
+      <span class="zen-wordmark__letter">D</span>
+      <span class="zen-wordmark__letter">A</span>
+      <span class="zen-wordmark__letter">R</span>
+    </div>
+    <div class="zen-logo-container" data-zen-intro-target="logo">
+      <img src="/logo-radar-animated-loop-v10.svg" alt="" class="zen-logo__image" aria-hidden="true">
+    </div>
+  </div>
+
+  <div class="zen-dashboard__bottom" data-zen-intro-target="bottom">
+    <div class="zen-metrics">
+      <%= render 'shared/health_widget', presenter: @health_presenter %>
+      <%= render 'shared/trend_widget', presenter: @trend_presenter %>
+      <%= render 'shared/confidence_widget', presenter: @confidence_presenter %>
+    </div>
+    <%= render 'shared/search' %>
+  </div>
+</div>

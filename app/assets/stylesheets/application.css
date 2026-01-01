@@ -61,6 +61,10 @@ body {
   letter-spacing: 1px;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 400;
+}
+
 a {
   color: var(--accent);
   text-decoration: none;
@@ -112,7 +116,6 @@ a:hover {
 .section-title {
   margin: -8px 0 12px;
   font-size: 20px;
-  font-weight: 600;
 }
 
 /* Lists and project rows */
@@ -200,7 +203,6 @@ a:hover {
 
 .project-name {
   font-size: 24px;
-  font-weight: 700;
   line-height: 1.3;
   color: var(--text);
 }
@@ -273,7 +275,6 @@ a:hover {
   border: 1px solid var(--card-border);
   background: transparent;
   color: var(--text);
-  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   opacity: 0;
@@ -306,7 +307,6 @@ a:hover {
   border: 1px solid var(--card-border);
   background: transparent;
   color: var(--text);
-  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   opacity: 0;
@@ -479,7 +479,6 @@ a:hover {
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 600;
   border: 1px solid var(--card-border);
   background: rgba(255, 255, 255, 0.04);
 }
@@ -502,7 +501,6 @@ a:hover {
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 12px;
-  font-weight: 600;
   letter-spacing: 0.05em;
 }
 
@@ -527,7 +525,6 @@ a:hover {
   padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid transparent;
-  font-weight: 700;
   cursor: pointer;
   background: var(--accent-strong);
   color: white;
@@ -577,13 +574,14 @@ a:hover {
 input[type="text"],
 select {
   width: 100%;
-  padding: 10px 12px;
+  padding: 12px 14px 14px;
   border-radius: 10px;
   border: 1px solid var(--card-border);
   background: var(--bg);
   color: var(--text);
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-size: 16px;
+  letter-spacing: 2px;
+  font-variant: all-small-caps;
 }
 
 input::placeholder {
@@ -665,7 +663,6 @@ input::placeholder {
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 0.75rem;
-  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
@@ -948,7 +945,6 @@ input::placeholder {
 
 .health-trend-tooltip__health {
   font-size: 13px;
-  font-weight: 600;
   color: var(--text);
 }
 
@@ -1103,7 +1099,6 @@ input::placeholder {
 .modal__header h3 {
   margin: 0;
   font-size: 20px;
-  font-weight: 600;
 }
 
 .modal__body {
@@ -1246,10 +1241,6 @@ input::placeholder {
   border-bottom: 1px solid var(--card-border);
 }
 
-.project-dropdown__option-name {
-  font-weight: 500;
-}
-
 .project-dropdown__option-desc {
   font-size: 12px;
   color: var(--muted);
@@ -1285,7 +1276,6 @@ input::placeholder {
   border: 1px solid var(--card-border);
   background: transparent;
   color: var(--text);
-  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   opacity: 0;
@@ -1352,7 +1342,6 @@ input::placeholder {
 
 .sort-dropdown__trigger strong {
   color: var(--text);
-  font-weight: 600;
 }
 
 .sort-dropdown__arrow {
@@ -1399,7 +1388,6 @@ input::placeholder {
 
 .sort-dropdown__option.active {
   color: var(--accent);
-  font-weight: 600;
 }
 
 .sort-dropdown__check {
@@ -1427,75 +1415,32 @@ input::placeholder {
   color: var(--accent);
 }
 
-.sort-dir-toggle__arrow {
-  font-weight: 700;
-}
-
 /* Home Hero */
 .home-hero {
   text-align: center;
-  padding: 60px 24px 80px;
+  padding: 80px 24px 100px;
 }
 
 .home-hero__header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 36px;
-}
-
-.home-hero__logo {
-  width: 140px;
-  height: 140px;
-  flex-shrink: 0;
-}
-
-.home-hero__title-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  
+  justify-content: center;
 }
 
-.home-hero__title {
-  font-family: "Montserrat", sans-serif;
-  font-size: 72px;
-  font-weight: 400;
-  color: var(--text);
-  margin: -12px -72px 0 0;
-  line-height: 0.8;
-  letter-spacing: 72px;
-  text-transform: lowercase;
-  font-variant: small-caps;
+.home-hero .zen-wordmark {
+  position: relative;
+  z-index: 10;
 }
 
-.home-hero__divider {
-  width: 400px;
-  height: 3px;
-  border-radius: 50%;
-  background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
-  margin: 2px 0;
+.home-hero .zen-wordmark__letter {
+  font-size: 84px;
 }
 
-.home-hero__tagline {
-  font-family: "Montserrat", sans-serif;
-  font-size: 20px;
-  font-weight: 400;
-  color: var(--accent);
-  margin: 0 -4px 0 4px;
-  line-height: 1;
-  letter-spacing: 4px;
-  text-transform: lowercase;
-  font-variant: small-caps;
-}
-
-.home-hero__contact {
-  font-family: "Montserrat", sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  color: var(--text-muted);
-  margin: 0;
+.home-hero .zen-logo-container {
+  position: absolute;
+  top: -22px;
 }
 
 /* Project Hero (detail page) */
@@ -1599,7 +1544,6 @@ input::placeholder {
 .project-hero__title {
   font-family: "Montserrat", sans-serif;
   font-size: 60px;
-  font-weight: 400;
   color: var(--text);
   margin: 42px 0 16px 0;
   letter-spacing: 4px;
@@ -1610,7 +1554,6 @@ input::placeholder {
 .project-hero__tagline {
   font-family: "Montserrat", sans-serif;
   font-size: 16px;
-  font-weight: 400;
   color: var(--text-muted);
   margin: 0 0 16px 0;
   max-width: 800px;
@@ -1718,7 +1661,6 @@ input::placeholder {
 .sticky-header__title {
   font-family: "Montserrat", sans-serif;
   font-size: 24px;
-  font-weight: 400;
   line-height: 1;
   margin: 0;
   color: var(--text);
@@ -1777,7 +1719,6 @@ input::placeholder {
 .form-field__label {
   display: block;
   font-size: 14px;
-  font-weight: 500;
   color: var(--text);
   margin-bottom: 6px;
 }
@@ -1877,7 +1818,6 @@ input::placeholder {
 
 .checkbox-field__label {
   font-size: 14px;
-  font-weight: 600;
   color: var(--text);
 }
 
@@ -1916,13 +1856,12 @@ input::placeholder {
 }
 
 .section--search-results {
-  margin-top: 12px;
+  margin-top: 16px;
   padding: 16px;
 }
 
 .section__title {
   font-size: 14px;
-  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 4px;
   color: var(--text-muted);
@@ -1964,7 +1903,6 @@ input::placeholder {
 
 .section__title--inline {
   font-size: 14px;
-  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-muted);
@@ -2022,7 +1960,6 @@ input::placeholder {
 
 .section__name {
   flex: 1;
-  font-weight: 500;
 }
 
 .section__archived-details {
@@ -2035,7 +1972,6 @@ input::placeholder {
   cursor: pointer;
   color: var(--text-muted);
   font-size: 12px;
-  font-weight: 500;
   padding: 4px 0;
 }
 
@@ -2145,7 +2081,6 @@ input::placeholder {
   margin: 0;
 }
 
-
 /* Global Search - no margin, parent gap handles spacing */
 .global-search__results-container {
   max-height: 0;
@@ -2154,14 +2089,14 @@ input::placeholder {
 }
 
 .global-search__results-container.open {
-  max-height: 280px; /* 200px scrollable + header + padding */
+  max-height: 400px; /* 400px scrollable + header + padding */
 }
 
 .global-search__input {
   width: 100%;
   padding: 12px 16px;
   font-size: 14px;
-  background: var(--card);
+  background: transparent;
   letter-spacing: 1px;
   border: 1px solid var(--card-border);
   border-radius: 8px;
@@ -2197,8 +2132,7 @@ input::placeholder {
 }
 
 .section__subtitle {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: var(--text-muted);
@@ -2209,7 +2143,6 @@ input::placeholder {
 
 .section__title .section__subtitle {
   font-size: 0.65em;
-  font-weight: 400;
   text-transform: none;
   letter-spacing: normal;
   color: var(--text-muted);
@@ -2237,7 +2170,6 @@ input::placeholder {
 .section__link-btn {
   padding: 4px 10px;
   font-size: 11px;
-  font-weight: 600;
   color: var(--accent);
   background: transparent;
   border: 1px solid var(--accent);
@@ -2261,7 +2193,6 @@ input::placeholder {
 .section__badge {
   padding: 3px 8px;
   font-size: 10px;
-  font-weight: 600;
   border-radius: 4px;
   white-space: nowrap;
   flex-shrink: 0;
@@ -2273,56 +2204,6 @@ input::placeholder {
   border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
-.global-search__item:last-child {
-  margin-bottom: 0;
-}
-
-.global-search__item[hidden] {
-  display: none;
-}
-
-.global-search__type-badge {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  padding: 3px 6px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-
-.global-search__type-badge--team {
-  background: rgba(106, 167, 255, 0.2);
-  color: #6aa7ff;
-}
-
-.global-search__type-badge--initiative {
-  background: rgba(168, 130, 255, 0.2);
-  color: #a882ff;
-}
-
-.global-search__type-badge--project {
-  background: rgba(101, 209, 149, 0.2);
-  color: #65d195;
-}
-
-.global-search__text {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.global-search__ancestors {
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.global-search__poc {
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
 .global-search__no-results {
   padding: 0;
   text-align: left;
@@ -2332,35 +2213,16 @@ input::placeholder {
   margin-bottom: 16px;
 }
 
-.global-search__no-results-message {
-  color: var(--text-muted);
-  font-size: 14px;
-  padding: 16px;
-  margin: 0;
-}
-
 .global-search__form-card {
   padding: 16px;
-  background: rgba(106, 167, 255, 0.06);
+  background: transparent;
   border-radius: 8px;
   border: 1px solid rgba(106, 167, 255, 0.15);
 }
 
-.global-search__create-prompt {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
-}
-
-.global-search__create-message {
-  color: var(--text-muted);
-  font-size: 14px;
-  margin: 0;
-}
-
 .global-search__create-form {
   display: inline-block;
+  width: 100%;
 }
 
 .global-search__create-btn {
@@ -2369,8 +2231,8 @@ input::placeholder {
   border: 1px solid var(--card-border);
   padding: 6px 16px;
   border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: 2px;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.1s ease, color 0.2s ease, border-color 0.2s ease;
   flex-shrink: 0;
@@ -2398,13 +2260,6 @@ input::placeholder {
   transform: translateY(0);
 }
 
-.global-search__form-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
 .global-search__form-fields-inline {
   display: flex;
   gap: 12px;
@@ -2430,50 +2285,6 @@ input::placeholder {
 .global-search__form-input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(106, 167, 255, 0.15);
-}
-
-.global-search__create-form {
-  width: 100%;
-}
-
-.global-search__form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.global-search__form-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.global-search__form-input {
-  width: 100%;
-  padding: 8px 10px;
-  font-size: 14px;
-  background: var(--bg);
-  border: 1px solid var(--card-border);
-  border-radius: 6px;
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.15s ease;
-  box-sizing: border-box;
-}
-
-.global-search__form-input::placeholder {
-  color: var(--text-muted);
-}
-
-.global-search__form-input:focus {
-  border-color: var(--accent);
-}
-
-.global-search__form-textarea {
-  resize: none;
-  min-height: 40px;
 }
 
 /* Toast Notifications */
@@ -2520,7 +2331,6 @@ input::placeholder {
 .toast a {
   color: var(--accent);
   text-decoration: none;
-  font-weight: 500;
 }
 
 .toast a:hover {
@@ -2613,7 +2423,6 @@ input::placeholder {
 
 .initiative-header .project-name {
   font-size: 32px;
-  font-weight: 600;
 }
 
 .initiative-header__state {
@@ -2715,7 +2524,6 @@ input::placeholder {
 
 .stat-value {
   font-size: 2.5rem;
-  font-weight: 700;
   line-height: 1;
   margin-bottom: 8px;
 }
@@ -2773,7 +2581,6 @@ input::placeholder {
 
 .linked-projects-title {
   font-size: 14px;
-  font-weight: 600;
   color: var(--muted);
   margin: 0 0 12px 0;
 }
@@ -2809,7 +2616,6 @@ input::placeholder {
 
 .attention-row-title {
   font-size: 0.875rem;
-  font-weight: 600;
   color: var(--muted);
   margin: 0 0 12px 0;
   text-transform: uppercase;
@@ -2833,7 +2639,6 @@ input::placeholder {
 
 .congrats-text {
   font-size: 1rem;
-  font-weight: 500;
 }
 
 .attention-column {
@@ -2846,7 +2651,6 @@ input::placeholder {
 
 .attention-column-title {
   font-size: 0.875rem;
-  font-weight: 600;
   color: var(--muted);
   margin: 0 0 12px 0;
   text-transform: uppercase;
@@ -2855,7 +2659,6 @@ input::placeholder {
 
 .attention-count {
   color: var(--text);
-  font-weight: 700;
 }
 
 .attention-column .attention-list {
@@ -2920,7 +2723,6 @@ input::placeholder {
   background: var(--danger);
   border-radius: 12px;
   font-size: 0.75rem;
-  font-weight: 600;
   color: white;
 }
 
@@ -2963,7 +2765,6 @@ input::placeholder {
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 0.7rem;
-  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -2982,10 +2783,6 @@ input::placeholder {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.activity-project {
-  font-weight: 500;
 }
 
 .activity-date {
@@ -3030,7 +2827,6 @@ input::placeholder {
 }
 
 .state-count {
-  font-weight: 600;
   color: var(--text);
 }
 
@@ -3082,10 +2878,6 @@ input::placeholder {
   font-size: 1.25rem;
 }
 
-.dashboard-link-text {
-  font-weight: 500;
-}
-
 /* Dashboard v2 link styles (for Settings tab) */
 .dashboard-links {
   display: flex;
@@ -3114,10 +2906,6 @@ input::placeholder {
 
 .dashboard-link__icon {
   font-size: 1.1rem;
-}
-
-.dashboard-link__text {
-  font-weight: 500;
 }
 
 /* Dashboard stat card health symbols */
@@ -3156,7 +2944,6 @@ input::placeholder {
   align-items: center;
   gap: 8px;
   color: var(--text);
-  font-weight: 500;
 }
 
 .filter-banner__clear {
@@ -3184,7 +2971,6 @@ input::placeholder {
 
 .team-dashboard .team-name {
   font-size: 28px;
-  font-weight: 600;
   margin-bottom: 16px;
 }
 
@@ -3214,7 +3000,6 @@ input::placeholder {
 
 .initiative-name {
   font-size: 28px;
-  font-weight: 600;
   margin-bottom: 16px;
 }
 
@@ -3315,7 +3100,6 @@ input::placeholder {
 
 .metric-widget__urgent {
   font-size: 13px;
-  font-weight: 400;
   background: none;
   border: none;
   padding: 0;
@@ -3346,7 +3130,6 @@ input::placeholder {
 
 .metric-widget__label {
   font-size: 20px;
-  font-weight: 400;
   margin-bottom: 2px;
   letter-spacing: 4px;
   text-transform: uppercase;
@@ -3406,8 +3189,8 @@ input::placeholder {
 .metric-widget__label--not-available { color: var(--text-muted); }
 
 .metric-widget__detail {
-  font-size: 13px;
-  font-weight: 400;
+  font-size: 12px;
+  text-transform: uppercase;
   color: var(--text-muted);
   letter-spacing: 1px;
 }
@@ -3435,7 +3218,6 @@ input::placeholder {
 
 .metric-widget__indicator {
   font-size: 12px;
-  font-weight: 600;
 }
 
 .metric-widget__indicator--up { color: var(--success); }
@@ -3453,6 +3235,7 @@ input::placeholder {
   justify-content: center;
   color: var(--text-muted);
   font-size: 12px;
+  text-transform: uppercase;
 }
 
 .trend-svg {
@@ -3537,7 +3320,6 @@ input::placeholder {
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-weight: 700;
   color: var(--accent);
 }
 
@@ -3570,7 +3352,6 @@ input::placeholder {
   background: var(--card-border);
   color: var(--text-muted);
   font-size: 10px;
-  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3658,7 +3439,6 @@ input::placeholder {
 
 .info-tooltip__score {
   font-size: 11px;
-  font-weight: 600;
   color: var(--accent);
   padding-top: 6px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -3675,7 +3455,6 @@ input::placeholder {
   border-radius: 999px;
   color: var(--text-muted);
   font-size: 16px;
-  font-weight: 400;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -3767,7 +3546,6 @@ input::placeholder {
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 11px;
-  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -3796,7 +3574,6 @@ input::placeholder {
 
 .section__title--grid {
   font-size: 14px;
-  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 4px;
   color: var(--text-muted);
@@ -3844,12 +3621,11 @@ input::placeholder {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  font-weight: 400;
 }
 
 .project-item__health {
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
   background: var(--text-muted); /* fallback for unmatched health values */
@@ -3883,15 +3659,14 @@ input::placeholder {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 14px;
-  height: 3px;
+  width: 12px;
+  height: 2px;
   background: var(--text-muted);
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
 .project-item__name {
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 12px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -3901,7 +3676,6 @@ input::placeholder {
   font-size: 10px;
   padding: 4px 10px;
   border-radius: 4px;
-  font-weight: 600;
   text-transform: uppercase;
   white-space: nowrap;
   flex-shrink: 0;
@@ -3911,7 +3685,6 @@ input::placeholder {
   font-size: 10px;
   padding: 4px 10px;
   border-radius: 4px;
-  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
   background: rgba(106, 167, 255, 0.15);
@@ -4016,7 +3789,6 @@ input::placeholder {
 
 .manage-section__title {
   font-size: 14px;
-  font-weight: 600;
   margin-bottom: 12px;
   color: var(--text);
 }
@@ -4073,7 +3845,6 @@ input::placeholder {
 
 .inline-create-form__title {
   font-size: 14px;
-  font-weight: 500;
   color: var(--text-muted);
   margin: 16px 0 8px;
 }
@@ -4134,7 +3905,6 @@ input.inline-create-form__input--date {
 
 .team-item__header-label {
   font-size: 11px !important;
-  font-weight: 400;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -4172,7 +3942,6 @@ input.inline-create-form__input--date {
 
 .team-item__col--stale-warning {
   color: var(--warning);
-  font-weight: 600;
 }
 
 .team-item__col--stale[data-stale-link] {
@@ -4221,7 +3990,6 @@ input.inline-create-form__input--date {
   background: rgba(255, 255, 255, 0.03);
   border-bottom: 1px solid var(--card-border);
   font-size: 10px;
-  font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: var(--text-muted);
@@ -4318,7 +4086,6 @@ input.inline-create-form__input--date {
   display: inline-block;
   padding: 4px 10px;
   font-size: 12px;
-  font-weight: 600;
   border-radius: 999px;
   text-transform: capitalize;
 }
@@ -4658,7 +4425,6 @@ input.inline-create-form__input--date {
   display: inline-block;
   padding: 4px 10px;
   font-size: 11px;
-  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-radius: 4px;
@@ -4703,4 +4469,223 @@ input.inline-create-form__input--date {
 .section__link--btn:disabled {
   opacity: 0.6;
   cursor: wait;
+}
+
+/* ==========================================
+   ZEN DASHBOARD - Cinematic splash screen
+   ========================================== */
+
+.zen-dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 40px);
+  overflow: hidden;
+}
+
+/* Tagline - "Know where things are" (movie mode only) */
+.zen-tagline {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+
+/* In movie mode, start hidden and use transitions */
+.zen-dashboard--movie .zen-tagline {
+  color: var(--text);
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: 5;
+}
+
+.zen-dashboard--movie .zen-tagline--visible {
+  opacity: 1;
+}
+
+/* Hero section with logo and wordmark */
+.zen-dashboard__hero {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.zen-dashboard--movie .zen-dashboard__hero {
+  transition: top 1s cubic-bezier(0.25, 0.1, 0.25, 1), transform 2.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.zen-dashboard__hero--top {
+  top: 20%;
+  transform: translate(-50%, -50%);
+}
+
+/* Wordmark - R A D A R */
+.zen-wordmark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 120px;
+  z-index: 10;
+  opacity: 1;
+}
+
+/* In movie mode, start hidden and use transitions */
+.zen-dashboard--movie .zen-wordmark {
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.zen-dashboard--movie .zen-wordmark--visible {
+  opacity: 1;
+}
+
+.zen-wordmark__letter {
+  font-size: 84px;
+  color: var(--text);
+  letter-spacing: 0;
+  text-transform: lowercase;
+  font-variant: small-caps;
+}
+
+/* Logo container - positioned behind the D */
+.zen-logo-container {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  top: -22px;
+}
+
+/* In movie mode, start hidden and use transitions */
+.zen-dashboard--movie .zen-logo-container {
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+
+.zen-dashboard--movie .zen-logo-container--visible {
+  opacity: 1;
+}
+
+.zen-logo__image {
+  width: 160px;
+  height: 160px;
+  filter: brightness(0.8);
+}
+
+/* Bottom section with widgets */
+.zen-dashboard__bottom {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) translateY(100vh);
+  padding: 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1200px;
+  width: 100%;
+  box-sizing: border-box;
+  opacity: 0;
+}
+
+.zen-dashboard--movie .zen-dashboard__bottom {
+  transition: opacity 2s ease, transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.zen-dashboard__bottom--visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) translateY(0);
+  pointer-events: auto;
+}
+
+.zen-metrics {
+  display: flex;
+  gap: 16px;
+}
+
+.zen-metrics .metric-widget {
+  flex: 1;
+}
+
+/* Zen dashboard search - results drop down absolutely */
+.zen-dashboard .global-search {
+  position: relative;
+}
+
+.zen-dashboard .global-search__results-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.zen-dashboard .global-search__results-container.open {
+  max-height: 400px;
+}
+
+/* Responsive adjustments for zen dashboard */
+@media (max-width: 1200px) {
+  .zen-wordmark {
+    gap: 80px;
+  }
+
+  .zen-wordmark__letter {
+    font-size: 60px;
+  }
+
+  .zen-logo__image {
+    width: 140px;
+    height: 140px;
+  }
+}
+
+@media (max-width: 900px) {
+  .zen-wordmark {
+    gap: 48px;
+  }
+
+  .zen-wordmark__letter {
+    font-size: 42px;
+  }
+
+  .zen-logo__image {
+    width: 100px;
+    height: 100px;
+  }
+
+  .zen-metrics {
+    flex-direction: column;
+  }
+
+  .zen-dashboard__bottom {
+    padding: 24px 24px 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .zen-wordmark {
+    gap: 24px;
+  }
+
+  .zen-wordmark__letter {
+    font-size: 28px;
+  }
+
+  .zen-logo__image {
+    width: 64px;
+    height: 64px;
+  }
 }
