@@ -2,163 +2,193 @@ require 'spec_helper'
 require 'domain/projects/project_health'
 
 RSpec.describe ProjectHealth do
-  it 'returns :not_available when no health updates and no children' do
-    project_health = described_class.new(
-      health_updates_loader: -> { [] },
-      weekly_health_updates_loader: -> { [] },
-      children_loader: -> { [] }
-    )
+  describe 'health' do
+    it 'returns :not_available when no health updates and no children' do
+      project_health = described_class.new(
+        health_updates_loader: -> { [] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: -> { [] }
+      )
 
-    expect(project_health.health).to eq(:not_available)
-  end
+      expect(project_health.health).to eq(:not_available)
+    end
 
-  it 'returns :not_available when health_updates_loader is nil and no children' do
-    project_health = described_class.new(
-      health_updates_loader: nil,
-      weekly_health_updates_loader: nil,
-      children_loader: -> { [] }
-    )
+    it 'returns :not_available when health_updates_loader is nil and no children' do
+      project_health = described_class.new(
+        health_updates_loader: nil,
+        weekly_health_updates_loader: nil,
+        children_loader: -> { [] }
+      )
 
-    expect(project_health.health).to eq(:not_available)
-  end
+      expect(project_health.health).to eq(:not_available)
+    end
 
-  it 'returns the latest health for leaf with updates' do
-    updates = [
-      double('HealthUpdate', date: Date.new(2025, 1, 1), health: :on_track),
-      double('HealthUpdate', date: Date.new(2025, 1, 8), health: :at_risk)
-    ]
-    project_health = described_class.new(
-      health_updates_loader: -> { updates },
-      weekly_health_updates_loader: -> { updates },
-      children_loader: -> { [] }
-    )
+    it 'returns the latest health for leaf with updates' do
+      updates = [
+        double('HealthUpdate', date: Date.new(2025, 1, 1), health: :on_track),
+        double('HealthUpdate', date: Date.new(2025, 1, 8), health: :at_risk)
+      ]
+      project_health = described_class.new(
+        health_updates_loader: -> { updates },
+        weekly_health_updates_loader: -> { updates },
+        children_loader: -> { [] }
+      )
 
-    expect(project_health.health).to eq(:at_risk)
-  end
+      expect(project_health.health).to eq(:at_risk)
+    end
 
-  it 'rolls up health from children' do
-    children = [
-      double('Child', health: :on_track, archived?: false),
-      double('Child', health: :off_track, archived?: false)
-    ]
-    project_health = described_class.new(
-      health_updates_loader: -> { [] },
-      weekly_health_updates_loader: -> { [] },
-      children_loader: -> { children }
-    )
+    it 'rolls up health from children' do
+      children = [
+        double('Child1', health: :on_track, archived?: false),
+        double('Child2', health: :off_track, archived?: false)
+      ]
+      project_health = described_class.new(
+        health_updates_loader: -> { [] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: -> { children }
+      )
 
-    expect(project_health.health).to eq(:at_risk)
-  end
+      expect(project_health.health).to eq(:at_risk)
+    end
 
-  it 'ignores :not_available child health values' do
-    children = [
-      double('Child', health: :not_available, archived?: false),
-      double('Child', health: :on_track, archived?: false)
-    ]
-    project_health = described_class.new(
-      health_updates_loader: -> { [] },
-      weekly_health_updates_loader: -> { [] },
-      children_loader: -> { children }
-    )
+    it 'returns :at_risk when children are on-track and at-risk' do
+      children = [
+        double('Child1', health: :on_track, archived?: false),
+        double('Child2', health: :at_risk, archived?: false)
+      ]
+      project_health = described_class.new(
+        health_updates_loader: -> { [] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: -> { children }
+      )
 
-    expect(project_health.health).to eq(:on_track)
-  end
+      expect(project_health.health).to eq(:at_risk)
+    end
 
-  it 'returns :not_available when all children have :not_available health' do
-    children = [
-      double('Child', health: :not_available, archived?: false),
-      double('Child', health: :not_available, archived?: false)
-    ]
-    project_health = described_class.new(
-      health_updates_loader: -> { [] },
-      weekly_health_updates_loader: -> { [] },
-      children_loader: -> { children }
-    )
+    it 'returns :off_track when children are off-track and at-risk' do
+      children = [
+        double('Child1', health: :off_track, archived?: false),
+        double('Child2', health: :at_risk, archived?: false)
+      ]
+      project_health = described_class.new(
+        health_updates_loader: -> { [] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: -> { children }
+      )
 
-    expect(project_health.health).to eq(:not_available)
-  end
+      expect(project_health.health).to eq(:off_track)
+    end
 
-  it 'returns :off_track when all children are off_track' do
-    children = [
-      double('Child', health: :off_track, archived?: false),
-      double('Child', health: :off_track, archived?: false)
-    ]
-    project_health = described_class.new(
-      health_updates_loader: -> { [] },
-      weekly_health_updates_loader: -> { [] },
-      children_loader: -> { children }
-    )
+    it 'ignores :not_available child health values' do
+      children = [
+        double('Child1', health: :not_available, archived?: false),
+        double('Child2', health: :on_track, archived?: false)
+      ]
+      project_health = described_class.new(
+        health_updates_loader: -> { [] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: -> { children }
+      )
 
-    expect(project_health.health).to eq(:off_track)
-  end
+      expect(project_health.health).to eq(:on_track)
+    end
 
-  it 'excludes future-dated health updates from current health' do
-    updates = [
-      double('HealthUpdate', date: Date.today - 7, health: :on_track),
-      double('HealthUpdate', date: Date.today + 7, health: :off_track)
-    ]
-    project_health = described_class.new(
-      health_updates_loader: -> { updates },
-      weekly_health_updates_loader: -> { [] },
-      children_loader: -> { [] }
-    )
+    it 'returns :not_available when all children have :not_available health' do
+      children = [
+        double('Child1', health: :not_available, archived?: false),
+        double('Child2', health: :not_available, archived?: false)
+      ]
+      project_health = described_class.new(
+        health_updates_loader: -> { [] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: -> { children }
+      )
 
-    expect(project_health.health).to eq(:on_track)
-  end
+      expect(project_health.health).to eq(:not_available)
+    end
 
-  it 'memoizes children loader result across different method calls' do
-    call_count = 0
-    children_loader = -> {
-      call_count += 1
-      [double('Child', name: 'Test', health: :on_track, health_trend: [], archived?: false)]
-    }
-    project_health = described_class.new(
-      health_updates_loader: -> { [] },
-      weekly_health_updates_loader: -> { [] },
-      children_loader: children_loader
-    )
+    it 'returns :off_track when all children are off_track' do
+      children = [
+        double('Child1', health: :off_track, archived?: false),
+        double('Child2', health: :off_track, archived?: false)
+      ]
+      project_health = described_class.new(
+        health_updates_loader: -> { [] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: -> { children }
+      )
 
-    project_health.health
-    project_health.children_health_for_tooltip
+      expect(project_health.health).to eq(:off_track)
+    end
 
-    expect(call_count).to eq(1)
-  end
+    it 'excludes future-dated health updates from current health' do
+      updates = [
+        double('HealthUpdate', date: Date.today - 7, health: :on_track),
+        double('HealthUpdate', date: Date.today + 7, health: :off_track)
+      ]
+      project_health = described_class.new(
+        health_updates_loader: -> { updates },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: -> { [] }
+      )
 
-  it 'handles nil children_loader gracefully' do
-    project_health = described_class.new(
-      health_updates_loader: -> { [] },
-      weekly_health_updates_loader: -> { [] },
-      children_loader: nil
-    )
+      expect(project_health.health).to eq(:on_track)
+    end
 
-    expect(project_health.health).to eq(:not_available)
-  end
+    it 'memoizes children loader result across different method calls' do
+      call_count = 0
+      children_loader = -> {
+        call_count += 1
+        [double('Child', name: 'Test', health: :on_track, health_trend: [], archived?: false)]
+      }
+      project_health = described_class.new(
+        health_updates_loader: -> { [] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: children_loader
+      )
 
-  it 'excludes archived children from health rollup' do
-    archived_child = double('ArchivedChild', health: :off_track, archived?: true)
-    active_child = double('ActiveChild', health: :on_track, archived?: false)
+      project_health.health
+      project_health.children_health_for_tooltip
 
-    project_health = described_class.new(
-      health_updates_loader: -> { [] },
-      weekly_health_updates_loader: -> { [] },
-      children_loader: -> { [archived_child, active_child] }
-    )
+      expect(call_count).to eq(1)
+    end
 
-    expect(project_health.health).to eq(:on_track)
-  end
+    it 'handles nil children_loader gracefully' do
+      project_health = described_class.new(
+        health_updates_loader: -> { [] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: nil
+      )
 
-  it 'returns :not_available when children have unknown health values' do
-    children = [
-      double('Child', health: :unknown_value, archived?: false),
-      double('Child', health: :another_unknown, archived?: false)
-    ]
-    project_health = described_class.new(
-      health_updates_loader: -> { [] },
-      weekly_health_updates_loader: -> { [] },
-      children_loader: -> { children }
-    )
+      expect(project_health.health).to eq(:not_available)
+    end
 
-    expect(project_health.health).to eq(:not_available)
+    it 'excludes archived children from health rollup' do
+      archived_child = double('ArchivedChild', health: :off_track, archived?: true)
+      active_child = double('ActiveChild', health: :on_track, archived?: false)
+
+      project_health = described_class.new(
+        health_updates_loader: -> { [] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: -> { [archived_child, active_child] }
+      )
+
+      expect(project_health.health).to eq(:on_track)
+    end
+
+    it 'returns :not_available when children have unknown health values' do
+      children = [
+        double('Child', health: :unknown_value, archived?: false),
+        double('Child', health: :another_unknown, archived?: false)
+      ]
+      project_health = described_class.new(
+        health_updates_loader: -> { [] },
+        weekly_health_updates_loader: -> { [] },
+        children_loader: -> { children }
+      )
+
+      expect(project_health.health).to eq(:not_available)
+    end
   end
 
   describe 'health_trend' do

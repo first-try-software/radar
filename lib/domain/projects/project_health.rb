@@ -14,7 +14,7 @@ class ProjectHealth
   end
 
   def health
-    return subordinate_health unless subordinate_health == :not_available
+    return subordinate_health if children.any?
     return :not_available if health_updates.empty?
 
     health_updates.last.health
@@ -80,10 +80,12 @@ class ProjectHealth
     return :not_available if scores.empty?
 
     average = scores.sum(0.0) / scores.length
-    case average.round(0)
-    when 1 then :on_track
-    when -1 then :off_track
-    else :at_risk
+    if average > 0.5
+      :on_track
+    elsif average <= -0.5
+      :off_track
+    else
+      :at_risk
     end
   end
 
