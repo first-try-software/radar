@@ -2,6 +2,20 @@ class HealthRollup
   WORKING_STATES = [:in_progress, :blocked].freeze
   SCORES = { on_track: 1, at_risk: 0, off_track: -1 }.freeze
 
+  def self.score(scores)
+    return :not_available if scores.empty?
+
+    average = scores.sum(0.0) / scores.length
+
+    if average > 0.5
+      :on_track
+    elsif average <= -0.5
+      :off_track
+    else
+      :at_risk
+    end
+  end
+
   def self.rollup(projects)
     average = raw_score(projects)
     return :not_available if average.nil?

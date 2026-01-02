@@ -77,16 +77,8 @@ class ProjectHealth
     return :not_available if healths.empty?
 
     scores = healths.map { |h| SCORES[h] }.compact
-    return :not_available if scores.empty?
 
-    average = scores.sum(0.0) / scores.length
-    if average > 0.5
-      :on_track
-    elsif average <= -0.5
-      :off_track
-    else
-      :at_risk
-    end
+    HealthRollup.score(scores)
   end
 
   def weekly_health_updates_with_current
