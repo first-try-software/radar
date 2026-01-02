@@ -35,7 +35,7 @@
 * [ ] Project filters
     * [ ] All
     * [ ] What's going well
-    * [ ] What needs leadership attention (off track / blocked / unowned)
+    * [ ] What needs leadership attention (at risk / off track / blocked / unowned)
     * [ ] What needs management attention (stale)
 
 ## DUMB IDEAS
@@ -61,6 +61,26 @@
 * [ ] Move logic out of controllers
 * [ ] Move logic out of models
 * [ ] Refactor HEALTH_SCORE into a class instead of a hash
+
+## THINGS NOT NEEDING REFACTORING
+* [x] archive_project.rb (action)
+* [x] create_project_health_update.rb (action)
+* [x] create_project.rb (action)
+* [x] create_subordinate_project.rb (action)
+* [x] find_project.rb (action)
+* [x] health_update.rb (entity)
+* [x] link_subordinate_project.rb (action)
+* [x] project_attributes.rb
+* [ ] project_health.rb
+* [x] project_hierarchy.rb
+* [x] project_loaders.rb
+* [ ] project_sorter.rb
+* [ ] project_trend_service.rb
+* [ ] project.rb
+* [x] set_project_state.rb (action)
+* [x] unarchive_project.rb (action)
+* [x] unlink_subordinate_project.rb (action)
+* [x] update_project.rb (action)
 
 ---
 
@@ -91,3 +111,18 @@ Executive Summary View (one screen)
     * Short, explicit commitments
 
 
+# Project, Inititative, Team health
+
+## Projects
+
+* Array to score = direct children, not all descendants
+* Score = average of health scores
+
+## Initiatives
+
+* Array to score = top-level releated projects
+* Score = average of health scores
+ 
+## Teams
+* Array to score = direct child teams + average of direct owned projects
+* Score = average of health scores
