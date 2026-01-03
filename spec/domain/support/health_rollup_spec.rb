@@ -8,8 +8,8 @@ RSpec.describe HealthRollup do
 
   it 'ignores projects not in working states' do
     projects = [
-      double('Project', current_state: :todo, health: :on_track),
-      double('Project', current_state: :done, health: :off_track)
+      double('Project', current_state: :todo, health: :on_track, archived?: false),
+      double('Project', current_state: :done, health: :off_track, archived?: false)
     ]
 
     expect(described_class.health_from_projects(projects)).to eq(:not_available)
@@ -17,9 +17,9 @@ RSpec.describe HealthRollup do
 
   it 'returns :on_track when average score is >= 0.51' do
     projects = [
-      double('Project', current_state: :in_progress, health: :on_track),
-      double('Project', current_state: :in_progress, health: :on_track),
-      double('Project', current_state: :blocked, health: :at_risk)
+      double('Project', current_state: :in_progress, health: :on_track, archived?: false),
+      double('Project', current_state: :in_progress, health: :on_track, archived?: false),
+      double('Project', current_state: :blocked, health: :at_risk, archived?: false)
     ]
     # Average = (1 + 1 + 0) / 3 = 0.67
 
@@ -28,8 +28,8 @@ RSpec.describe HealthRollup do
 
   it 'returns :at_risk when average score is zero' do
     projects = [
-      double('Project', current_state: :in_progress, health: :on_track),
-      double('Project', current_state: :blocked, health: :off_track)
+      double('Project', current_state: :in_progress, health: :on_track, archived?: false),
+      double('Project', current_state: :blocked, health: :off_track, archived?: false)
     ]
 
     expect(described_class.health_from_projects(projects)).to eq(:at_risk)
@@ -37,8 +37,8 @@ RSpec.describe HealthRollup do
 
   it 'returns :off_track when average score is negative' do
     projects = [
-      double('Project', current_state: :in_progress, health: :off_track),
-      double('Project', current_state: :blocked, health: :off_track)
+      double('Project', current_state: :in_progress, health: :off_track, archived?: false),
+      double('Project', current_state: :blocked, health: :off_track, archived?: false)
     ]
 
     expect(described_class.health_from_projects(projects)).to eq(:off_track)
@@ -46,8 +46,8 @@ RSpec.describe HealthRollup do
 
   it 'ignores projects whose health is :not_available' do
     projects = [
-      double('Project', current_state: :in_progress, health: :not_available),
-      double('Project', current_state: :blocked, health: :on_track)
+      double('Project', current_state: :in_progress, health: :not_available, archived?: false),
+      double('Project', current_state: :blocked, health: :on_track, archived?: false)
     ]
 
     expect(described_class.health_from_projects(projects)).to eq(:on_track)
@@ -55,10 +55,10 @@ RSpec.describe HealthRollup do
 
   it 'rounds slightly positive averages down to :at_risk' do
     projects = [
-      double('Project', current_state: :in_progress, health: :on_track),
-      double('Project', current_state: :blocked, health: :at_risk),
-      double('Project', current_state: :blocked, health: :at_risk),
-      double('Project', current_state: :blocked, health: :at_risk)
+      double('Project', current_state: :in_progress, health: :on_track, archived?: false),
+      double('Project', current_state: :blocked, health: :at_risk, archived?: false),
+      double('Project', current_state: :blocked, health: :at_risk, archived?: false ),
+      double('Project', current_state: :blocked, health: :at_risk, archived?: false)
     ]
 
     expect(described_class.health_from_projects(projects)).to eq(:at_risk)
@@ -66,10 +66,10 @@ RSpec.describe HealthRollup do
 
   it 'rounds slightly negative averages up to :at_risk' do
     projects = [
-      double('Project', current_state: :in_progress, health: :off_track),
-      double('Project', current_state: :blocked, health: :at_risk),
-      double('Project', current_state: :blocked, health: :at_risk),
-      double('Project', current_state: :blocked, health: :at_risk)
+      double('Project', current_state: :in_progress, health: :off_track, archived?: false),
+      double('Project', current_state: :blocked, health: :at_risk, archived?: false),
+      double('Project', current_state: :blocked, health: :at_risk, archived?: false),
+      double('Project', current_state: :blocked, health: :at_risk, archived?: false)
     ]
 
     expect(described_class.health_from_projects(projects)).to eq(:at_risk)

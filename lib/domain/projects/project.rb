@@ -6,7 +6,6 @@ require_relative 'project_hierarchy'
 class Project
   ALLOWED_STATES = [:new, :todo, :in_progress, :blocked, :on_hold, :done].freeze
   STATE_PRIORITY = [:blocked, :in_progress, :on_hold, :todo, :new, :done].freeze
-  ACTIVE_STATES = [:in_progress, :blocked].freeze
 
   def initialize(attributes:, loaders: ProjectLoaders.new)
     @attributes = attributes
@@ -33,6 +32,7 @@ class Project
   def parent = hierarchy.parent
   def leaf? = hierarchy.leaf?
   def leaf_descendants = hierarchy.leaf_descendants
+
   alias_method :subordinate_projects, :children
 
   def owning_team
@@ -53,10 +53,6 @@ class Project
 
   def with_state(state:)
     self.class.new(attributes: attributes.with_state(state), loaders: loaders)
-  end
-
-  def active?
-    ACTIVE_STATES.include?(current_state)
   end
 
   def health = project_health.health

@@ -39,8 +39,8 @@ RSpec.describe ProjectHealth do
 
     it 'rolls up health from children' do
       children = [
-        double('Child1', health: :on_track, archived?: false, active?: true),
-        double('Child2', health: :off_track, archived?: false, active?: true)
+        double('Child1', health: :on_track, archived?: false, current_state: :in_progress),
+        double('Child2', health: :off_track, archived?: false, current_state: :in_progress)
       ]
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -53,8 +53,8 @@ RSpec.describe ProjectHealth do
 
     it 'returns :at_risk when children are on-track and at-risk' do
       children = [
-        double('Child1', health: :on_track, archived?: false, active?: true),
-        double('Child2', health: :at_risk, archived?: false, active?: true)
+        double('Child1', health: :on_track, archived?: false, current_state: :in_progress),
+        double('Child2', health: :at_risk, archived?: false, current_state: :in_progress)
       ]
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -67,8 +67,8 @@ RSpec.describe ProjectHealth do
 
     it 'returns :off_track when children are off-track and at-risk' do
       children = [
-        double('Child1', health: :off_track, archived?: false, active?: true),
-        double('Child2', health: :at_risk, archived?: false, active?: true)
+        double('Child1', health: :off_track, archived?: false, current_state: :in_progress),
+        double('Child2', health: :at_risk, archived?: false, current_state: :in_progress)
       ]
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -81,8 +81,8 @@ RSpec.describe ProjectHealth do
 
     it 'ignores :not_available child health values' do
       children = [
-        double('Child1', health: :not_available, archived?: false, active?: true),
-        double('Child2', health: :on_track, archived?: false, active?: true)
+        double('Child1', health: :not_available, archived?: false, current_state: :in_progress),
+        double('Child2', health: :on_track, archived?: false, current_state: :in_progress)
       ]
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -95,8 +95,8 @@ RSpec.describe ProjectHealth do
 
     it 'returns :not_available when all children have :not_available health' do
       children = [
-        double('Child1', health: :not_available, archived?: false, active?: true),
-        double('Child2', health: :not_available, archived?: false, active?: true)
+        double('Child1', health: :not_available, archived?: false, current_state: :in_progress),
+        double('Child2', health: :not_available, archived?: false, current_state: :in_progress)
       ]
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -109,8 +109,8 @@ RSpec.describe ProjectHealth do
 
     it 'returns :off_track when all children are off_track' do
       children = [
-        double('Child1', health: :off_track, archived?: false, active?: true),
-        double('Child2', health: :off_track, archived?: false, active?: true)
+        double('Child1', health: :off_track, archived?: false, current_state: :in_progress),
+        double('Child2', health: :off_track, archived?: false, current_state: :in_progress)
       ]
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -139,7 +139,14 @@ RSpec.describe ProjectHealth do
       call_count = 0
       children_loader = -> {
         call_count += 1
-        [double('Child', name: 'Test', health: :on_track, health_trend: [], archived?: false, active?: true)]
+        [
+          double('Child',
+            name: 'Test',
+            health: :on_track,
+            health_trend: [],
+            archived?: false,
+            current_state: :in_progress)
+        ]
       }
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -164,8 +171,8 @@ RSpec.describe ProjectHealth do
     end
 
     it 'excludes archived children from health rollup' do
-      archived_child = double('ArchivedChild', health: :off_track, archived?: true, active?: true)
-      active_child = double('ActiveChild', health: :on_track, archived?: false, active?: true)
+      archived_child = double('ArchivedChild', health: :off_track, archived?: true, current_state: :in_progress)
+      active_child = double('ActiveChild', health: :on_track, archived?: false, current_state: :in_progress)
 
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -178,8 +185,8 @@ RSpec.describe ProjectHealth do
 
     it 'returns :not_available when children have unknown health values' do
       children = [
-        double('Child', health: :unknown_value, archived?: false, active?: true),
-        double('Child', health: :another_unknown, archived?: false, active?: true)
+        double('Child', health: :unknown_value, archived?: false, current_state: :in_progress),
+        double('Child', health: :another_unknown, archived?: false, current_state: :in_progress)
       ]
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -262,8 +269,8 @@ RSpec.describe ProjectHealth do
         double('HealthUpdate', date: monday1, health: :off_track),
         double('HealthUpdate', date: monday2, health: :off_track)
       ]
-      child1 = double('Child', health_trend: child1_trend, health: :on_track, archived?: false, active?: true)
-      child2 = double('Child', health_trend: child2_trend, health: :off_track, archived?: false, active?: true)
+      child1 = double('Child', health_trend: child1_trend, health: :on_track, archived?: false, current_state: :in_progress)
+      child2 = double('Child', health_trend: child2_trend, health: :off_track, archived?: false, current_state: :in_progress)
 
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -287,7 +294,7 @@ RSpec.describe ProjectHealth do
       current_date = Date.today
       mondays = (1..6).map { |i| Date.new(2025, 1, 6) + (i * 7) }
       child_trend = mondays.map { |m| double('HealthUpdate', date: m, health: :on_track) }
-      child = double('Child', health_trend: child_trend, health: :on_track, archived?: false, active?: true)
+      child = double('Child', health_trend: child_trend, health: :on_track, archived?: false, current_state: :in_progress)
 
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -306,7 +313,7 @@ RSpec.describe ProjectHealth do
 
     it 'returns only current health for parent when children have no trends' do
       current_date = Date.today
-      child = double('Child', health_trend: [], health: :on_track, archived?: false, active?: true)
+      child = double('Child', health_trend: [], health: :on_track, archived?: false, current_state: :in_progress)
       project_health = described_class.new(
         health_updates_loader: -> { [] },
         weekly_health_updates_loader: -> { [] },
@@ -350,7 +357,7 @@ RSpec.describe ProjectHealth do
         double('HealthUpdate', date: past_monday, health: :on_track),
         double('HealthUpdate', date: future_monday, health: :off_track)
       ]
-      child = double('Child', health_trend: child_trend, health: :on_track, archived?: false, active?: true)
+      child = double('Child', health_trend: child_trend, health: :on_track, archived?: false, current_state: :in_progress)
 
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -372,7 +379,7 @@ RSpec.describe ProjectHealth do
       child_trend = [
         double('HealthUpdate', date: future_monday, health: :on_track)
       ]
-      child = double('Child', health_trend: child_trend, health: :on_track, archived?: false, active?: true)
+      child = double('Child', health_trend: child_trend, health: :on_track, archived?: false, current_state: :in_progress)
 
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -392,8 +399,8 @@ RSpec.describe ProjectHealth do
       monday = Date.new(2025, 1, 6)
       child1_trend = [double('HealthUpdate', date: monday, health: :off_track)]
       child2_trend = [double('HealthUpdate', date: monday, health: :off_track)]
-      child1 = double('Child', health_trend: child1_trend, health: :off_track, archived?: false, active?: true)
-      child2 = double('Child', health_trend: child2_trend, health: :off_track, archived?: false, active?: true)
+      child1 = double('Child', health_trend: child1_trend, health: :off_track, archived?: false, current_state: :in_progress)
+      child2 = double('Child', health_trend: child2_trend, health: :off_track, archived?: false, current_state: :in_progress)
 
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -416,8 +423,8 @@ RSpec.describe ProjectHealth do
       child2_trend = [
         double('HealthUpdate', date: monday2, health: :off_track)
       ]
-      child1 = double('Child', health_trend: child1_trend, health: :on_track, archived?: false, active?: true)
-      child2 = double('Child', health_trend: child2_trend, health: :off_track, archived?: false, active?: true)
+      child1 = double('Child', health_trend: child1_trend, health: :on_track, archived?: false, current_state: :in_progress)
+      child2 = double('Child', health_trend: child2_trend, health: :off_track, archived?: false, current_state: :in_progress)
 
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -437,7 +444,7 @@ RSpec.describe ProjectHealth do
     it 'returns :not_available in weekly rollup when children have unknown health values' do
       monday = Date.new(2025, 1, 6)
       child_trend = [double('HealthUpdate', date: monday, health: :unknown_value)]
-      child = double('Child', health_trend: child_trend, health: :not_available, archived?: false, active?: true)
+      child = double('Child', health_trend: child_trend, health: :not_available, archived?: false, current_state: :in_progress)
 
       project_health = described_class.new(
         health_updates_loader: -> { [] },
@@ -479,7 +486,7 @@ RSpec.describe ProjectHealth do
 
   describe 'health_updates_for_tooltip' do
     it 'returns nil when there are children' do
-      child = double('Child', archived?: false, active?: true)
+      child = double('Child', archived?: false, current_state: :in_progress)
       project_health = described_class.new(
         health_updates_loader: -> { [] },
         weekly_health_updates_loader: -> { [] },
@@ -513,8 +520,8 @@ RSpec.describe ProjectHealth do
     end
 
     it 'returns children with name and health when there are children' do
-      child1 = double('Child', name: 'Child 1', health: :on_track, archived?: false, active?: true)
-      child2 = double('Child', name: 'Child 2', health: :off_track, archived?: false, active?: true)
+      child1 = double('Child', name: 'Child 1', health: :on_track, archived?: false, current_state: :in_progress)
+      child2 = double('Child', name: 'Child 2', health: :off_track, archived?: false, current_state: :in_progress)
 
       project_health = described_class.new(
         health_updates_loader: -> { [] },

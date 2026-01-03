@@ -16,12 +16,7 @@ class ProjectHealth
   end
 
   def health
-    # Calculate score
-    # Lookup health from score
-
-
-
-    return subordinate_health if active_children.any?
+    return subordinate_health if children.any?
     return :not_available if health_updates.empty?
 
     latest_health_update.health
@@ -57,10 +52,6 @@ class ProjectHealth
 
   attr_reader :health_updates_loader, :weekly_health_updates_loader, :children_loader
 
-  def active_children
-    @active_children ||= children.select(&:active?).reject(&:archived?) || []
-  end
-
   def children
     @children ||= Array(children_loader&.call) || []
   end
@@ -80,7 +71,7 @@ class ProjectHealth
   attr_reader :current_date
 
   def subordinate_health
-    @subordinate_health ||= rollup_health_values(active_children.map(&:health))
+    HealthRollup.health_from_projects(children)
   end
 
   def rollup_health_values(healths)

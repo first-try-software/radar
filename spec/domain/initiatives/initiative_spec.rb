@@ -226,9 +226,9 @@ RSpec.describe Initiative do
   describe '#health' do
     it 'returns a rollup of related projects in working states' do
       related_projects = [
-        double('Project', current_state: :in_progress, health: :off_track),
-        double('Project', current_state: :blocked, health: :off_track),
-        double('Project', current_state: :todo, health: :on_track)
+        double('Project', current_state: :in_progress, health: :off_track, archived?: false),
+        double('Project', current_state: :blocked, health: :off_track, archived?: false),
+        double('Project', current_state: :todo, health: :on_track, archived?: false)
       ]
       initiative = build_initiative(
         name: 'Modernize Infra',
@@ -240,8 +240,8 @@ RSpec.describe Initiative do
 
     it 'returns :not_available when no related projects are in a working state' do
       related_projects = [
-        double('Project', current_state: :todo, health: :on_track),
-        double('Project', current_state: :done, health: :off_track)
+        double('Project', current_state: :todo, health: :on_track, archived?: false),
+        double('Project', current_state: :done, health: :off_track, archived?: false)
       ]
       initiative = build_initiative(
         name: 'Modernize Infra',
@@ -253,8 +253,8 @@ RSpec.describe Initiative do
 
     it 'weights each related project equally regardless of decomposition' do
       # Parent project with many children gets same weight as a leaf project
-      leaf_project = double('LeafProject', current_state: :in_progress, health: :off_track)
-      parent_project = double('ParentProject', current_state: :in_progress, health: :on_track)
+      leaf_project = double('LeafProject', current_state: :in_progress, health: :off_track, archived?: false)
+      parent_project = double('ParentProject', current_state: :in_progress, health: :on_track, archived?: false)
 
       initiative = build_initiative(
         name: 'Modernize Infra',
@@ -269,7 +269,7 @@ RSpec.describe Initiative do
   describe '#health_raw_score' do
     it 'returns the raw score from related projects' do
       related_projects = [
-        double('Project', current_state: :in_progress, health: :on_track)
+        double('Project', current_state: :in_progress, health: :on_track, archived?: false)
       ]
       initiative = build_initiative(
         name: 'Modernize Infra',
