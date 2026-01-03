@@ -34,13 +34,8 @@ class Team
     return :not_available if health_values.empty?
 
     average = health_values.sum(0.0) / health_values.length
-    if average > 0.5
-      :on_track
-    elsif average <= -0.5
-      :off_track
-    else
-      :at_risk
-    end
+
+    HealthRollup.health_from_score(average)
   end
 
   def health_raw_score

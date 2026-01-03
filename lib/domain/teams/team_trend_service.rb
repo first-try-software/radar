@@ -66,13 +66,7 @@ class TeamTrendService
   end
 
   def score_to_health(score)
-    if score > 0.5
-      :on_track
-    elsif score <= -0.5
-      :off_track
-    else
-      :at_risk
-    end
+    HealthRollup.health_from_score(score)
   end
 
   def weeks_of_data

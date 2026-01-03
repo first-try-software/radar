@@ -86,13 +86,7 @@ class DashboardController < ApplicationController
 
     average = health_values.sum(0.0) / health_values.length
 
-    if average > 0.5
-      :on_track
-    elsif average <= -0.5
-      :off_track
-    else
-      :at_risk
-    end
+    HealthRollup.health_from_score(average)
   end
 
   def build_team_data(teams)
