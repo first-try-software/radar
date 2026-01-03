@@ -3,7 +3,7 @@ require 'domain/support/health_rollup'
 
 RSpec.describe HealthRollup do
   it 'returns :not_available when no projects are provided' do
-    expect(described_class.rollup([])).to eq(:not_available)
+    expect(described_class.health_from_projects([])).to eq(:not_available)
   end
 
   it 'ignores projects not in working states' do
@@ -12,7 +12,7 @@ RSpec.describe HealthRollup do
       double('Project', current_state: :done, health: :off_track)
     ]
 
-    expect(described_class.rollup(projects)).to eq(:not_available)
+    expect(described_class.health_from_projects(projects)).to eq(:not_available)
   end
 
   it 'returns :on_track when average score is >= 0.51' do
@@ -23,7 +23,7 @@ RSpec.describe HealthRollup do
     ]
     # Average = (1 + 1 + 0) / 3 = 0.67
 
-    expect(described_class.rollup(projects)).to eq(:on_track)
+    expect(described_class.health_from_projects(projects)).to eq(:on_track)
   end
 
   it 'returns :at_risk when average score is zero' do
@@ -32,7 +32,7 @@ RSpec.describe HealthRollup do
       double('Project', current_state: :blocked, health: :off_track)
     ]
 
-    expect(described_class.rollup(projects)).to eq(:at_risk)
+    expect(described_class.health_from_projects(projects)).to eq(:at_risk)
   end
 
   it 'returns :off_track when average score is negative' do
@@ -41,7 +41,7 @@ RSpec.describe HealthRollup do
       double('Project', current_state: :blocked, health: :off_track)
     ]
 
-    expect(described_class.rollup(projects)).to eq(:off_track)
+    expect(described_class.health_from_projects(projects)).to eq(:off_track)
   end
 
   it 'ignores projects whose health is :not_available' do
@@ -50,7 +50,7 @@ RSpec.describe HealthRollup do
       double('Project', current_state: :blocked, health: :on_track)
     ]
 
-    expect(described_class.rollup(projects)).to eq(:on_track)
+    expect(described_class.health_from_projects(projects)).to eq(:on_track)
   end
 
   it 'rounds slightly positive averages down to :at_risk' do
@@ -61,7 +61,7 @@ RSpec.describe HealthRollup do
       double('Project', current_state: :blocked, health: :at_risk)
     ]
 
-    expect(described_class.rollup(projects)).to eq(:at_risk)
+    expect(described_class.health_from_projects(projects)).to eq(:at_risk)
   end
 
   it 'rounds slightly negative averages up to :at_risk' do
@@ -72,6 +72,6 @@ RSpec.describe HealthRollup do
       double('Project', current_state: :blocked, health: :at_risk)
     ]
 
-    expect(described_class.rollup(projects)).to eq(:at_risk)
+    expect(described_class.health_from_projects(projects)).to eq(:at_risk)
   end
 end

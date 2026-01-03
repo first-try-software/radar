@@ -31,11 +31,11 @@ class Initiative
   end
 
   def health
-    HealthRollup.rollup(related_projects)
+    HealthRollup.health_from_projects(related_projects)
   end
 
   def health_raw_score
-    HealthRollup.raw_score(related_projects)
+    HealthRollup.score_from_projects(related_projects)
   end
 
   def leaf_projects
