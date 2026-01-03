@@ -292,8 +292,8 @@ RSpec.describe Project do
 
     it 'rolls up health from subordinate projects' do
       children = [
-        double('Project', health: :on_track, archived?: false),
-        double('Project', health: :off_track, archived?: false)
+        double('Project', health: :on_track, archived?: false, active?: true),
+        double('Project', health: :off_track, archived?: false, active?: true)
       ]
       project = build_project(
         name: 'Status',
@@ -306,8 +306,8 @@ RSpec.describe Project do
 
     it 'ignores :not_available subordinate health values' do
       children = [
-        double('Project', health: :not_available, archived?: false),
-        double('Project', health: :on_track, archived?: false)
+        double('Project', health: :not_available, archived?: false, active?: true),
+        double('Project', health: :on_track, archived?: false, active?: true)
       ]
       project = build_project(
         name: 'Status',
@@ -320,8 +320,8 @@ RSpec.describe Project do
 
     it 'returns :not_available when all subordinates have :not_available health' do
       children = [
-        double('Project', health: :not_available, archived?: false),
-        double('Project', health: :not_available, archived?: false)
+        double('Project', health: :not_available, archived?: false, active?: true),
+        double('Project', health: :not_available, archived?: false, active?: true)
       ]
       project = build_project(
         name: 'Status',
@@ -334,8 +334,8 @@ RSpec.describe Project do
 
     it 'returns :off_track when all subordinates are off_track' do
       children = [
-        double('Project', health: :off_track, archived?: false),
-        double('Project', health: :off_track, archived?: false)
+        double('Project', health: :off_track, archived?: false, active?: true),
+        double('Project', health: :off_track, archived?: false, active?: true)
       ]
       project = build_project(
         name: 'Status',
@@ -363,8 +363,8 @@ RSpec.describe Project do
 
     it 'returns :not_available when subordinates have unknown health values' do
       children = [
-        double('Project', health: :unknown_value, archived?: false),
-        double('Project', health: :another_unknown, archived?: false)
+        double('Project', health: :unknown_value, archived?: false, active?: true),
+        double('Project', health: :another_unknown, archived?: false, active?: true)
       ]
       project = build_project(
         name: 'Status',
@@ -472,8 +472,8 @@ RSpec.describe Project do
         double('HealthUpdate', date: monday1, health: :off_track),
         double('HealthUpdate', date: monday2, health: :off_track)
       ]
-      child1 = double('Project', health_trend: child1_trend, health: :on_track, archived?: false)
-      child2 = double('Project', health_trend: child2_trend, health: :off_track, archived?: false)
+      child1 = double('Project', health_trend: child1_trend, health: :on_track, archived?: false, active?: true)
+      child2 = double('Project', health_trend: child2_trend, health: :off_track, archived?: false, active?: true)
 
       project = build_project(
         name: 'Parent',
@@ -497,7 +497,7 @@ RSpec.describe Project do
     it 'includes all 6 historical weeks plus current for parent project' do
       mondays = (1..6).map { |i| Date.new(2025, 1, 6) + (i * 7) }
       child_trend = mondays.map { |m| double('HealthUpdate', date: m, health: :on_track) }
-      child = double('Project', health_trend: child_trend, health: :on_track, archived?: false)
+      child = double('Project', health_trend: child_trend, health: :on_track, archived?: false, active?: true)
 
       project = build_project(
         name: 'Parent',
@@ -516,7 +516,7 @@ RSpec.describe Project do
     end
 
     it 'returns only current health for parent when children have no trends' do
-      child = double('Project', health_trend: [], health: :on_track, archived?: false)
+      child = double('Project', health_trend: [], health: :on_track, archived?: false, active?: true)
       project = build_project(
         name: 'Parent',
         children_loader: ->(_) { [child] },
@@ -561,7 +561,7 @@ RSpec.describe Project do
         double('HealthUpdate', date: past_monday, health: :on_track),
         double('HealthUpdate', date: future_monday, health: :off_track)
       ]
-      child = double('Project', health_trend: child_trend, health: :on_track, archived?: false)
+      child = double('Project', health_trend: child_trend, health: :on_track, archived?: false, active?: true)
 
       project = build_project(
         name: 'Parent',
@@ -583,7 +583,7 @@ RSpec.describe Project do
       child_trend = [
         double('HealthUpdate', date: future_monday, health: :on_track)
       ]
-      child = double('Project', health_trend: child_trend, health: :on_track, archived?: false)
+      child = double('Project', health_trend: child_trend, health: :on_track, archived?: false, active?: true)
 
       project = build_project(
         name: 'Parent',
@@ -603,8 +603,8 @@ RSpec.describe Project do
       monday = Date.new(2025, 1, 6)
       child1_trend = [double('HealthUpdate', date: monday, health: :off_track)]
       child2_trend = [double('HealthUpdate', date: monday, health: :off_track)]
-      child1 = double('Project', health_trend: child1_trend, health: :off_track, archived?: false)
-      child2 = double('Project', health_trend: child2_trend, health: :off_track, archived?: false)
+      child1 = double('Project', health_trend: child1_trend, health: :off_track, archived?: false, active?: true)
+      child2 = double('Project', health_trend: child2_trend, health: :off_track, archived?: false, active?: true)
 
       project = build_project(
         name: 'Parent',
@@ -628,8 +628,8 @@ RSpec.describe Project do
       child2_trend = [
         double('HealthUpdate', date: monday2, health: :off_track)
       ]
-      child1 = double('Project', health_trend: child1_trend, health: :on_track, archived?: false)
-      child2 = double('Project', health_trend: child2_trend, health: :off_track, archived?: false)
+      child1 = double('Project', health_trend: child1_trend, health: :on_track, archived?: false, active?: true)
+      child2 = double('Project', health_trend: child2_trend, health: :off_track, archived?: false, active?: true)
 
       project = build_project(
         name: 'Parent',
@@ -650,7 +650,7 @@ RSpec.describe Project do
     it 'returns :not_available in weekly rollup when children have unknown health values' do
       monday = Date.new(2025, 1, 6)
       child_trend = [double('HealthUpdate', date: monday, health: :unknown_value)]
-      child = double('Project', health_trend: child_trend, health: :not_available, archived?: false)
+      child = double('Project', health_trend: child_trend, health: :not_available, archived?: false, active?: true )
 
       project = build_project(
         name: 'Parent',

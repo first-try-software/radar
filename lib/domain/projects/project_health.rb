@@ -1,4 +1,9 @@
 require 'ostruct'
+require_relative '../support/health_rollup'
+
+# This class gathers scores from either a project's health updates or its children's health updates
+# and returns the appropriate health characterization (on_track, at_risk, off_track). This class
+# delegates the calculation of health to the HealthRollup class.
 
 class ProjectHealth
   SCORES = { on_track: 1, at_risk: 0, off_track: -1 }.freeze
@@ -8,16 +13,18 @@ class ProjectHealth
     @weekly_health_updates_loader = weekly_health_updates_loader
     @children_loader = children_loader
     @current_date = current_date
-    @health_updates = nil
-    @weekly_health_updates = nil
-    @children = nil
   end
 
   def health
-    return subordinate_health if children.any?
+    # Calculate score
+    # Lookup health from score
+
+
+
+    return subordinate_health if active_children.any?
     return :not_available if health_updates.empty?
 
-    health_updates.last.health
+    latest_health_update.health
   end
 
   def health_trend
@@ -50,8 +57,12 @@ class ProjectHealth
 
   attr_reader :health_updates_loader, :weekly_health_updates_loader, :children_loader
 
+  def active_children
+    @active_children ||= children.select(&:active?).reject(&:archived?) || []
+  end
+
   def children
-    @children ||= Array(children_loader&.call).reject(&:archived?)
+    @children ||= Array(children_loader&.call) || []
   end
 
   def health_updates
@@ -69,7 +80,7 @@ class ProjectHealth
   attr_reader :current_date
 
   def subordinate_health
-    @subordinate_health ||= rollup_health_values(children.map(&:health))
+    @subordinate_health ||= rollup_health_values(active_children.map(&:health))
   end
 
   def rollup_health_values(healths)
@@ -78,7 +89,7 @@ class ProjectHealth
 
     scores = healths.map { |h| SCORES[h] }.compact
 
-    HealthRollup.score(scores)
+    HealthRollup.health_from_scores(scores)
   end
 
   def weekly_health_updates_with_current
