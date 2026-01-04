@@ -4,7 +4,6 @@ require_relative 'project_health'
 require_relative 'project_hierarchy'
 
 class Project
-  ALLOWED_STATES = [:new, :todo, :in_progress, :blocked, :on_hold, :done].freeze
   STATE_PRIORITY = [:blocked, :in_progress, :on_hold, :todo, :new, :done].freeze
 
   def initialize(attributes:, loaders: ProjectLoaders.new)
@@ -17,16 +16,9 @@ class Project
   def description = attributes.description
   def point_of_contact = attributes.point_of_contact
   def archived? = attributes.archived?
-
-  def valid?
-    attributes.name_valid? && state_valid?
-  end
-
-  def errors
-    errors = attributes.name_errors
-    errors << 'state must be valid' unless state_valid?
-    errors
-  end
+  def active? = attributes.active?
+  def valid? = attributes.valid?
+  def errors = attributes.errors
 
   def children = hierarchy.children
   def parent = hierarchy.parent
@@ -80,9 +72,5 @@ class Project
       children_loader: -> { children },
       current_date: loaders.current_date || Date.today
     )
-  end
-
-  def state_valid?
-    ALLOWED_STATES.include?(current_state)
   end
 end

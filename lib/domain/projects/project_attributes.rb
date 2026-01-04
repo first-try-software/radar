@@ -6,6 +6,9 @@ ProjectAttributes = Data.define(
   :archived,
   :current_state
 ) do
+  ACTIVE_STATES = [:in_progress, :blocked].freeze
+  ALLOWED_STATES = [:new, :todo, :in_progress, :blocked, :on_hold, :done].freeze
+
   def initialize(
     name:,
     id: nil,
@@ -32,13 +35,26 @@ ProjectAttributes = Data.define(
     !!archived
   end
 
+  def active?
+    ACTIVE_STATES.include?(current_state)
+  end
+
   def name_valid?
     !name.strip.empty?
   end
 
-  def name_errors
-    return [] if name_valid?
+  def state_valid?
+    ALLOWED_STATES.include?(current_state)
+  end
 
-    ['name must be present']
+  def valid?
+    name_valid? && state_valid?
+  end
+
+  def errors
+    errs = []
+    errs << 'name must be present' unless name_valid?
+    errs << 'state must be valid' unless state_valid?
+    errs
   end
 end
