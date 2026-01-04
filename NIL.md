@@ -1,0 +1,31 @@
+Explicit return nil
+- lib/domain/teams/team.rb:43
+- lib/domain/teams/team.rb:98
+- lib/domain/support/health_rollup.rb:43
+- lib/domain/projects/project_health.rb:38
+- lib/domain/projects/project_health.rb:44
+- app/controllers/projects_controller.rb:301
+- app/persistence/health_update_repository.rb:74
+- app/persistence/health_update_repository.rb:77
+- app/persistence/initiative_repository.rb:10
+- app/persistence/team_repository.rb:10
+- app/persistence/project_repository.rb:15
+- app/persistence/project_repository.rb:186
+- app/presenters/initiative_header_presenter.rb:42
+- app/presenters/team_edit_modal_presenter.rb:29
+- app/presenters/initiative_edit_modal_presenter.rb:29
+
+Conditional or ternary returning nil
+- lib/domain/teams/team.rb:112
+- app/controllers/dashboard_controller.rb:200
+- app/controllers/initiatives_controller.rb:197
+- app/controllers/teams_controller.rb:192
+- app/persistence/health_update_repository.rb:37
+- app/persistence/project_repository.rb:180
+- app/persistence/project_repository.rb:189
+- app/persistence/team_repository.rb:178
+- app/presenters/team_header_presenter.rb:31
+- app/presenters/team_header_presenter.rb:32
+- app/presenters/team_header_presenter.rb:33
+- app/presenters/team_header_presenter.rb:35
+- app/presenters/team_section_item_presenter.rb:22

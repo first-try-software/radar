@@ -1,7 +1,7 @@
 A Project is the central unit of work.
 
 Identifiers and attributes
-- `name` is required and globally unique.
+- `name` is required and unique among projects.
 - `description` and `point_of_contact` are optional strings defaulting to `''`.
 - `archived` defaults to false and is exposed via `archived?`.
 
@@ -14,8 +14,8 @@ Structure and ordering
 
 State model
 - Allowed states: `:new, :todo, :in_progress, :blocked, :on_hold, :done`.
-- Only `SetProjectState` mutates state values.
-- Leaf projects store `current_state` directly; any state can transition to any other state.
+- `SetProjectState` mutates state values; `SetInitiativeState` can also cascade state to related projects.
+- Leaf projects store `current_state` directly; leaf projects can be set to any state except `:new`.
 - Parent projects derive `current_state` from their leaf descendants via rollup; stored state is ignored.
 - State rollup priority (highest to lowest): `:blocked, :in_progress, :on_hold, :todo, :new, :done`.
   - If any leaf is `:blocked`, parent state is `:blocked`.
@@ -30,11 +30,11 @@ Health model
 - Health enum: `:not_available, :on_track, :at_risk, :off_track`.
 - Health updates (value objects) hold `project_id, date, health, description?`; loaded lazily.
 - Weekly health updates are a lazily loaded subset for trends.
-- Health scoring for rollups: `:on_track => 1`, `:at_risk => 0`, `:off_track => -1`; averages map back via thresholds (>0 `:on_track`, <0 `:off_track`, else `:at_risk`). Subordinate health of `:not_available` is ignored.
+- Health scoring for rollups: `:on_track => 1`, `:at_risk => 0`, `:off_track => -1`; averages map back via thresholds (>0.5 `:on_track`, <=-0.5 `:off_track`, else `:at_risk`). Subordinate health of `:not_available` is ignored; archived and non-working-state children are excluded.
 - Current health calculation:
   - If subordinate projects exist, health is the rollup average of subordinate current health. Subordinates with `:not_available` health are ignored. If all subordinates have `:not_available` health, health is `:not_available`.
   - If no subordinate projects (leaf), use health updates: `:not_available` when none exist; otherwise the health of the latest update by date.
-- Health trend: the last 6 weekly updates plus current health; empty when no updates exist.
+  - Health trend: the last 6 weekly updates plus current health; when no updates exist, returns a single current entry with `:not_available`.
 
 Validation
 - `valid?` requires present `name` and allowed state; exposes `errors` explaining failures.

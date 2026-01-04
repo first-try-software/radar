@@ -2,6 +2,7 @@
 
 ## SMALL THINGS
 * [x] Use zen logo on home page
+* [x] Are Archived projects being inluded in health? NO
 * [ ] Sticky header not working
 * [ ] Health update hit text highly recommended
 * [ ] Spacing beneath search dropdown is too much
@@ -14,9 +15,16 @@
 * [ ] Projects section should match all other pages
 * [ ] Improve tab stops everwhere.
 * [ ] State should not include New
-* [ ] Are Archived projects being inluded in health?
+* [ ] Should archived be a state rather than a boolean?
+* [ ] Review opportunities for null objects in NIL.md
+* [ ] Review opportunities to remove specs that test constructors in INIT.md
 
 ## FEATURE IDEAS
+* [ ] Project filters
+    * [ ] All
+    * [ ] What's going well
+    * [ ] What needs leadership attention (at risk / off track / blocked / unowned)
+    * [ ] What needs management attention (stale)
 * [ ] Executive summary
 * [ ] People with contact fields
 * [ ] Personal dashboard / check in
@@ -32,11 +40,6 @@
 * [ ] Critical projects
     * [ ] 2x weight
     * [ ] Requires comment to enable
-* [ ] Project filters
-    * [ ] All
-    * [ ] What's going well
-    * [ ] What needs leadership attention (at risk / off track / blocked / unowned)
-    * [ ] What needs management attention (stale)
 
 ## DUMB IDEAS
 * [ ] Add randomly rotating taglines
@@ -126,3 +129,19 @@ Executive Summary View (one screen)
 ## Teams
 * Array to score = direct child teams + average of direct owned projects
 * Score = average of health scores
+
+
+# Health & Health Scores
+
+Currently, HealthUpdates store a string. They should record a number. It would save a bunch of conversions.
+
+* HEALTH_SCORES = { on_track: 1, at_risk: 0, off_track: -1 }
+* HEALTH_THRESHOLDS = { on_track: 0.5, off_track: -0.5 }
+
+ProjectHealth
+InitiativeHealth
+TeamHealth
+ - All three use HealthScore
+
+HealthScore
+ - Calculates scores and returns the appropriate characterizations of the scores

@@ -1,7 +1,7 @@
 A Team represents a group of people working together.
 
 Identifiers and attributes
-- `name` is required and globally unique.
+- `name` is required and unique among teams.
 - `description` and `point_of_contact` are optional strings defaulting to `''`.
 - `archived` defaults to false and is exposed via `archived?`.
 
