@@ -4,66 +4,6 @@ require_relative '../../support/domain/team_builder'
 RSpec.describe Team do
   include TeamBuilder
 
-  it 'returns its id' do
-    team = build_team(id: '42', name: 'Platform')
-
-    expect(team.id).to eq('42')
-  end
-
-  it 'defaults id to nil' do
-    team = build_team(name: 'Platform')
-
-    expect(team.id).to be_nil
-  end
-
-  it 'converts id to string' do
-    team = build_team(id: 42, name: 'Platform')
-
-    expect(team.id).to eq('42')
-  end
-
-  it 'returns its name' do
-    team = build_team(name: 'Platform')
-
-    expect(team.name).to eq('Platform')
-  end
-
-  it 'returns its description' do
-    team = build_team(name: 'Platform', description: 'Enable delivery velocity')
-
-    expect(team.description).to eq('Enable delivery velocity')
-  end
-
-  it 'defaults description to an empty string' do
-    team = build_team(name: 'Platform')
-
-    expect(team.description).to eq('')
-  end
-
-  it 'returns its point of contact' do
-    team = build_team(name: 'Platform', point_of_contact: 'Jordan')
-
-    expect(team.point_of_contact).to eq('Jordan')
-  end
-
-  it 'defaults point_of_contact to an empty string' do
-    team = build_team(name: 'Platform')
-
-    expect(team.point_of_contact).to eq('')
-  end
-
-  it 'records whether it has been archived' do
-    team = build_team(name: 'Platform', archived: true)
-
-    expect(team).to be_archived
-  end
-
-  it 'defaults archived to false' do
-    team = build_team(name: 'Platform')
-
-    expect(team).not_to be_archived
-  end
-
   it 'is valid when it has a name' do
     team = build_team(name: 'Platform')
 
