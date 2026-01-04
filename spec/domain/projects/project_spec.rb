@@ -25,36 +25,6 @@ RSpec.describe Project do
     described_class.new(attributes: attrs, loaders: loaders)
   end
 
-  it 'returns its name' do
-    project = build_project(name: 'Status')
-
-    expect(project.name).to eq('Status')
-  end
-
-  it 'returns its description' do
-    project = build_project(name: 'Status', description: 'Internal status dashboard')
-
-    expect(project.description).to eq('Internal status dashboard')
-  end
-
-  it 'defaults description to an empty string when omitted' do
-    project = build_project(name: 'Status')
-
-    expect(project.description).to eq('')
-  end
-
-  it 'returns its point of contact' do
-    project = build_project(name: 'Status', point_of_contact: 'Alex')
-
-    expect(project.point_of_contact).to eq('Alex')
-  end
-
-  it 'defaults point_of_contact to an empty string when omitted' do
-    project = build_project(name: 'Status')
-
-    expect(project.point_of_contact).to eq('')
-  end
-
   it 'is valid when it has a name' do
     project = build_project(name: 'Status')
 
@@ -65,18 +35,6 @@ RSpec.describe Project do
     project = build_project(name: '')
 
     expect(project.valid?).to be(false)
-  end
-
-  it 'records whether it has been archived' do
-    project = build_project(name: 'Status', archived: true)
-
-    expect(project).to be_archived
-  end
-
-  it 'defaults archived to false when omitted' do
-    project = build_project(name: 'Status')
-
-    expect(project).not_to be_archived
   end
 
   it 'lazy loads children via the loader' do

@@ -3,40 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe TrendPresenter do
-  describe '#initialize' do
-    it 'sets default values when nil is passed' do
-      presenter = TrendPresenter.new(
-        trend_data: nil,
-        trend_direction: nil,
-        trend_delta: nil,
-        weeks_of_data: nil
-      )
-
-      expect(presenter.trend_data).to eq([])
-      expect(presenter.trend_direction).to eq(:stable)
-      expect(presenter.trend_delta).to eq(0.0)
-      expect(presenter.weeks_of_data).to eq(0)
-      expect(presenter.gradient_id).to eq("trend-gradient")
-    end
-
-    it 'uses provided values' do
-      data = [{ health: :on_track, score: 1.0 }]
-      presenter = TrendPresenter.new(
-        trend_data: data,
-        trend_direction: :up,
-        trend_delta: 0.5,
-        weeks_of_data: 3,
-        gradient_id: "custom-gradient"
-      )
-
-      expect(presenter.trend_data).to eq(data)
-      expect(presenter.trend_direction).to eq(:up)
-      expect(presenter.trend_delta).to eq(0.5)
-      expect(presenter.weeks_of_data).to eq(3)
-      expect(presenter.gradient_id).to eq("custom-gradient")
-    end
-  end
-
   describe '#trend_css_class' do
     it 'returns trend class when sufficient data' do
       presenter = TrendPresenter.new(

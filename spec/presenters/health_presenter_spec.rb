@@ -3,33 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe HealthPresenter do
-  describe '#initialize' do
-    it 'sets default values when nil is passed' do
-      presenter = HealthPresenter.new(health: nil)
-
-      expect(presenter.health).to eq(:not_available)
-      expect(presenter.off_track_count).to eq(0)
-      expect(presenter.at_risk_count).to eq(0)
-      expect(presenter.total_count).to eq(0)
-    end
-
-    it 'uses provided values' do
-      presenter = HealthPresenter.new(
-        health: :on_track,
-        raw_score: 0.75,
-        off_track_count: 2,
-        at_risk_count: 3,
-        total_count: 10,
-        methodology: 'Custom method'
-      )
-
-      expect(presenter.health).to eq(:on_track)
-      expect(presenter.off_track_count).to eq(2)
-      expect(presenter.at_risk_count).to eq(3)
-      expect(presenter.total_count).to eq(10)
-    end
-  end
-
   describe '#health_css_class' do
     it 'converts underscores to hyphens' do
       presenter = HealthPresenter.new(health: :not_available)

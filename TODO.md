@@ -3,6 +3,7 @@
 ## SMALL THINGS
 * [x] Use zen logo on home page
 * [x] Are Archived projects being inluded in health? NO
+* [x] Review opportunities to remove specs that test constructors in INIT.md
 * [ ] Sticky header not working
 * [ ] Health update hit text highly recommended
 * [ ] Spacing beneath search dropdown is too much
@@ -17,7 +18,6 @@
 * [ ] State should not include New
 * [ ] Should archived be a state rather than a boolean?
 * [ ] Review opportunities for null objects in NIL.md
-* [ ] Review opportunities to remove specs that test constructors in INIT.md
 
 ## FEATURE IDEAS
 * [ ] Project filters

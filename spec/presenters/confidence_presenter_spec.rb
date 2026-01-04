@@ -3,25 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe ConfidencePresenter do
-  describe '#initialize' do
-    it 'sets default values when nil is passed' do
-      presenter = ConfidencePresenter.new(score: nil, level: nil, factors: nil)
-
-      expect(presenter.score).to eq(0)
-      expect(presenter.level).to eq(:low)
-      expect(presenter.factors).to eq({})
-    end
-
-    it 'uses provided values' do
-      factors = { biggest_drag: :variance }
-      presenter = ConfidencePresenter.new(score: 85, level: :high, factors: factors)
-
-      expect(presenter.score).to eq(85)
-      expect(presenter.level).to eq(:high)
-      expect(presenter.factors).to eq(factors)
-    end
-  end
-
   describe '#level_label' do
     it 'titleizes the level' do
       presenter = ConfidencePresenter.new(score: 50, level: :medium, factors: {})
