@@ -1,3 +1,4 @@
+require 'ostruct'
 require_relative '../support/health_rollup'
 require_relative 'team_attributes'
 require_relative 'team_loaders'
@@ -30,12 +31,16 @@ class Team
   end
 
   def health
-    health_values = collect_health_values
-    return :not_available if health_values.empty?
-
-    average = health_values.sum(0.0) / health_values.length
-
-    HealthRollup.health_from_score(average)
+    if subordinate_teams.any? && owned_projects.any?
+      virtual_team = Team.new(attributes: OpenStruct.new(owned_projects:))
+      HealthRollup.health_from_teams(subordinate_teams + [virtual_team])
+    elsif subordinate_teams.any?
+      HealthRollup.health_from_teams(subordinate_teams)
+    elsif owned_projects.any?
+      HealthRollup.health_from_projects(owned_projects)
+    else
+      :not_available
+    end
   end
 
   def health_raw_score

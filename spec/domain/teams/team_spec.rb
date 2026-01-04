@@ -115,107 +115,91 @@ RSpec.describe Team do
   end
 
   describe '#health' do
-    it 'returns health based on owned projects in active states' do
-      project = double('Project', current_state: :in_progress, health: :on_track)
-      team = build_team(name: 'Platform', owned_projects_loader: ->(_team) { [project] })
-
-      expect(team.health).to eq(:on_track)
-    end
-
-    it 'returns :not_available when no owned projects are in a active state' do
-      project = double('Project', current_state: :todo, health: :on_track)
-      team = build_team(name: 'Platform', owned_projects_loader: ->(_team) { [project] })
+    it 'returns :not_available when no subordinate teams or owned projects are present' do
+      team = build_team(name: 'Platform')
 
       expect(team.health).to eq(:not_available)
     end
 
-    it 'weights each owned project equally regardless of decomposition' do
-      # A parent project with many children gets same weight as a leaf project
-      leaf_project = double('Project', current_state: :in_progress, health: :off_track)
-      parent_project = double('Project', current_state: :in_progress, health: :on_track)
-      team = build_team(
-        name: 'Platform',
-        owned_projects_loader: ->(_team) { [leaf_project, parent_project] }
-      )
+    it 'returns average health of subordinate teams when no owned projects are present' do
+      subordinate_teams_loader = ->(_team) { [double('Team', health: :on_track, health_raw_score: 1.0)] }
+      team = build_team(name: 'Platform', subordinate_teams_loader:)
 
-      # off_track (-1) + on_track (1) = 0 average -> at_risk
-      expect(team.health).to eq(:at_risk)
+      expect(team.health).to eq(:on_track)
     end
 
-    it 'treats local projects as a group with equal weight to each child team' do
-      # Parent team owns one project, child team has its own rolled-up health
-      parent_project = double('Project', current_state: :in_progress, health: :on_track)
-      child_project = double('Project', current_state: :blocked, health: :off_track)
-      child_team = build_team(name: 'Child', owned_projects_loader: ->(_t) { [child_project] })
-      parent_team = build_team(
-        name: 'Parent',
-        owned_projects_loader: ->(_t) { [parent_project] },
-        subordinate_teams_loader: ->(_t) { [child_team] }
-      )
+    it 'returns average health of owned projects in active states when no subordinate teams are present' do
+      project = double('Project', current_state: :in_progress, health: :on_track, archived?: false)
+      owned_projects_loader = ->(_team) { [project] }
+      team = build_team(name: 'Platform', owned_projects_loader:)
 
-      # Local projects (1 vote: on_track=1) + child team (1 vote: off_track=-1) = average 0 -> at_risk
-      expect(parent_team.health).to eq(:at_risk)
+      expect(team.health).to eq(:on_track)
     end
 
-    it 'gives local projects as a group equal weight regardless of count' do
-      # Many local projects get aggregated into one vote, equal to one child team vote
-      local_project1 = double('Project', current_state: :in_progress, health: :on_track)
-      local_project2 = double('Project', current_state: :in_progress, health: :on_track)
-      local_project3 = double('Project', current_state: :in_progress, health: :on_track)
-      child_project = double('Project', current_state: :in_progress, health: :off_track)
-      child_team = build_team(name: 'Child', owned_projects_loader: ->(_t) { [child_project] })
-      parent_team = build_team(
-        name: 'Parent',
-        owned_projects_loader: ->(_t) { [local_project1, local_project2, local_project3] },
-        subordinate_teams_loader: ->(_t) { [child_team] }
-      )
+    it 'returns :not_available when when no subordinate teams are present and no owned projects are in an active state' do
+      project = double('Project', current_state: :todo, health: :on_track, archived?: false)
+      owned_projects_loader = ->(_team) { [project] }
+      team = build_team(name: 'Platform', owned_projects_loader:)
 
-      # Local projects aggregate: (1+1+1)/3 = 1 (one vote)
-      # Child team: off_track = -1 (one vote)
-      # Average: (1 + -1) / 2 = 0 -> at_risk
-      expect(parent_team.health).to eq(:at_risk)
+      expect(team.health).to eq(:not_available)
     end
 
-    it 'recursively includes health from nested subordinate teams' do
-      grandchild_project = double('Project', current_state: :in_progress, health: :off_track)
-      grandchild_team = build_team(name: 'Grandchild', owned_projects_loader: ->(_t) { [grandchild_project] })
-      child_team = build_team(name: 'Child', subordinate_teams_loader: ->(_t) { [grandchild_team] })
-      parent_team = build_team(name: 'Parent', subordinate_teams_loader: ->(_t) { [child_team] })
+    it 'returns average health of subordinate teams and owned projects in active states when both are present' do
+      team1 = double('Team1', health: :on_track, health_raw_score: 1.0)
+      team2 = double('Team2', health: :on_track, health_raw_score: 1.0)
+      project1 = double('Project1', current_state: :in_progress, health: :on_track, archived?: false)
+      project2 = double('Project2', current_state: :in_progress, health: :off_track, archived?: false)
+      subordinate_teams_loader = ->(_team) { [team1, team2] }
+      owned_projects_loader = ->(_project) { [project1, project2] }
+      team = build_team(name: 'Platform', subordinate_teams_loader:, owned_projects_loader:)
 
-      expect(parent_team.health).to eq(:off_track)
+      expect(team.health).to eq(:on_track)
     end
 
-    it 'returns :not_available when there are no owned projects in the hierarchy' do
-      child_team = build_team(name: 'Child')
-      parent_team = build_team(name: 'Parent', subordinate_teams_loader: ->(_t) { [child_team] })
+    it 'returns :not_available when there are no activeowned projects in the hierarchy' do
+      project = double('Project', current_state: :todo, health: :on_track, archived?: false)
+      owned_projects_loader = ->(_project) { [project] }
+      child_team = build_team(name: 'Child', owned_projects_loader:)
+      subordinate_teams_loader = ->(_t) { [child_team] }
+      parent_team = build_team(name: 'Parent', subordinate_teams_loader:)
 
       expect(parent_team.health).to eq(:not_available)
     end
 
     it 'ignores subordinate teams with not_available health' do
-      project = double('Project', current_state: :in_progress, health: :on_track)
-      empty_child_team = build_team(name: 'EmptyChild')
+      child_team = double('ChildTeam', health: :on_track, health_raw_score: 1.0)
+      empty_child_team = double('EmptyChildTeam', health: :not_available, health_raw_score: nil)
       parent_team = build_team(
         name: 'Parent',
-        owned_projects_loader: ->(_t) { [project] },
-        subordinate_teams_loader: ->(_t) { [empty_child_team] }
+        subordinate_teams_loader: ->(_t) { [child_team, empty_child_team] }
       )
 
-      # Only parent's project counts since child has no health data
+      expect(parent_team.health).to eq(:on_track)
+    end
+
+    it 'ignores owned projects with not_available health' do
+      owned_project = double('OwnedProject', health: :on_track, current_state: :in_progress, archived?: false)
+      empty_project = double('EmptyProject', health: :not_available, current_state: :todo, archived?: false)
+
+      parent_team = build_team(
+        name: 'Parent',
+        owned_projects_loader: ->(_project) { [owned_project, empty_project] }
+      )
+
       expect(parent_team.health).to eq(:on_track)
     end
   end
 
   describe '#health_raw_score' do
     it 'returns the raw score based on owned projects' do
-      project = double('Project', current_state: :in_progress, health: :on_track)
+      project = double('Project', current_state: :in_progress, health: :on_track, archived?: false)
       team = build_team(name: 'Platform', owned_projects_loader: ->(_team) { [project] })
 
       expect(team.health_raw_score).to eq(1.0)
     end
 
     it 'returns nil when no owned projects are in an active state' do
-      project = double('Project', current_state: :todo, health: :on_track)
+      project = double('Project', current_state: :todo, health: :on_track, archived?: false)
       team = build_team(name: 'Platform', owned_projects_loader: ->(_team) { [project] })
 
       expect(team.health_raw_score).to be_nil
