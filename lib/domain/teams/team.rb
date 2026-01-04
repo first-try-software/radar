@@ -77,7 +77,7 @@ class Team
     # Virtual child approach: local projects as a group get equal weight to each child team
     health_votes = []
 
-    # Add local projects' aggregate health as one vote (if any are in working state)
+    # Add local projects' aggregate health as one vote (if any are in active state)
     local_project_score = compute_local_projects_score
     health_votes << local_project_score unless local_project_score.nil?
 

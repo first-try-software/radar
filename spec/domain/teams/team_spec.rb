@@ -115,14 +115,14 @@ RSpec.describe Team do
   end
 
   describe '#health' do
-    it 'returns health based on owned projects in working states' do
+    it 'returns health based on owned projects in active states' do
       project = double('Project', current_state: :in_progress, health: :on_track)
       team = build_team(name: 'Platform', owned_projects_loader: ->(_team) { [project] })
 
       expect(team.health).to eq(:on_track)
     end
 
-    it 'returns :not_available when no owned projects are in a working state' do
+    it 'returns :not_available when no owned projects are in a active state' do
       project = double('Project', current_state: :todo, health: :on_track)
       team = build_team(name: 'Platform', owned_projects_loader: ->(_team) { [project] })
 
@@ -214,7 +214,7 @@ RSpec.describe Team do
       expect(team.health_raw_score).to eq(1.0)
     end
 
-    it 'returns nil when no owned projects are in a working state' do
+    it 'returns nil when no owned projects are in an active state' do
       project = double('Project', current_state: :todo, health: :on_track)
       team = build_team(name: 'Platform', owned_projects_loader: ->(_team) { [project] })
 

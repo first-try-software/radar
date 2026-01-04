@@ -14,7 +14,7 @@ Health model
 - Current health is the rollup average of related projects whose `current_state` is `:in_progress` or `:blocked`.
 - Related projects in other states are ignored.
 - Archived related projects are ignored.
-- If no related projects are in a working state, health is `:not_available`.
+- If no related projects are in an active state, health is `:not_available`.
 
 Validation
 - `valid?` requires present `name`; exposes `errors` describing failures.

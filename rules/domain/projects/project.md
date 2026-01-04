@@ -30,7 +30,7 @@ Health model
 - Health enum: `:not_available, :on_track, :at_risk, :off_track`.
 - Health updates (value objects) hold `project_id, date, health, description?`; loaded lazily.
 - Weekly health updates are a lazily loaded subset for trends.
-- Health scoring for rollups: `:on_track => 1`, `:at_risk => 0`, `:off_track => -1`; averages map back via thresholds (>0.5 `:on_track`, <=-0.5 `:off_track`, else `:at_risk`). Subordinate health of `:not_available` is ignored; archived and non-working-state children are excluded.
+- Health scoring for rollups: `:on_track => 1`, `:at_risk => 0`, `:off_track => -1`; averages map back via thresholds (>0.5 `:on_track`, <=-0.5 `:off_track`, else `:at_risk`). Subordinate health of `:not_available` is ignored; archived and non-active-state children are excluded.
 - Current health calculation:
   - If subordinate projects exist, health is the rollup average of subordinate current health. Subordinates with `:not_available` health are ignored. If all subordinates have `:not_available` health, health is `:not_available`.
   - If no subordinate projects (leaf), use health updates: `:not_available` when none exist; otherwise the health of the latest update by date.

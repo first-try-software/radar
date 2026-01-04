@@ -224,7 +224,7 @@ RSpec.describe Initiative do
   end
 
   describe '#health' do
-    it 'returns a rollup of related projects in working states' do
+    it 'returns a rollup of related projects in active states' do
       related_projects = [
         double('Project', current_state: :in_progress, health: :off_track, archived?: false),
         double('Project', current_state: :blocked, health: :off_track, archived?: false),
@@ -238,7 +238,7 @@ RSpec.describe Initiative do
       expect(initiative.health).to eq(:off_track)
     end
 
-    it 'returns :not_available when no related projects are in a working state' do
+    it 'returns :not_available when no related projects are in an active state' do
       related_projects = [
         double('Project', current_state: :todo, health: :on_track, archived?: false),
         double('Project', current_state: :done, health: :off_track, archived?: false)
@@ -279,7 +279,7 @@ RSpec.describe Initiative do
       expect(initiative.health_raw_score).to eq(1.0)
     end
 
-    it 'returns nil when no related projects in working state' do
+    it 'returns nil when no related projects in active state' do
       initiative = build_initiative(name: 'Empty')
 
       expect(initiative.health_raw_score).to be_nil

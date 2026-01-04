@@ -8,6 +8,15 @@ class HealthRollup
     health_from_scores(actual_scores)
   end
 
+  def self.health_from_teams(teams)
+    actual_scores = scores_from_teams(teams)
+    health_from_scores(actual_scores)
+  end
+
+  def self.scores_from_teams(teams)
+    teams.map { |team| team.health_raw_score }
+  end
+
   def self.health_from_scores(scores)
     actual_scores = Array(scores).compact
     return :not_available if actual_scores.empty?

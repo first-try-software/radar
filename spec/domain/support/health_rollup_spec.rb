@@ -6,7 +6,7 @@ RSpec.describe HealthRollup do
     expect(described_class.health_from_projects([])).to eq(:not_available)
   end
 
-  it 'ignores projects not in working states' do
+  it 'ignores projects not in active states' do
     projects = [
       double('Project', current_state: :todo, health: :on_track, archived?: false),
       double('Project', current_state: :done, health: :off_track, archived?: false)

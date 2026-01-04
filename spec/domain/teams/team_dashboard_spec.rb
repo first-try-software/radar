@@ -196,7 +196,7 @@ RSpec.describe TeamDashboard do
       expect(attention.map(&:name)).to eq(['Risky'])
     end
 
-    it 'excludes archived and non-working projects' do
+    it 'excludes archived and non-active projects' do
       projects = [
         build_project(name: 'Archived', health: :off_track, archived: true),
         build_project(name: 'Done', health: :off_track, state: :done),
@@ -268,7 +268,7 @@ RSpec.describe TeamDashboard do
       expect(result.map(&:name)).to eq(['NotAvailable'])
     end
 
-    it 'excludes archived and non-working projects' do
+    it 'excludes archived and non-active projects' do
       projects = [
         build_project_without_health(name: 'Archived', archived: true),
         build_project_without_health(name: 'Done', state: :done),
@@ -326,7 +326,7 @@ RSpec.describe TeamDashboard do
       expect(stale).to be_empty
     end
 
-    it 'excludes archived and non-working projects' do
+    it 'excludes archived and non-active projects' do
       old_update = HealthUpdate.new(project_id: 'test', date: Date.today - 20, health: :on_track)
 
       projects = [

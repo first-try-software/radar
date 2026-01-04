@@ -13,10 +13,18 @@ Structure and ordering
 
 Health model
 - Uses health rollup scoring (`:on_track => 1`, `:at_risk => 0`, `:off_track => -1`; thresholds >0.5 `:on_track`, <=-0.5 `:off_track`, else `:at_risk`).
-- Health uses "virtual child" rollup: local projects are aggregated into a single health score, which is then averaged with each subordinate team's health score. This gives local projects as a group equal weight to each child team as a group.
-- Only owned projects in working states (`:in_progress`, `:blocked`) contribute to local health.
+- Health uses the following algorithm to calculate health scores:
+    - If there are only subordinate teams:
+        - The score is the average of each subordinate team's score.
+    - If there are only owned projects:
+        - The score is the average of each owned project's score.
+    - If there are both:
+        - The average of owned project scores is treated as a virtual team.
+        - Therefore the score is:
+            (subordinate_teams.sum(0.0) + average(owned_projects)) / (subordinate_teams.length + 1)
+- Only owned projects in active states (`:in_progress`, `:blocked`) contribute to local health.
 - Subordinate teams with `:not_available` health are ignored.
-- If there are no local projects in working states and no subordinate teams with available health, team health is `:not_available`.
+- If there are no local projects in active states and no subordinate teams with available health, team health is `:not_available`.
 
 Validation
 - `valid?` requires present `name`; exposes `errors` describing failures.

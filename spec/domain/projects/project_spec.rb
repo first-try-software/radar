@@ -722,7 +722,7 @@ RSpec.describe Project do
     end
 
     it 'includes all children regardless of state' do
-      child1 = build_project(name: 'Working', current_state: :in_progress)
+      child1 = build_project(name: 'Active', current_state: :in_progress)
       child2 = build_project(name: 'Done', current_state: :done)
       allow(child1).to receive(:health).and_return(:on_track)
       allow(child2).to receive(:health).and_return(:not_available)
@@ -736,7 +736,7 @@ RSpec.describe Project do
       result = project.children_health_for_tooltip
 
       expect(result.length).to eq(2)
-      expect(result.map(&:name)).to eq(['Working', 'Done'])
+      expect(result.map(&:name)).to eq(['Active', 'Done'])
     end
   end
 
