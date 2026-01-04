@@ -130,7 +130,7 @@ RSpec.describe ProjectHierarchy do
       )
       allow(hierarchy).to receive(:leaf_descendants).and_return([])
 
-      result = hierarchy.derived_state([:blocked, :in_progress, :done])
+      result = hierarchy.derived_state
 
       expect(result).to eq(:new)
     end
@@ -147,9 +147,8 @@ RSpec.describe ProjectHierarchy do
         parent_loader: nil,
         owner: owner
       )
-      priority = [:blocked, :in_progress, :done]
 
-      result = hierarchy.derived_state(priority)
+      result = hierarchy.derived_state
 
       expect(result).to eq(:in_progress)
     end
@@ -166,9 +165,8 @@ RSpec.describe ProjectHierarchy do
         parent_loader: nil,
         owner: owner
       )
-      priority = [:blocked, :in_progress, :done]
 
-      result = hierarchy.derived_state(priority)
+      result = hierarchy.derived_state
 
       expect(result).to eq(:blocked)
     end
@@ -184,7 +182,7 @@ RSpec.describe ProjectHierarchy do
         owner: owner
       )
 
-      result = hierarchy.derived_state([:blocked, :done])
+      result = hierarchy.derived_state
 
       expect(result).to eq(:new)
     end

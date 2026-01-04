@@ -4,8 +4,6 @@ require_relative 'project_health'
 require_relative 'project_hierarchy'
 
 class Project
-  STATE_PRIORITY = [:blocked, :in_progress, :on_hold, :todo, :new, :done].freeze
-
   def initialize(attributes:, loaders: ProjectLoaders.new)
     @attributes = attributes
     @loaders = loaders
@@ -40,7 +38,7 @@ class Project
   end
 
   def current_state
-    leaf? ? attributes.current_state : hierarchy.derived_state(STATE_PRIORITY)
+    leaf? ? attributes.current_state : hierarchy.derived_state
   end
 
   def with_state(state:)

@@ -1,4 +1,6 @@
 class ProjectHierarchy
+  STATE_PRIORITY = [:blocked, :in_progress, :on_hold, :todo, :new, :done].freeze
+
   def initialize(children_loader:, parent_loader:, owner: nil)
     @children_loader = children_loader
     @parent_loader = parent_loader
@@ -25,12 +27,12 @@ class ProjectHierarchy
     children.flat_map(&:leaf_descendants)
   end
 
-  def derived_state(state_priority)
+  def derived_state
     leaves = leaf_descendants
     return :new if leaves.empty?
 
     leaf_states = leaves.map(&:current_state)
-    state_priority.find { |state| leaf_states.include?(state) } || :new
+    STATE_PRIORITY.find { |state| leaf_states.include?(state) } || :new
   end
 
   private
